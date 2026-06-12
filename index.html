@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUBMANHWA · Quiniela Mundial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c0f14;
+    --bg-panel: #141922;
+    --bg-card: #1b212c;
+    --line: #2a3242;
+    --grass: #1ed87f;
+    --gold: #f5b942;
+    --red: #ff5d5d;
+    --text: #eef1f5;
+    --text-dim: #8b96a8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Rubik', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 10% 0%, rgba(30,216,127,0.08), transparent 40%),
+      radial-gradient(circle at 90% 100%, rgba(245,185,66,0.06), transparent 40%);
+  }
+
+  /* HEADER */
+  header{
+    border-bottom: 1px solid var(--line);
+    padding: 28px 20px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(135deg, transparent 0 40px, rgba(255,255,255,0.015) 40px 80px);
+    pointer-events:none;
+  }
+  .brand{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  h1{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 6vw, 56px);
+    letter-spacing: 2px;
+    line-height:1.1;
+  }
+  h1 span{ color: var(--grass); }
+  .subtitle{
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  /* CONTAINER */
+  .container{
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  /* GROUP TABS */
+  .groups{
+    display:flex;
+    gap: 8px;
+    overflow-x:auto;
+    margin-bottom: 24px;
+    padding-bottom: 4px;
+  }
+  .group-tab{
+    flex:0 0 auto;
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing:2px;
+    padding: 10px 22px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg-panel);
+    color: var(--text-dim);
+    cursor:pointer;
+    transition: all .15s ease;
+    white-space:nowrap;
+  }
+  .group-tab.active{
+    border-color: var(--grass);
+    color: var(--grass);
+    background: rgba(30,216,127,0.08);
+  }
+  .group-tab:hover{ color: var(--text); }
+
+  /* MATCH CARD */
+  .match{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .match-meta{
+    display:flex;
+    justify-content:center;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .match-meta .live{ color: var(--gold); }
+
+  .teams{
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items:center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .team{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 8px;
+    text-align:center;
+  }
+  .flag{
+    font-size: 40px;
+    line-height:1;
+  }
+  .team-name{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+  .vs{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--text-dim);
+  }
+
+  /* BET FORM */
+  .bet-form{
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+  .score-inputs{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .score-inputs input{
+    width: 56px;
+    height: 56px;
+    text-align:center;
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 28px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+  }
+  .score-inputs input:focus{
+    outline:none;
+    border-color: var(--grass);
+  }
+  .score-sep{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--text-dim);
+  }
+
+  .name-row{
+    display:flex;
+    gap: 10px;
+  }
+  .name-row input[type="text"]{
+    flex:1;
+    height: 44px;
+    padding: 0 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .name-row input[type="text"]:focus{
+    outline:none;
+    border-color: var(--grass);
+  }
+  .name-row input[type="text"]::placeholder{ color: var(--text-dim); }
+
+  .btn-bet{
+    height: 44px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 10px;
+    background: var(--grass);
+    color: #06291a;
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    cursor:pointer;
+    transition: filter .15s ease;
+    white-space:nowrap;
+  }
+  .btn-bet:hover{ filter: brightness(1.1); }
+  .btn-bet:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .form-msg{
+    margin-top: 10px;
+    font-size: 13px;
+    text-align:center;
+    min-height: 18px;
+  }
+  .form-msg.ok{ color: var(--grass); }
+  .form-msg.err{ color: var(--red); }
+
+  /* BETS LIST */
+  .bets-list{
+    margin-top: 16px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+  .bets-list h4{
+    font-size: 12px;
+    text-transform:uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .bet-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .bet-row:last-child{ border-bottom:none; }
+  .bet-row .bname{ color: var(--text); font-weight:500; }
+  .bet-row .bscore{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+  .bets-empty{
+    color: var(--text-dim);
+    font-size: 13px;
+    text-align:center;
+    padding: 8px 0;
+  }
+
+  /* FOOTER */
+  footer{
+    text-align:center;
+    padding: 24px;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--line);
+  }
+  footer a{ color: var(--grass); text-decoration:none; }
+
+  @media (max-width: 480px){
+    .teams{ grid-template-columns: 1fr auto 1fr; gap: 8px; }
+    .flag{ font-size: 32px; }
+    .team-name{ font-size: 14px; }
+    .name-row{ flex-direction: column; }
+    .btn-bet{ width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">SUBMANHWA · ANUNCIOS</div>
+  <h1>QUINIELA <span>MUNDIAL</span> 🏆</h1>
+  <p class="subtitle">Predice el resultado exacto de cada partido y entra al ranking</p>
+</header>
+
+<div class="container">
+
+  <div class="groups" id="groups"></div>
+
+  <div id="matches"></div>
+
+</div>
+
+<footer>
+  Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
+</footer>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getDatabase, ref, push, onValue
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
+    authDomain: "submanhwa-apuestas.firebaseapp.com",
+    projectId: "submanhwa-apuestas",
+    storageBucket: "submanhwa-apuestas.firebasestorage.app",
+    messagingSenderId: "197537057888",
+    appId: "1:197537057888:web:48cd6427bd9184ba5e0705",
+    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ---------------------------------------------
+  // DATOS: Grupos y partidos (edita aquí)
+  // ---------------------------------------------
+  const GROUPS = {
+    "A": [
+      { id: "a1", home: { name: "México", flag: "🇲🇽" }, away: { name: "Corea del Sur", flag: "🇰🇷" }, date: "2026-06-15 · 14:00" },
+      { id: "a2", home: { name: "Chequia", flag: "🇨🇿" }, away: { name: "Sudáfrica", flag: "🇿🇦" }, date: "2026-06-15 · 17:00" }
+    ]
+  };
+
+  // ---------------------------------------------
+  // RENDER GRUPOS
+  // ---------------------------------------------
+  const groupsEl = document.getElementById("groups");
+  const matchesEl = document.getElementById("matches");
+  let currentGroup = Object.keys(GROUPS)[0];
+
+  function renderGroups(){
+    groupsEl.innerHTML = "";
+    Object.keys(GROUPS).forEach(g => {
+      const btn = document.createElement("button");
+      btn.className = "group-tab" + (g === currentGroup ? " active" : "");
+      btn.textContent = "Grupo " + g;
+      btn.onclick = () => { currentGroup = g; renderGroups(); renderMatches(); };
+      groupsEl.appendChild(btn);
+    });
+  }
+
+  // ---------------------------------------------
+  // RENDER PARTIDOS
+  // ---------------------------------------------
+  function renderMatches(){
+    matchesEl.innerHTML = "";
+    GROUPS[currentGroup].forEach(match => {
+      const card = document.createElement("div");
+      card.className = "match";
+      card.innerHTML = `
+        <div class="match-meta">
+          <span>Grupo ${currentGroup}</span>
+          <span>·</span>
+          <span>${match.date}</span>
+        </div>
+        <div class="teams">
+          <div class="team">
+            <div class="flag">${match.home.flag}</div>
+            <div class="team-name">${match.home.name}</div>
+          </div>
+          <div class="vs">VS</div>
+          <div class="team">
+            <div class="flag">${match.away.flag}</div>
+            <div class="team-name">${match.away.name}</div>
+          </div>
+        </div>
+        <div class="bet-form">
+          <div class="score-inputs">
+            <input type="number" min="0" max="20" placeholder="0" id="home-${match.id}">
+            <span class="score-sep">—</span>
+            <input type="number" min="0" max="20" placeholder="0" id="away-${match.id}">
+          </div>
+          <div class="name-row">
+            <input type="text" placeholder="Tu nombre o nick" id="name-${match.id}">
+            <button class="btn-bet" data-id="${match.id}">Apostar</button>
+          </div>
+          <div class="form-msg" id="msg-${match.id}"></div>
+          <div class="bets-list">
+            <h4>Apuestas registradas</h4>
+            <div id="bets-${match.id}"><div class="bets-empty">Cargando...</div></div>
+          </div>
+        </div>
+      `;
+      matchesEl.appendChild(card);
+
+      // listener del botón
+      card.querySelector(`.btn-bet[data-id="${match.id}"]`).addEventListener("click", () => placeBet(match));
+
+      // listener en tiempo real de apuestas
+      listenBets(match.id);
+    });
+  }
+
+  // ---------------------------------------------
+  // GUARDAR APUESTA
+  // ---------------------------------------------
+  async function placeBet(match){
+    const homeInput = document.getElementById(`home-${match.id}`);
+    const awayInput = document.getElementById(`away-${match.id}`);
+    const nameInput = document.getElementById(`name-${match.id}`);
+    const msgEl = document.getElementById(`msg-${match.id}`);
+    const btn = document.querySelector(`.btn-bet[data-id="${match.id}"]`);
+
+    const name = nameInput.value.trim();
+    const homeScore = homeInput.value;
+    const awayScore = awayInput.value;
+
+    msgEl.className = "form-msg";
+    msgEl.textContent = "";
+
+    if (!name){
+      msgEl.className = "form-msg err";
+      msgEl.textContent = "Escribe tu nombre o nick.";
+      return;
+    }
+    if (homeScore === "" || awayScore === ""){
+      msgEl.className = "form-msg err";
+      msgEl.textContent = "Completa el marcador.";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "...";
+
+    try {
+      await push(ref(db, "bets/" + match.id), {
+        matchId: match.id,
+        group: currentGroup,
+        home: match.home.name,
+        away: match.away.name,
+        homeScore: Number(homeScore),
+        awayScore: Number(awayScore),
+        username: name,
+        createdAt: Date.now()
+      });
+      msgEl.className = "form-msg ok";
+      msgEl.textContent = "¡Apuesta guardada! 🔥";
+      nameInput.value = "";
+      homeInput.value = "";
+      awayInput.value = "";
+    } catch (e){
+      console.error(e);
+      msgEl.className = "form-msg err";
+      msgEl.textContent = "Error al guardar. Intenta de nuevo.";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Apostar";
+    }
+  }
+
+  // ---------------------------------------------
+  // ESCUCHAR APUESTAS EN TIEMPO REAL
+  // ---------------------------------------------
+  function listenBets(matchId){
+    const betsEl = document.getElementById(`bets-${matchId}`);
+    const betsRef = ref(db, "bets/" + matchId);
+
+    onValue(betsRef, (snapshot) => {
+      if (!snapshot.exists()){
+        betsEl.innerHTML = `<div class="bets-empty">Aún no hay apuestas. ¡Sé el primero!</div>`;
+        return;
+      }
+      const entries = Object.values(snapshot.val())
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      betsEl.innerHTML = "";
+      entries.forEach(d => {
+        const row = document.createElement("div");
+        row.className = "bet-row";
+        row.innerHTML = `
+          <span class="bname">${escapeHtml(d.username)}</span>
+          <span class="bscore">${d.homeScore} - ${d.awayScore}</span>
+        `;
+        betsEl.appendChild(row);
+      });
+    }, (err) => {
+      console.error(err);
+      betsEl.innerHTML = `<div class="bets-empty">Error al cargar apuestas.</div>`;
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------------------------------------------
+  // INIT
+  // ---------------------------------------------
+  renderGroups();
+  renderMatches();
+</script>
+
+</body>
+</html>
