@@ -346,6 +346,7 @@
       <li>Si aciertas el <span class="reward">equipo ganador</span> (sin importar el marcador exacto), te llevas la carta de ese equipo.</li>
       <li>Si aciertas el <span class="reward">marcador exacto</span>, te llevas <span class="reward">las 2 cartas</span> del partido.</li>
       <li>Las cartas se enviarán una vez termine el partido.</li>
+      <li>⏰ Las apuestas se <span class="reward">cierran automáticamente</span> cuando inicia el partido. ¡No llegues tarde!</li>
     </ol>
   </div>
 
@@ -384,7 +385,7 @@
   // ---------------------------------------------
   const GROUPS = {
     "D": [
-      { id: "d1", home: { name: "Estados Unidos", flag: "🇺🇸" }, away: { name: "Paraguay", flag: "🇵🇾" }, date: "2026-06-12 · 20:00" }
+      { id: "d1", home: { name: "Estados Unidos", flag: "🇺🇸" }, away: { name: "Paraguay", flag: "🇵🇾" }, date: "2026-06-12 · 20:00", closeTime: "2026-06-12T20:00:00-05:00" }
     ]
   };
 
@@ -412,6 +413,8 @@
   function renderMatches(){
     matchesEl.innerHTML = "";
     GROUPS[currentGroup].forEach(match => {
+      const closed = match.closeTime && Date.now() >= new Date(match.closeTime).getTime();
+
       const card = document.createElement("div");
       card.className = "match";
       card.innerHTML = `
@@ -419,6 +422,7 @@
           <span>Grupo ${currentGroup}</span>
           <span>·</span>
           <span>${match.date}</span>
+          ${closed ? '<span class="live">· APUESTAS CERRADAS</span>' : ''}
         </div>
         <div class="teams">
           <div class="team">
@@ -432,6 +436,9 @@
           </div>
         </div>
         <div class="bet-form">
+          ${closed ? `
+            <div class="form-msg err" style="margin-bottom:10px;">🔒 Las apuestas para este partido están cerradas.</div>
+          ` : `
           <div class="score-inputs">
             <input type="number" min="0" max="20" placeholder="0" id="home-${match.id}">
             <span class="score-sep">—</span>
@@ -442,6 +449,7 @@
             <button class="btn-bet" data-id="${match.id}">Apostar</button>
           </div>
           <div class="form-msg" id="msg-${match.id}"></div>
+          `}
           <div class="bets-list">
             <h4>Apuestas registradas</h4>
             <div id="bets-${match.id}"><div class="bets-empty">Cargando...</div></div>
@@ -450,8 +458,10 @@
       `;
       matchesEl.appendChild(card);
 
-      // listener del botón
-      card.querySelector(`.btn-bet[data-id="${match.id}"]`).addEventListener("click", () => placeBet(match));
+      // listener del botón (solo si abierto)
+      if (!closed){
+        card.querySelector(`.btn-bet[data-id="${match.id}"]`).addEventListener("click", () => placeBet(match));
+      }
 
       // listener en tiempo real de apuestas
       listenBets(match.id);
