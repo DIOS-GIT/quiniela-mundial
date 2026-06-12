@@ -567,6 +567,16 @@
   // ---------------------------------------------
   renderGroups();
   renderMatches();
+
+  // Cierra apuestas automáticamente sin recargar, revisando cada 15s
+  setInterval(() => {
+    const needsUpdate = GROUPS[currentGroup].some(m =>
+      m.closeTime &&
+      Date.now() >= new Date(m.closeTime).getTime() &&
+      document.getElementById(`name-${m.id}`) // el formulario aún está visible
+    );
+    if (needsUpdate) renderMatches();
+  }, 15000);
 </script>
 
 </body>
