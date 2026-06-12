@@ -280,6 +280,52 @@
     .name-row{ flex-direction: column; }
     .btn-bet{ width:100%; }
   }
+
+  /* RULES */
+  .rules{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+  }
+  .rules h3{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .rules ol{
+    list-style: none;
+    counter-reset: rule;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rules ol li{
+    counter-increment: rule;
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .rules ol li::before{
+    content: counter(rule);
+    flex: 0 0 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(30,216,127,0.12);
+    color: var(--grass);
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .rules .reward{ color: var(--gold); font-weight: 700; }
+
 </style>
 </head>
 <body>
@@ -291,6 +337,16 @@
 </header>
 
 <div class="container">
+
+  <div class="rules">
+    <h3>📜 ¿Cómo funciona?</h3>
+    <ol>
+      <li>Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color: var(--grass);">submanhwa.com</a> en el campo de nombre.</li>
+      <li>Coloca el marcador que crees que será el resultado final del partido.</li>
+      <li>Si aciertas el <span class="reward">equipo ganador</span> (sin importar el marcador exacto), te llevas la carta de ese equipo.</li>
+      <li>Si aciertas el <span class="reward">marcador exacto</span>, te llevas <span class="reward">las 2 cartas</span> del partido.</li>
+    </ol>
+  </div>
 
   <div class="groups" id="groups"></div>
 
