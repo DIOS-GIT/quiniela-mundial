@@ -121,30 +121,39 @@
   }
   .match-meta .live{ color: var(--gold); }
 
-  /* Contenedor principal de equipos */
+  /* 💻 DISEÑO DE ESCRITORIO SANO (Estructura de 3 columnas de imagen_4.jpg reparada) */
   .teams{
-    display:grid;
+    display: grid;
     grid-template-columns: 1fr auto 1fr;
-    align-items:center;
-    gap: 16px;
+    align-items: center;
+    gap: 24px;
     margin-bottom: 20px;
   }
   
-  .team{
-    display:flex;
-    flex-direction: column;
-    align-items:center;
-    justify-content:center;
-    gap: 12px;
-    text-align:center;
+  /* Contenedores individuales de las cartas en PC */
+  .home-card-zone, .away-card-zone {
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
-  
-  /* Contenedor adaptativo de banderas y nombres nativos */
+
+  /* Centro: Contenedor del versus con banderas */
+  .match-center-zone {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-width: 240px;
+  }
+
   .team-identity {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    text-align: center;
+    flex: 1;
   }
   
   .flag{
@@ -160,13 +169,8 @@
     font-family:'Bebas Neue', sans-serif;
     font-size: 24px;
     color: var(--text-dim);
-    min-width: 40px;
+    padding: 0 10px;
     text-align: center;
-  }
-
-  /* Bloque de cartas en juego */
-  .cards-wrapper {
-    display: contents; /* Por defecto se integra en el grid global de escritorio */
   }
 
   .card-container {
@@ -175,14 +179,14 @@
     align-items: center;
     gap: 6px;
     width: 100%;
+    max-width: 180px;
   }
 
   .card-thumb{
     width: 100%;
-    max-width: 180px;
+    height: auto;
     border-radius: 10px;
     border: 1px solid var(--line);
-    height: auto;
     display: block;
   }
   .card-label{
@@ -411,7 +415,7 @@
   .live-score-status.loading{ color: var(--text-dim); }
   @keyframes blink{ 50%{ opacity:0; } }
 
-  /* RULES CORREGIDAS (Adiós al desmadre del espacio de WhatsApp Image 2026-06-13 at 5.42.45 PM (1).jpeg) */
+  /* RULES CORREGIDAS */
   .rules{
     background: var(--bg-card);
     border: 1px solid var(--line);
@@ -495,56 +499,69 @@
   }
   footer a { color: var(--grass); text-decoration: none; }
 
-  /* 🔥 NUEVAS MEDIA QUERIES ULTRA RESPONSIVE PARA DISPOSITIVOS MÓVILES 🔥 */
+  /* 🔥 RESPONSIVE PERFECTO: SÓLO CAMBIA EL ORDEN CUANDO ES UN CELULAR MENOR A 640PX 🔥 */
   @media (max-width: 640px) {
     .container { padding: 16px 12px 60px; }
     
-    /* Cambiamos el Grid a 1 columna para separar las identidades de las cartas */
+    /* El contenedor global pasa de 3 columnas horizontales a un bloque único vertical */
     .teams {
       grid-template-columns: 1fr;
-      gap: 20px;
+      gap: 16px;
     }
 
-    /* Fila superior: Bandera vs Bandera */
-    .team {
-      grid-column: 1;
-      flex-direction: row;
-      justify-content: space-evenly;
-      align-items: center;
+    /* Forzamos que las zonas de cartas se junten abajo en flexbox */
+    .home-card-zone {
+      grid-row: 2;
+      width: calc(50% - 6px);
+    }
+    .away-card-zone {
+      grid-row: 2;
+      width: calc(50% - 6px);
+    }
+
+    /* Modificamos el bloque del VS para que abarque arriba de las cartas y use flex normal */
+    .match-center-zone {
+      grid-row: 1;
       width: 100%;
       background: var(--bg-panel);
       padding: 12px;
       border-radius: 10px;
       border: 1px solid var(--line);
+      justify-content: space-evenly;
     }
     
-    .team-identity {
-      flex-direction: row;
-      gap: 10px;
+    /* Modificamos el padre directo de las zonas de las dos cartas para colocarlas lado a lado */
+    .teams {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     
+    /* Envoltura interna improvisada para agrupar las cartas abajo en móvil */
+    .home-card-zone, .away-card-zone {
+      display: inline-flex;
+    }
+    
+    /* Forzamos contenedor flex horizontal para las dos cartas inferiores */
+    .teams {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .match-center-zone {
+      grid-column: 1 / span 2;
+    }
+    
+    .home-card-zone { grid-column: 1; width: 100%; }
+    .away-card-zone { grid-column: 2; width: 100%; }
+
+    .team-identity { flex-direction: row; gap: 8px; }
     .team-name { font-size: 18px; }
     .flag { font-size: 26px; }
-    .vs { font-size: 20px; margin: 0 10px; }
+    .vs { font-size: 20px; }
 
-    /* Forzamos que las cartas se coloquen juntas abajo en dos columnas equilibradas */
-    .cards-wrapper {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      margin-top: 4px;
-    }
-
-    .card-container {
-      width: calc(50% - 6px);
-    }
-
-    .card-thumb {
-      max-width: 100%;
-      width: 100%;
-    }
-    
+    .card-container { max-width: 100%; }
     .card-label { font-size: 9px; }
 
     .name-row { flex-direction: column; }
@@ -572,7 +589,6 @@
     🃏 <span class="num" id="cards-total">0</span> cartas en juego hoy
   </div>
 
-  <!-- Contenedor con la estructura limpia para evitar fallos de renderizado en texto -->
   <div class="rules">
     <h3>📜 ¿Cómo funciona?</h3>
     <ol>
@@ -616,7 +632,7 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
-<script src="matches-config.js?v=1.2"></script>
+<script src="matches-config.js?v=1.3"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -677,8 +693,16 @@
         </div>
         
         <div class="teams">
-          <!-- FILA DE IDENTIDADES (BANDERAS Y PAÍSES) -->
-          <div class="team">
+          <!-- CARTA IZQUIERDA -->
+          <div class="home-card-zone">
+            <div class="card-container">
+              ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}">` : ''}
+              ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
+            </div>
+          </div>
+          
+          <!-- BLOQUE CENTRAL DEL VERSUS -->
+          <div class="match-center-zone">
             <div class="team-identity">
               <div class="flag">${match.home.flag}</div>
               <div class="team-name">${match.home.name}</div>
@@ -690,12 +714,8 @@
             </div>
           </div>
           
-          <!-- FILA DE CARTAS (GRANDES Y JUNTAS ABAJO EN MÓVIL) -->
-          <div class="cards-wrapper">
-            <div class="card-container">
-              ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}">` : ''}
-              ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
-            </div>
+          <!-- CARTA DERECHA -->
+          <div class="away-card-zone">
             <div class="card-container">
               ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}">` : ''}
               ${match.away.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
