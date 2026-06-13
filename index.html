@@ -327,7 +327,44 @@
     padding: 8px 0;
   }
 
-  /* FOOTER */
+  /* LIVE SCORE */
+  .live-score{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .live-score .score-box{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 2px;
+    color: var(--text);
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 4px 18px;
+    min-width: 60px;
+    text-align:center;
+  }
+  .live-score .score-sep{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--text-dim);
+  }
+  .live-score-status{
+    text-align:center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform:uppercase;
+    margin-bottom: 12px;
+  }
+  .live-score-status.in-play{ color: var(--red); font-weight:700; animation: blink 1.2s step-start infinite; }
+  .live-score-status.finished{ color: var(--grass); }
+  .live-score-status.loading{ color: var(--text-dim); }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+
   footer{
     text-align:center;
     padding: 24px;
@@ -534,7 +571,7 @@
               ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
             </div>
           </div>
-          <div class="vs">VS</div>
+          <div class="vs" id="vs-${match.id}">VS</div>
           <div class="team away">
             ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}">` : ''}
             <div class="team-info">
@@ -544,6 +581,7 @@
             </div>
           </div>
         </div>
+        <div id="livescore-${match.id}"></div>
         <div class="bet-form">
           ${closed ? `
             <div class="form-msg err" style="margin-bottom:10px;">🔒 Las apuestas para este partido están cerradas.</div>
@@ -743,13 +781,95 @@
     return div.innerHTML;
   }
 
+  // ---------------------------------------------
+  // MARCADOR EN VIVO (football-data.org)
+  // ---------------------------------------------
+  const FD_TOKEN = "fdb6cc3867944be0b5ba1b56747530f7";
+  const PROXY = "https://api.allorigins.win/get?url=";
+
+  async function fetchLiveScores(){
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const url = encodeURIComponent(
+        `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${today}&dateTo=${today}&X-Auth-Token=${FD_TOKEN}`
+      );
+
+      const res = await fetch(`${PROXY}${url}`, {
+        headers: { "X-Auth-Token": FD_TOKEN }
+      });
+      if (!res.ok) return;
+
+      const raw = await res.json();
+      const data = JSON.parse(raw.contents);
+      if (!data.matches) return;
+
+      // Para cada partido activo, busca por nombre de equipo
+      if (!GROUPS[currentGroup]) return;
+      GROUPS[currentGroup].forEach(match => {
+        const apiMatch = data.matches.find(m => {
+          const h = (m.homeTeam?.name || m.homeTeam?.shortName || "").toLowerCase();
+          const a = (m.awayTeam?.name || m.awayTeam?.shortName || "").toLowerCase();
+          const matchHome = match.home.name.toLowerCase();
+          const matchAway = match.away.name.toLowerCase();
+          return (
+            (h.includes(matchHome.split(" ")[0]) || matchHome.includes(h.split(" ")[0])) &&
+            (a.includes(matchAway.split(" ")[0]) || matchAway.includes(a.split(" ")[0]))
+          );
+        });
+
+        const liveEl = document.getElementById(`livescore-${match.id}`);
+        const vsEl = document.getElementById(`vs-${match.id}`);
+        if (!liveEl || !apiMatch) return;
+
+        const status = apiMatch.status;
+        const homeGoals = apiMatch.score?.fullTime?.home ?? apiMatch.score?.halfTime?.home ?? null;
+        const awayGoals = apiMatch.score?.fullTime?.away ?? apiMatch.score?.halfTime?.away ?? null;
+        const minute = apiMatch.minute;
+
+        if (status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED") {
+          if (vsEl) vsEl.style.display = "none";
+
+          const statusText = status === "FINISHED"
+            ? "⚽ Partido finalizado"
+            : status === "PAUSED"
+            ? "⏸ Medio tiempo"
+            : `🔴 EN VIVO · ${minute || ""}′`;
+
+          const statusClass = status === "FINISHED" ? "finished" : "in-play";
+
+          liveEl.innerHTML = `
+            <div class="live-score-status ${statusClass}">${statusText}</div>
+            <div class="live-score">
+              <div class="score-box">${homeGoals ?? "-"}</div>
+              <div class="score-sep">—</div>
+              <div class="score-box">${awayGoals ?? "-"}</div>
+            </div>
+          `;
+        } else {
+          // SCHEDULED o TIMED: ocultar bloque
+          liveEl.innerHTML = "";
+          if (vsEl) vsEl.style.display = "";
+        }
+      });
+
+    } catch(e) {
+      console.warn("Error al obtener marcador en vivo:", e);
+    }
+  }
+
   // Ejecución inicial segura
   renderGroups();
   renderMatches();
+  fetchLiveScores();
 
   setInterval(() => {
     updateCountdowns();
   }, 1000);
+
+  // Actualizar marcador en vivo cada 60 segundos
+  setInterval(() => {
+    fetchLiveScores();
+  }, 60000);
 </script>
 
 </body>
