@@ -116,9 +116,12 @@
     text-transform:uppercase;
     letter-spacing: 1px;
     margin-bottom: 16px;
+    text-align: center;
+    flex-wrap: wrap;
   }
   .match-meta .live{ color: var(--gold); }
 
+  /* Contenedor principal de equipos */
   .teams{
     display:grid;
     grid-template-columns: 1fr auto 1fr;
@@ -126,50 +129,68 @@
     gap: 16px;
     margin-bottom: 20px;
   }
+  
   .team{
     display:flex;
+    flex-direction: column;
     align-items:center;
     justify-content:center;
-    gap: 14px;
+    gap: 12px;
     text-align:center;
   }
-  .team.away{
-    flex-direction: row-reverse;
+  
+  /* Contenedor adaptativo de banderas y nombres nativos */
+  .team-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
   }
-  .team-info{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap: 4px;
-  }
+  
   .flag{
     font-size: 32px;
     line-height:1;
   }
   .team-name{
     font-family:'Bebas Neue', sans-serif;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 1px;
   }
   .vs{
     font-family:'Bebas Neue', sans-serif;
-    font-size: 22px;
+    font-size: 24px;
     color: var(--text-dim);
     min-width: 40px;
     text-align: center;
-    transition: opacity 0.3s ease;
+  }
+
+  /* Bloque de cartas en juego */
+  .cards-wrapper {
+    display: contents; /* Por defecto se integra en el grid global de escritorio */
+  }
+
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
   }
 
   .card-thumb{
-    width: 200px;
+    width: 100%;
+    max-width: 180px;
     border-radius: 10px;
     border: 1px solid var(--line);
+    height: auto;
+    display: block;
   }
   .card-label{
     font-size: 10px;
     text-transform:uppercase;
     letter-spacing: 1px;
     color: var(--text-dim);
+    text-align: center;
   }
 
   /* BET FORM */
@@ -317,7 +338,6 @@
   .bet-row.blue{ background: rgba(93,157,255,0.05); border-left: 3px solid #5d9dff; }
   .bet-row.white{ background: rgba(255,255,255,0.04); border-left: 3px solid #e8e8e8; }
 
-  /* ⭐ ESTILOS DE PREMIO DORADO (MARCADOR EXACTO) */
   .bet-row.perfect-match {
     background: linear-gradient(90deg, rgba(245,185,66,0.18) 0%, rgba(20,25,34,0.6) 100%) !important;
     border-left: 4px solid var(--gold) !important;
@@ -391,12 +411,12 @@
   .live-score-status.loading{ color: var(--text-dim); }
   @keyframes blink{ 50%{ opacity:0; } }
 
-  /* RULES */
+  /* RULES CORREGIDAS (Adiós al desmadre del espacio de WhatsApp Image 2026-06-13 at 5.42.45 PM (1).jpeg) */
   .rules{
     background: var(--bg-card);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 20px 22px;
+    padding: 20px;
     margin-bottom: 24px;
   }
   .rules h3{
@@ -404,25 +424,23 @@
     font-size: 20px;
     letter-spacing: 2px;
     color: var(--gold);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .rules ol{
     list-style: none;
-    counter-reset: rule;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   .rules ol li{
-    counter-increment: rule;
     display: flex;
+    align-items: flex-start;
     gap: 12px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.4;
     color: var(--text);
   }
-  .rules ol li::before{
-    content: counter(rule);
+  .rules ol li .num-badge{
     flex: 0 0 24px;
     height: 24px;
     border-radius: 50%;
@@ -430,9 +448,13 @@
     color: var(--grass);
     font-family:'Bebas Neue', sans-serif;
     font-size: 13px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .rules ol li .text-content {
+    flex: 1;
   }
   .rules .reward{ color: var(--gold); font-weight: 700; }
 
@@ -473,15 +495,66 @@
   }
   footer a { color: var(--grass); text-decoration: none; }
 
-  @media (max-width: 480px){
-    .teams{ grid-template-columns: 1fr auto 1fr; gap: 8px; }
-    .flag{ font-size: 24px; }
-    .team-name{ font-size: 13px; }
-    .card-thumb{ width: 110px; }
-    .card-label{ font-size: 8px; }
-    .team{ gap: 6px; }
-    .name-row{ flex-direction: column; }
-    .btn-bet{ width:100%; }
+  /* 🔥 NUEVAS MEDIA QUERIES ULTRA RESPONSIVE PARA DISPOSITIVOS MÓVILES 🔥 */
+  @media (max-width: 640px) {
+    .container { padding: 16px 12px 60px; }
+    
+    /* Cambiamos el Grid a 1 columna para separar las identidades de las cartas */
+    .teams {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    /* Fila superior: Bandera vs Bandera */
+    .team {
+      grid-column: 1;
+      flex-direction: row;
+      justify-content: space-evenly;
+      align-items: center;
+      width: 100%;
+      background: var(--bg-panel);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    
+    .team-identity {
+      flex-direction: row;
+      gap: 10px;
+    }
+    
+    .team-name { font-size: 18px; }
+    .flag { font-size: 26px; }
+    .vs { font-size: 20px; margin: 0 10px; }
+
+    /* Forzamos que las cartas se coloquen juntas abajo en dos columnas equilibradas */
+    .cards-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .card-container {
+      width: calc(50% - 6px);
+    }
+
+    .card-thumb {
+      max-width: 100%;
+      width: 100%;
+    }
+    
+    .card-label { font-size: 9px; }
+
+    .name-row { flex-direction: column; }
+    .btn-bet { width: 100%; }
+    
+    .score-inputs input {
+      width: 65px;
+      height: 65px;
+      font-size: 32px;
+    }
   }
 </style>
 </head>
@@ -499,16 +572,38 @@
     🃏 <span class="num" id="cards-total">0</span> cartas en juego hoy
   </div>
 
+  <!-- Contenedor con la estructura limpia para evitar fallos de renderizado en texto -->
   <div class="rules">
     <h3>📜 ¿Cómo funciona?</h3>
     <ol>
-      <li>Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color: var(--grass);">submanhwa.com</a> en el campo de nombre.</li>
-      <li>Coloca el marcador que crees que será el resultado final del partido.</li>
-      <li>Si aciertas el <span class="reward">equipo ganador</span> (sin importar el marcador exacto), te llevas la carta de ese equipo.</li>
-      <li>Si aciertas el <span class="reward">marcador exacto</span>, te llevas <span class="reward">las 2 cartas</span> del partido.</li>
-      <li>Las cartas se enviarán una vez termine el partido.</li>
-      <li>💬 En caso de no recibir la carta, comunicarse con el staff de submanhwa vía <a href="https://discord.gg/submanhwa" target="_blank" style="color: #5d9dff; font-weight: bold;">Discord</a>.</li>
-      <li>⏰ Las apuestas se <span class="reward">cierran automáticamente</span> cuando inicia el partido. ¡No llegues tarde!</li>
+      <li>
+        <span class="num-badge">1</span>
+        <span class="text-content">Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color: var(--grass);">submanhwa.com</a> en el campo de nombre.</span>
+      </li>
+      <li>
+        <span class="num-badge">2</span>
+        <span class="text-content">Coloca el marcador que crees que será el resultado final del partido.</span>
+      </li>
+      <li>
+        <span class="num-badge">3</span>
+        <span class="text-content">Si aciertas el <span class="reward">equipo ganador</span> (sin importar el marcador exacto), te llevas la carta de ese equipo.</span>
+      </li>
+      <li>
+        <span class="num-badge">4</span>
+        <span class="text-content">Si aciertas el <span class="reward">marcador exacto</span>, te llevas <span class="reward">las 2 cartas</span> del partido.</span>
+      </li>
+      <li>
+        <span class="num-badge">5</span>
+        <span class="text-content">Las cartas se enviarán una vez termine el partido.</span>
+      </li>
+      <li>
+        <span class="num-badge">6</span>
+        <span class="text-content">💬 En caso de no recibir la carta, comunicarse con el staff de submanhwa vía <a href="https://discord.gg/submanhwa" target="_blank" style="color: #5d9dff; font-weight: bold;">Discord</a>.</span>
+      </li>
+      <li>
+        <span class="num-badge">7</span>
+        <span class="text-content">⏰ Las apuestas se <span class="reward">cierran automáticamente</span> cuando inicia el partido. ¡No llegues tarde!</span>
+      </li>
     </ol>
   </div>
 
@@ -521,8 +616,7 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
-<!-- ⚡ ¡Aquí se aplicó el truco del versioneado para limpiar la caché de los usuarios! -->
-<script src="matches-config.js?v=1.1"></script>
+<script src="matches-config.js?v=1.2"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -547,7 +641,7 @@
   const matchesEl = document.getElementById("matches");
   let currentGroup = Object.keys(GROUPS)[0];
   const currentBets = {};
-  const liveScoresState = {}; // Guarda marcadores actuales en memoria para cruzar con apuestas
+  const liveScoresState = {};
 
   function renderGroups(){
     if(!groupsEl) return;
@@ -581,25 +675,34 @@
             : (match.closeTime ? `<span>· <span class="countdown" id="countdown-${match.id}"></span></span>` : '')
           }
         </div>
+        
         <div class="teams">
+          <!-- FILA DE IDENTIDADES (BANDERAS Y PAÍSES) -->
           <div class="team">
-            ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}">` : ''}
-            <div class="team-info">
+            <div class="team-identity">
               <div class="flag">${match.home.flag}</div>
               <div class="team-name">${match.home.name}</div>
-              ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
             </div>
-          </div>
-          <div class="vs" id="vs-${match.id}">VS</div>
-          <div class="team away">
-            ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}">` : ''}
-            <div class="team-info">
+            <div class="vs" id="vs-${match.id}">VS</div>
+            <div class="team-identity">
               <div class="flag">${match.away.flag}</div>
               <div class="team-name">${match.away.name}</div>
+            </div>
+          </div>
+          
+          <!-- FILA DE CARTAS (GRANDES Y JUNTAS ABAJO EN MÓVIL) -->
+          <div class="cards-wrapper">
+            <div class="card-container">
+              ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}">` : ''}
+              ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
+            </div>
+            <div class="card-container">
+              ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}">` : ''}
               ${match.away.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
             </div>
           </div>
         </div>
+
         <div id="livescore-${match.id}"></div>
         <div class="bet-form">
           ${closed ? `
@@ -639,7 +742,6 @@
     updateCardsBanner();
   }
 
-  // Helper para IDs limpios en selectores HTML
   function matchIdToSelector(id) {
     return id.replace(/[^a-zA-Z0-9-_]/g, '_');
   }
@@ -762,7 +864,6 @@
 
       if (countEl) countEl.textContent = entries.length;
 
-      // Renderizar cruzando con el marcador en vivo guardado
       buildBetsListDOM(matchId, entries, betsEl);
     });
   }
@@ -782,7 +883,6 @@
       white: `⚪ Empate (${groups.white.length})`
     };
 
-    // Consultamos el marcador actual en vivo para este partido
     const liveInfo = liveScoresState[matchId];
 
     betsEl.innerHTML = "";
@@ -795,7 +895,6 @@
       groups[color].forEach(d => {
         const row = document.createElement("div");
         
-        // 🌟 LÓGICA DE DETECCIÓN DE MARCADOR PERFECTO
         let isPerfect = false;
         let tagHtml = "";
 
@@ -839,7 +938,6 @@
         delete liveScoresState[match.id];
         liveEl.innerHTML = "";
         if(vsEl) vsEl.style.opacity = "1";
-        // Refrescar lista de apuestas si ya existía
         const safeId = matchIdToSelector(match.id);
         const betsEl = document.getElementById(`bets-${safeId}`);
         if(betsEl && currentBets[match.id]) buildBetsListDOM(match.id, currentBets[match.id], betsEl);
@@ -847,7 +945,7 @@
       }
 
       const d = snap.val();
-      liveScoresState[match.id] = d; // Guardamos estado global
+      liveScoresState[match.id] = d;
 
       const { home, away, status } = d;
 
@@ -870,7 +968,6 @@
         if(vsEl) vsEl.style.opacity = "1";
       }
 
-      // Cada vez que cambia el marcador, re-renderizamos la lista de apuestas para recalcular dorados
       const safeId = matchIdToSelector(match.id);
       const betsEl = document.getElementById(`bets-${safeId}`);
       if(betsEl && currentBets[match.id]) {
@@ -878,7 +975,6 @@
       }
     });
 
-    // Encendemos el listener de apuestas para este partido
     listenBets(match.id);
   }
 
