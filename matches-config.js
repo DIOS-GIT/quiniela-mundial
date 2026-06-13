@@ -33,7 +33,7 @@ const GROUPS = {
     { 
       id: "2026_d1", 
       groupName: "Grupo D", 
-      home: { name: "Australia", flag: "🇦🇺", card: "MITICO-turquia.jpg" }, 
+      home: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }, //  ¡Corregido!
       away: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" }, 
       date: "Hoy · 23:00 (11:00 p.m.)", 
       closeTime: "2026-06-13T23:00:00-05:00", 
