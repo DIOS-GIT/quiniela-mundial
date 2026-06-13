@@ -785,22 +785,18 @@
   // MARCADOR EN VIVO (football-data.org)
   // ---------------------------------------------
   const FD_TOKEN = "fdb6cc3867944be0b5ba1b56747530f7";
-  const PROXY = "https://api.allorigins.win/get?url=";
 
   async function fetchLiveScores(){
     try {
       const today = new Date().toISOString().slice(0, 10);
-      const url = encodeURIComponent(
-        `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${today}&dateTo=${today}&X-Auth-Token=${FD_TOKEN}`
-      );
+      const apiUrl = `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${today}&dateTo=${today}`;
 
-      const res = await fetch(`${PROXY}${url}`, {
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, {
         headers: { "X-Auth-Token": FD_TOKEN }
       });
       if (!res.ok) return;
 
-      const raw = await res.json();
-      const data = JSON.parse(raw.contents);
+      const data = await res.json();
       if (!data.matches) return;
 
       // Para cada partido activo, busca por nombre de equipo
