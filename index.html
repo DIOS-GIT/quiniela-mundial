@@ -148,6 +148,20 @@
     color: var(--text-dim);
   }
 
+  .card-thumb{
+    width: 84px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    margin-top: 4px;
+  }
+  .card-label{
+    font-size: 10px;
+    text-transform:uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
   /* BET FORM */
   .bet-form{
     border-top: 1px solid var(--line);
@@ -369,6 +383,35 @@
   }
   .rules .reward{ color: var(--gold); font-weight: 700; }
 
+  /* CARDS BANNER */
+  .cards-banner{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(245,185,66,0.12), rgba(30,216,127,0.08));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 24px;
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    text-align:center;
+  }
+  .cards-banner .num{
+    color: var(--gold);
+    font-size: 24px;
+  }
+
+  /* COUNTDOWN */
+  .countdown{
+    font-family:'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    color: var(--gold);
+  }
+  .countdown.soon{ color: var(--red); }
+
 </style>
 </head>
 <body>
@@ -380,6 +423,10 @@
 </header>
 
 <div class="container">
+
+  <div class="cards-banner" id="cards-banner">
+    🃏 <span class="num" id="cards-total">0</span> cartas en juego hoy
+  </div>
 
   <div class="rules">
     <h3>📜 ¿Cómo funciona?</h3>
@@ -428,7 +475,7 @@
   // ---------------------------------------------
   const GROUPS = {
     "D": [
-      { id: "d1", home: { name: "Estados Unidos", flag: "🇺🇸" }, away: { name: "Paraguay", flag: "🇵🇾" }, date: "2026-06-12 · 20:00", closeTime: "2026-06-12T20:00:00-05:00" }
+      { id: "d1", home: { name: "Estados Unidos", flag: "🇺🇸", card: "MITICO-estadosunidos.jpg" }, away: { name: "Paraguay", flag: "🇵🇾", card: "MITICO-paraguay.jpg" }, date: "2026-06-12 · 20:00", closeTime: "2026-06-12T20:00:00-05:00", cardsInPlay: 2 }
     ]
   };
 
@@ -438,6 +485,7 @@
   const groupsEl = document.getElementById("groups");
   const matchesEl = document.getElementById("matches");
   let currentGroup = Object.keys(GROUPS)[0];
+  const currentBets = {}; // matchId -> array de apuestas (cache para validar duplicados)
 
   function renderGroups(){
     groupsEl.innerHTML = "";
@@ -465,17 +513,22 @@
           <span>Grupo ${currentGroup}</span>
           <span>·</span>
           <span>${match.date}</span>
-          ${closed ? '<span class="live">· APUESTAS CERRADAS</span>' : ''}
+          ${closed
+            ? '<span class="live">· APUESTAS CERRADAS</span>'
+            : (match.closeTime ? `<span>· <span class="countdown" id="countdown-${match.id}"></span></span>` : '')
+          }
         </div>
         <div class="teams">
           <div class="team">
             <div class="flag">${match.home.flag}</div>
             <div class="team-name">${match.home.name}</div>
+            ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}"><div class="card-label">🃏 Carta en juego</div>` : ''}
           </div>
           <div class="vs">VS</div>
           <div class="team">
             <div class="flag">${match.away.flag}</div>
             <div class="team-name">${match.away.name}</div>
+            ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}"><div class="card-label">🃏 Carta en juego</div>` : ''}
           </div>
         </div>
         <div class="bet-form">
@@ -512,6 +565,49 @@
       // listener en tiempo real de apuestas
       listenBets(match.id);
     });
+
+    updateCountdowns();
+    updateCardsBanner();
+  }
+
+  // ---------------------------------------------
+  // CUENTA ATRÁS
+  // ---------------------------------------------
+  function updateCountdowns(){
+    GROUPS[currentGroup].forEach(match => {
+      const el = document.getElementById(`countdown-${match.id}`);
+      if (!el || !match.closeTime) return;
+
+      const diff = new Date(match.closeTime).getTime() - Date.now();
+      if (diff <= 0){
+        renderMatches(); // se acaba de cerrar, re-renderiza
+        return;
+      }
+      const totalMin = Math.floor(diff / 60000);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      const s = Math.floor((diff % 60000) / 1000);
+
+      let text;
+      if (h > 0) text = `Cierra en ${h}h ${m}m`;
+      else if (m > 0) text = `Cierra en ${m}m ${s}s`;
+      else text = `Cierra en ${s}s`;
+
+      el.textContent = text;
+      el.classList.toggle("soon", diff < 5 * 60000); // menos de 5 min
+    });
+  }
+
+  // ---------------------------------------------
+  // BANNER CARTAS EN JUEGO
+  // ---------------------------------------------
+  function updateCardsBanner(){
+    const bannerEl = document.getElementById("cards-banner");
+    const totalEl = document.getElementById("cards-total");
+    if (!bannerEl || !totalEl) return;
+
+    const total = GROUPS[currentGroup].reduce((sum, m) => sum + (m.cardsInPlay ?? 2), 0);
+    totalEl.textContent = total;
   }
 
   // ---------------------------------------------
@@ -539,6 +635,16 @@
     if (homeScore === "" || awayScore === ""){
       msgEl.className = "form-msg err";
       msgEl.textContent = "Completa el marcador.";
+      return;
+    }
+
+    const normalized = name.toLowerCase();
+    const existing = (currentBets[match.id] || []).find(
+      d => (d.username || "").trim().toLowerCase() === normalized
+    );
+    if (existing){
+      msgEl.className = "form-msg err";
+      msgEl.textContent = "Ya registraste una apuesta para este partido con ese nombre.";
       return;
     }
 
@@ -581,12 +687,15 @@
 
     onValue(betsRef, (snapshot) => {
       if (!snapshot.exists()){
+        currentBets[matchId] = [];
         betsEl.innerHTML = `<div class="bets-empty">Aún no hay apuestas. ¡Sé el primero!</div>`;
         if (countEl) countEl.textContent = "0";
         return;
       }
       const entries = Object.values(snapshot.val())
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      currentBets[matchId] = entries;
 
       if (countEl) countEl.textContent = entries.length;
 
@@ -639,15 +748,10 @@
   renderGroups();
   renderMatches();
 
-  // Cierra apuestas automáticamente sin recargar, revisando cada 15s
+  // Actualiza countdowns cada segundo (y cierra apuestas automáticamente al llegar a 0)
   setInterval(() => {
-    const needsUpdate = GROUPS[currentGroup].some(m =>
-      m.closeTime &&
-      Date.now() >= new Date(m.closeTime).getTime() &&
-      document.getElementById(`name-${m.id}`) // el formulario aún está visible
-    );
-    if (needsUpdate) renderMatches();
-  }, 15000);
+    updateCountdowns();
+  }, 1000);
 </script>
 
 </body>
