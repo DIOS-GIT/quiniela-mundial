@@ -450,7 +450,8 @@
     </ol>
   </div>
 
-  <div class="groups" id="groups"></div>
+  <!-- Contenedor oculto para no romper lógica, ya no hay pestañas -->
+  <div class="groups" id="groups" style="display:none;"></div>
 
   <div id="matches"></div>
 
@@ -460,6 +461,7 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
+<!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
@@ -480,28 +482,24 @@
   const db = getDatabase(app);
 
   // ---------------------------------------------
-  // DATOS: Grupos y partidos actualizados
+  // DATOS: Todos juntos en la clave "D" para evitar romper la sincronización
   // ---------------------------------------------
   const GROUPS = {
-    "B": [
-      { id: "b1", home: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }, away: { name: "Suiza", flag: "🇨🇭", card: "MITICO-suiza.jpg" }, date: "Mañana · 14:00 (2:00 p.m.)", closeTime: "2026-06-13T14:00:00-05:00", cardsInPlay: 2 }
-    ],
-    "C": [
-      { id: "c1", home: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }, away: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" }, date: "Mañana · 17:00 (5:00 p.m.)", closeTime: "2026-06-13T17:00:00-05:00", cardsInPlay: 2 },
-      { id: "c2", home: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }, away: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" }, date: "Mañana · 20:00 (8:00 p.m.)", closeTime: "2026-06-13T20:00:00-05:00", cardsInPlay: 2 }
-    ],
     "D": [
-      { id: "d1", home: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }, away: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" }, date: "Mañana · 23:00 (11:00 p.m.)", closeTime: "2026-06-13T23:00:00-05:00", cardsInPlay: 2 }
+      { id: "b1", groupName: "Grupo B", home: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }, away: { name: "Suiza", flag: "🇨🇭", card: "MITICO-suiza.jpg" }, date: "Mañana · 14:00 (2:00 p.m.)", closeTime: "2026-06-13T14:00:00-05:00", cardsInPlay: 2 },
+      { id: "c1", groupName: "Grupo C", home: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }, away: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" }, date: "Mañana · 17:00 (5:00 p.m.)", closeTime: "2026-06-13T17:00:00-05:00", cardsInPlay: 2 },
+      { id: "c2", groupName: "Grupo C", home: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }, away: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" }, date: "Mañana · 20:00 (8:00 p.m.)", closeTime: "2026-06-13T20:00:00-05:00", cardsInPlay: 2 },
+      { id: "d1", groupName: "Grupo D", home: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }, away: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" }, date: "Mañana · 23:00 (11:00 p.m.)", closeTime: "2026-06-13T23:00:00-05:00", cardsInPlay: 2 }
     ]
   };
 
   // ---------------------------------------------
-  // RENDER GRUPOS
+  // RENDER GRUPOS (DESACTIVADO VISUALMENTE)
   // ---------------------------------------------
   const groupsEl = document.getElementById("groups");
   const matchesEl = document.getElementById("matches");
   let currentGroup = Object.keys(GROUPS)[0];
-  const currentBets = {}; // matchId -> array de apuestas (cache para validar duplicados)
+  const currentBets = {};
 
   function renderGroups(){
     groupsEl.innerHTML = "";
@@ -515,7 +513,7 @@
   }
 
   // ---------------------------------------------
-  // RENDER PARTIDOS
+  // RENDER PARTIDOS (TODOS JUNTOS)
   // ---------------------------------------------
   function renderMatches(){
     matchesEl.innerHTML = "";
@@ -526,7 +524,7 @@
       card.className = "match";
       card.innerHTML = `
         <div class="match-meta">
-          <span>Grupo ${currentGroup}</span>
+          <span>${match.groupName}</span>
           <span>·</span>
           <span>${match.date}</span>
           ${closed
@@ -570,7 +568,7 @@
           `}
           <div class="bets-list">
             <h4>
-              <span>Apuestas registrados</span>
+              <span>Apuestas registradas</span>
               <span class="bets-count" id="count-${match.id}">0</span>
             </h4>
             <div id="bets-${match.id}"><div class="bets-empty">Cargando...</div></div>
@@ -579,12 +577,10 @@
       `;
       matchesEl.appendChild(card);
 
-      // listener del botón (solo si abierto)
       if (!closed){
         card.querySelector(`.btn-bet[data-id="${match.id}"]`).addEventListener("click", () => placeBet(match));
       }
 
-      // listener en tiempo real de apuestas
       listenBets(match.id);
     });
 
@@ -603,7 +599,7 @@
 
       const diff = new Date(match.closeTime).getTime() - Date.now();
       if (diff <= 0){
-        renderMatches(); // se acaba de cerrar, re-renderiza
+        renderMatches();
         return;
       }
       const totalMin = Math.floor(diff / 60000);
@@ -617,7 +613,7 @@
       else text = `Cierra en ${s}s`;
 
       el.textContent = text;
-      el.classList.toggle("soon", diff < 5 * 60000); // menos de 5 min
+      el.classList.toggle("soon", diff < 5 * 60000);
     });
   }
 
@@ -771,7 +767,6 @@
   renderGroups();
   renderMatches();
 
-  // Actualiza countdowns cada segundo
   setInterval(() => {
     updateCountdowns();
   }, 1000);
