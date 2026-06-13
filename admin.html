@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel · Quiniela</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c0f14;
+    --bg-panel: #141922;
+    --bg-card: #1b212c;
+    --line: #2a3242;
+    --grass: #1ed87f;
+    --gold: #f5b942;
+    --red: #ff5d5d;
+    --text: #eef1f5;
+    --text-dim: #8b96a8;
+  }
+  body {
+    font-family: 'Rubik', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 20px;
+  }
+  .container { max-width: 600px; margin: 0 auto; }
+  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
+  
+  .login-box {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 30px;
+    border-radius: 14px;
+    text-align: center;
+  }
+  input {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  button {
+    background: var(--grass);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .admin-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #fff; margin-bottom: 12px; }
+  .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; }
+  
+  .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
+  .status-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    width: auto;
+    font-family: inherit;
+  }
+  .status-btn.active {
+    border-color: var(--grass);
+    color: var(--grass);
+    background: rgba(30,216,127,0.1);
+  }
+  .msg { font-size: 13px; text-align: center; margin-top: 10px; }
+  .msg.ok { color: var(--grass); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>⚙️ PANEL DE ADMINISTRACIÓN</h1>
+
+  <!-- PANTALLA DE ACCESO -->
+  <div class="login-box" id="login-box">
+    <p style="margin-bottom: 15px; color: var(--text-dim);">Introduce el código PIN de acceso</p>
+    <input type="password" id="pin-input" placeholder="••••">
+    <button onclick="verifyPin()">Ingresar</button>
+    <p id="login-err" style="color: var(--red); font-size: 13px; margin-top: 10px;"></p>
+  </div>
+
+  <!-- PANEL PRINCIPAL -->
+  <div id="panel-box" style="display: none;">
+    <div id="match-list"></div>
+  </div>
+</div>
+
+<!-- 📂 CONEXIÓN CON EL CONFIG CENTRALIZADO -->
+<script src="matches-config.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
+    authDomain: "submanhwa-apuestas.firebaseapp.com",
+    projectId: "submanhwa-apuestas",
+    storageBucket: "submanhwa-apuestas.firebasestorage.app",
+    messagingSenderId: "197537057888",
+    appId: "1:197537057888:web:48cd6427bd9184ba5e0705",
+    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const ADMIN_PIN = "1234"; // 🔧 Puedes cambiar este pin por el número que quieras
+  const STATUSES = [
+    { value: "SCHEDULED", label: "Pendiente" },
+    { value: "IN_PLAY",   label: "🔴 En Vivo" },
+    { value: "PAUSED",    label: "⏸ Medio Tiempo" },
+    { value: "FINISHED",  label: "✅ Finalizado" }
+  ];
+
+  window.verifyPin = function() {
+    const entered = document.getElementById("pin-input").value;
+    if(entered === ADMIN_PIN) {
+      document.getElementById("login-box").style.display = "none";
+      document.getElementById("panel-box").style.display = "block";
+      buildAdminPanel();
+    } else {
+      document.getElementById("login-err").textContent = "PIN incorrecto.";
+    }
+  }
+
+  function buildAdminPanel() {
+    const listEl = document.getElementById("match-list");
+    listEl.innerHTML = "";
+
+    Object.keys(GROUPS).forEach(groupKey => {
+      GROUPS[groupKey].forEach(match => {
+        const card = document.createElement("div");
+        card.className = "admin-card";
+        card.innerHTML = `
+          <h3>${match.groupName}: ${match.home.name} vs ${match.away.name}</h3>
+          <div class="score-row">
+            <input type="number" min="0" id="score-h-${match.id}" value="0">
+            <span style="color: var(--text-dim)">—</span>
+            <input type="number" min="0" id="score-a-${match.id}" value="0">
+          </div>
+          <div class="status-row">
+            ${STATUSES.map(s => `
+              <button class="status-btn" data-m="${match.id}" data-s="${s.value}" onclick="setUIStatus('${match.id}','${s.value}')">
+                ${s.label}
+              </button>
+            `).join("")}
+          </div>
+          <button style="background: var(--gold)" onclick="updateMatchFirebase('${match.id}')">Actualizar en Vivo</button>
+          <div class="msg" id="msg-${match.id}"></div>
+        `;
+        listEl.appendChild(card);
+
+        onValue(ref(db, `scores/${match.id}`), snap => {
+          if(!snap.exists()) return;
+          const data = snap.val();
+          if(data.home !== undefined) document.getElementById(`score-h-${match.id}`).value = data.home;
+          if(data.away !== undefined) document.getElementById(`score-a-${match.id}`).value = data.away;
+          if(data.status) setUIStatus(match.id, data.status);
+        });
+      });
+    });
+  }
+
+  window.setUIStatus = function(matchId, status) {
+    document.querySelectorAll(`[data-m="${matchId}"]`).forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.s === status);
+    });
+  }
+
+  window.updateMatchFirebase = async function(matchId) {
+    const home = Number(document.getElementById(`score-h-${matchId}`).value);
+    const away = Number(document.getElementById(`score-a-${matchId}`).value);
+    const activeBtn = document.querySelector(`[data-m="${matchId}"].active`);
+    const status = activeBtn ? activeBtn.dataset.s : "SCHEDULED";
+    const msgEl = document.getElementById("msg-" + matchId);
+
+    try {
+      await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
+      msgEl.className = "msg ok";
+      msgEl.textContent = "¡Actualizado con éxito! 🚀";
+      setTimeout(() => msgEl.textContent = "", 3000);
+    } catch(e) {
+      msgEl.className = "msg";
+      msgEl.style.color = "var(--red)";
+      msgEl.textContent = "Error: " + e.message;
+    }
+  }
+</script>
+</body>
+</html>
