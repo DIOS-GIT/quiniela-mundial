@@ -157,6 +157,7 @@
     color: var(--text-dim);
     min-width: 40px;
     text-align: center;
+    transition: opacity 0.3s ease;
   }
 
   .card-thumb{
@@ -306,14 +307,38 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding: 6px 10px;
+    padding: 8px 12px;
     font-size: 14px;
     border-radius: 6px;
     margin-bottom: 4px;
+    transition: all 0.3s ease;
   }
-  .bet-row.red{ background: rgba(255,93,93,0.08); border-left: 3px solid var(--red); }
-  .bet-row.blue{ background: rgba(93,157,255,0.08); border-left: 3px solid #5d9dff; }
-  .bet-row.white{ background: rgba(255,255,255,0.06); border-left: 3px solid #e8e8e8; }
+  .bet-row.red{ background: rgba(255,93,93,0.05); border-left: 3px solid var(--red); }
+  .bet-row.blue{ background: rgba(93,157,255,0.05); border-left: 3px solid #5d9dff; }
+  .bet-row.white{ background: rgba(255,255,255,0.04); border-left: 3px solid #e8e8e8; }
+
+  /* ⭐ ESTILOS DE PREMIO DORADO (MARCADOR EXACTO) */
+  .bet-row.perfect-match {
+    background: linear-gradient(90deg, rgba(245,185,66,0.18) 0%, rgba(20,25,34,0.6) 100%) !important;
+    border-left: 4px solid var(--gold) !important;
+    box-shadow: 0 0 10px rgba(245,185,66,0.15);
+  }
+  .bet-row.perfect-match .bname {
+    color: var(--gold) !important;
+    font-weight: 700;
+  }
+  .winner-tag {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    background: var(--gold);
+    color: #0c0f14;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
+  }
 
   .bet-row .bname{ color: var(--text); font-weight:500; }
   .bet-row .bscore{
@@ -521,6 +546,7 @@
   const matchesEl = document.getElementById("matches");
   let currentGroup = Object.keys(GROUPS)[0];
   const currentBets = {};
+  const liveScoresState = {}; // Guarda marcadores actuales en memoria para cruzar con apuestas
 
   function renderGroups(){
     if(!groupsEl) return;
@@ -594,7 +620,7 @@
               <span>Apuestas registradas</span>
               <span class="bets-count" id="count-${match.id}">0</span>
             </h4>
-            <div id="bets-${match.id}"><div class="bets-empty">Aún no hay apuestas. ¡Sé el primero!</div></div>
+            <div id="bets-${matchIdToSelector(match.id)}"><div class="bets-empty">Aún no hay apuestas. ¡Sé el primero!</div></div>
           </div>
         </div>
       `;
@@ -605,12 +631,16 @@
         if(btnBet) btnBet.onclick = () => placeBet(match);
       }
 
-      listenBets(match.id);
       listenLiveScore(match);
     });
 
     updateCountdowns();
     updateCardsBanner();
+  }
+
+  // Helper para IDs limpios en selectores HTML
+  function matchIdToSelector(id) {
+    return id.replace(/[^a-zA-Z0-9-_]/g, '_');
   }
 
   function updateCountdowns(){
@@ -710,7 +740,8 @@
   }
 
   function listenBets(matchId){
-    const betsEl = document.getElementById(`bets-${matchId}`);
+    const safeId = matchIdToSelector(matchId);
+    const betsEl = document.getElementById(`bets-${safeId}`);
     const countEl = document.getElementById(`count-${matchId}`);
     const betsRef = ref(db, "bets/" + matchId);
 
@@ -730,37 +761,62 @@
 
       if (countEl) countEl.textContent = entries.length;
 
-      const groups = { red: [], blue: [], white: [] };
-      entries.forEach(d => {
-        if (d.homeScore > d.awayScore) groups.red.push(d);
-        else if (d.homeScore < d.awayScore) groups.blue.push(d);
-        else groups.white.push(d);
-      });
+      // Renderizar cruzando con el marcador en vivo guardado
+      buildBetsListDOM(matchId, entries, betsEl);
+    });
+  }
 
-      const match = GROUPS[currentGroup].find(m => m.id === matchId);
-      const labels = {
-        red:   `🔴 Gana ${match ? match.home.name : "Local"} (${groups.red.length})`,
-        blue:  `🔵 Gana ${match ? match.away.name : "Visitante"} (${groups.blue.length})`,
-        white: `⚪ Empate (${groups.white.length})`
-      };
+  function buildBetsListDOM(matchId, entries, betsEl) {
+    const groups = { red: [], blue: [], white: [] };
+    entries.forEach(d => {
+      if (d.homeScore > d.awayScore) groups.red.push(d);
+      else if (d.homeScore < d.awayScore) groups.blue.push(d);
+      else groups.white.push(d);
+    });
 
-      betsEl.innerHTML = "";
-      ["red", "blue", "white"].forEach(color => {
-        if (groups[color].length === 0) return;
-        const section = document.createElement("div");
-        section.className = `bet-side ${color}`;
-        section.innerHTML = `<div class="bet-side-label"><span class="dot ${color}"></span>${labels[color]}</div>`;
-        groups[color].forEach(d => {
-          const row = document.createElement("div");
-          row.className = `bet-row ${color}`;
-          row.innerHTML = `
-            <span class="bname">${escapeHtml(d.username)}</span>
-            <span class="bscore">${d.homeScore} - ${d.awayScore}</span>
-          `;
-          section.appendChild(row);
-        });
-        betsEl.appendChild(section);
+    const match = GROUPS[currentGroup].find(m => m.id === matchId);
+    const labels = {
+      red:   `🔴 Gana ${match ? match.home.name : "Local"} (${groups.red.length})`,
+      blue:  `🔵 Gana ${match ? match.away.name : "Visitante"} (${groups.blue.length})`,
+      white: `⚪ Empate (${groups.white.length})`
+    };
+
+    // Consultamos el marcador actual en vivo para este partido
+    const liveInfo = liveScoresState[matchId];
+
+    betsEl.innerHTML = "";
+    ["red", "blue", "white"].forEach(color => {
+      if (groups[color].length === 0) return;
+      const section = document.createElement("div");
+      section.className = `bet-side ${color}`;
+      section.innerHTML = `<div class="bet-side-label"><span class="dot ${color}"></span>${labels[color]}</div>`;
+      
+      groups[color].forEach(d => {
+        const row = document.createElement("div");
+        
+        // 🌟 LÓGICA DE DETECCIÓN DE MARCADOR PERFECTO
+        let isPerfect = false;
+        let tagHtml = "";
+
+        if (liveInfo && (liveInfo.status === "IN_PLAY" || liveInfo.status === "PAUSED" || liveInfo.status === "FINISHED")) {
+          if (Number(d.homeScore) === Number(liveInfo.home) && Number(d.awayScore) === Number(liveInfo.away)) {
+            isPerfect = true;
+            if (liveInfo.status === "FINISHED") {
+              tagHtml = `<span class="winner-tag">🏆 ¡GANADOR! (2 Cartas)</span>`;
+            } else {
+              tagHtml = `<span class="winner-tag">🔥 Atinando</span>`;
+            }
+          }
+        }
+
+        row.className = `bet-row ${color} ${isPerfect ? 'perfect-match' : ''}`;
+        row.innerHTML = `
+          <span class="bname">${escapeHtml(d.username)}${tagHtml}</span>
+          <span class="bscore">${d.homeScore} - ${d.awayScore}</span>
+        `;
+        section.appendChild(row);
       });
+      betsEl.appendChild(section);
     });
   }
 
@@ -779,12 +835,19 @@
       if(!liveEl) return;
 
       if(!snap.exists()){
+        delete liveScoresState[match.id];
         liveEl.innerHTML = "";
         if(vsEl) vsEl.style.opacity = "1";
+        // Refrescar lista de apuestas si ya existía
+        const safeId = matchIdToSelector(match.id);
+        const betsEl = document.getElementById(`bets-${safeId}`);
+        if(betsEl && currentBets[match.id]) buildBetsListDOM(match.id, currentBets[match.id], betsEl);
         return;
       }
 
       const d = snap.val();
+      liveScoresState[match.id] = d; // Guardamos estado global
+
       const { home, away, status } = d;
 
       if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED"){
@@ -805,7 +868,17 @@
         liveEl.innerHTML = "";
         if(vsEl) vsEl.style.opacity = "1";
       }
+
+      // Cada vez que cambia el marcador, re-renderizamos la lista de apuestas para recalcular dorados
+      const safeId = matchIdToSelector(match.id);
+      const betsEl = document.getElementById(`bets-${safeId}`);
+      if(betsEl && currentBets[match.id]) {
+        buildBetsListDOM(match.id, currentBets[match.id], betsEl);
+      }
     });
+
+    // Encendemos el listener de apuestas para este partido
+    listenBets(match.id);
   }
 
   renderGroups();
