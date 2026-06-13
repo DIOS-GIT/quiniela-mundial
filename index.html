@@ -364,27 +364,6 @@
   .live-score-status.loading{ color: var(--text-dim); }
   @keyframes blink{ 50%{ opacity:0; } }
 
-
-  footer{
-    text-align:center;
-    padding: 24px;
-    font-size: 12px;
-    color: var(--text-dim);
-    border-top: 1px solid var(--line);
-  }
-  footer a{ color: var(--grass); text-decoration:none; }
-
-  @media (max-width: 480px){
-    .teams{ grid-template-columns: 1fr auto 1fr; gap: 8px; }
-    .flag{ font-size: 24px; }
-    .team-name{ font-size: 13px; }
-    .card-thumb{ width: 110px; }
-    .card-label{ font-size: 8px; }
-    .team{ gap: 6px; }
-    .name-row{ flex-direction: column; }
-    .btn-bet{ width:100%; }
-  }
-
   /* RULES */
   .rules{
     background: var(--bg-card);
@@ -459,6 +438,24 @@
   }
   .countdown.soon{ color: var(--red); }
 
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  footer a { color: var(--grass); text-decoration: none; }
+
+  @media (max-width: 480px){
+    .teams{ grid-template-columns: 1fr auto 1fr; gap: 8px; }
+    .flag{ font-size: 24px; }
+    .team-name{ font-size: 13px; }
+    .card-thumb{ width: 110px; }
+    .card-label{ font-size: 8px; }
+    .team{ gap: 6px; }
+    .name-row{ flex-direction: column; }
+    .btn-bet{ width:100%; }
+  }
 </style>
 </head>
 <body>
@@ -497,12 +494,16 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
+<!-- 📂 ENLACE AL ARCHIVO DE CONFIGURACIÓN DE PARTIDOS UNIFICADO -->
+<script src="matches-config.js"></script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getDatabase, ref, push, onValue
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+  // Configuración de Firebase (Usa tu base de datos)
   const firebaseConfig = {
     apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
     authDomain: "submanhwa-apuestas.firebaseapp.com",
@@ -515,15 +516,6 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
-  const GROUPS = {
-    "D": [
-      { id: "2026_b1", groupName: "Grupo B", home: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }, away: { name: "Suiza", flag: "🇨🇭", card: "MITICO-suiza.jpg" }, date: "Mañana · 14:00 (2:00 p.m.)", closeTime: "2026-06-13T14:00:00-05:00", cardsInPlay: 2 },
-      { id: "2026_c1", groupName: "Grupo C", home: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }, away: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" }, date: "Mañana · 17:00 (5:00 p.m.)", closeTime: "2026-06-13T17:00:00-05:00", cardsInPlay: 2 },
-      { id: "2026_c2", groupName: "Grupo C", home: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }, away: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" }, date: "Mañana · 20:00 (8:00 p.m.)", closeTime: "2026-06-13T20:00:00-05:00", cardsInPlay: 2 },
-      { id: "2026_d1", groupName: "Grupo D", home: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }, away: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" }, date: "Mañana · 23:00 (11:00 p.m.)", closeTime: "2026-06-13T23:00:00-05:00", cardsInPlay: 2 }
-    ]
-  };
 
   const groupsEl = document.getElementById("groups");
   const matchesEl = document.getElementById("matches");
@@ -614,6 +606,7 @@
       }
 
       listenBets(match.id);
+      listenLiveScore(match);
     });
 
     updateCountdowns();
@@ -768,9 +761,6 @@
         });
         betsEl.appendChild(section);
       });
-    }, (err) => {
-      console.error(err);
-      if(betsEl) betsEl.innerHTML = `<div class="bets-empty">Error al cargar apuestas.</div>`;
     });
   }
 
@@ -781,92 +771,46 @@
     return div.innerHTML;
   }
 
-  // ---------------------------------------------
-  // MARCADOR EN VIVO (football-data.org)
-  // ---------------------------------------------
-  const FD_TOKEN = "fdb6cc3867944be0b5ba1b56747530f7";
+  function listenLiveScore(match){
+    const scoreRef = ref(db, `scores/${match.id}`);
+    onValue(scoreRef, (snap) => {
+      const liveEl = document.getElementById(`livescore-${match.id}`);
+      const vsEl = document.getElementById(`vs-${match.id}`);
+      if(!liveEl) return;
 
-  async function fetchLiveScores(){
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      const apiUrl = `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${today}&dateTo=${today}`;
+      if(!snap.exists()){
+        liveEl.innerHTML = "";
+        if(vsEl) vsEl.style.display = "";
+        return;
+      }
 
-      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, {
-        headers: { "X-Auth-Token": FD_TOKEN }
-      });
-      if (!res.ok) return;
+      const d = snap.val();
+      const { home, away, status } = d;
 
-      const data = await res.json();
-      if (!data.matches) return;
+      if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED"){
+        if(vsEl) vsEl.style.display = "none";
 
-      // Para cada partido activo, busca por nombre de equipo
-      if (!GROUPS[currentGroup]) return;
-      GROUPS[currentGroup].forEach(match => {
-        const apiMatch = data.matches.find(m => {
-          const h = (m.homeTeam?.name || m.homeTeam?.shortName || "").toLowerCase();
-          const a = (m.awayTeam?.name || m.awayTeam?.shortName || "").toLowerCase();
-          const matchHome = match.home.name.toLowerCase();
-          const matchAway = match.away.name.toLowerCase();
-          return (
-            (h.includes(matchHome.split(" ")[0]) || matchHome.includes(h.split(" ")[0])) &&
-            (a.includes(matchAway.split(" ")[0]) || matchAway.includes(a.split(" ")[0]))
-          );
-        });
+        const statusText = status === "FINISHED" ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
+        const statusClass = status === "FINISHED" ? "finished" : "in-play";
 
-        const liveEl = document.getElementById(`livescore-${match.id}`);
-        const vsEl = document.getElementById(`vs-${match.id}`);
-        if (!liveEl || !apiMatch) return;
-
-        const status = apiMatch.status;
-        const homeGoals = apiMatch.score?.fullTime?.home ?? apiMatch.score?.halfTime?.home ?? null;
-        const awayGoals = apiMatch.score?.fullTime?.away ?? apiMatch.score?.halfTime?.away ?? null;
-        const minute = apiMatch.minute;
-
-        if (status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED") {
-          if (vsEl) vsEl.style.display = "none";
-
-          const statusText = status === "FINISHED"
-            ? "⚽ Partido finalizado"
-            : status === "PAUSED"
-            ? "⏸ Medio tiempo"
-            : `🔴 EN VIVO · ${minute || ""}′`;
-
-          const statusClass = status === "FINISHED" ? "finished" : "in-play";
-
-          liveEl.innerHTML = `
-            <div class="live-score-status ${statusClass}">${statusText}</div>
-            <div class="live-score">
-              <div class="score-box">${homeGoals ?? "-"}</div>
-              <div class="score-sep">—</div>
-              <div class="score-box">${awayGoals ?? "-"}</div>
-            </div>
-          `;
-        } else {
-          // SCHEDULED o TIMED: ocultar bloque
-          liveEl.innerHTML = "";
-          if (vsEl) vsEl.style.display = "";
-        }
-      });
-
-    } catch(e) {
-      console.warn("Error al obtener marcador en vivo:", e);
-    }
+        liveEl.innerHTML = `
+          <div class="live-score-status ${statusClass}">${statusText}</div>
+          <div class="live-score">
+            <div class="score-box">${home ?? 0}</div>
+            <div class="score-sep">—</div>
+            <div class="score-box">${away ?? 0}</div>
+          </div>
+        `;
+      } else {
+        liveEl.innerHTML = "";
+        if(vsEl) vsEl.style.display = "";
+      }
+    });
   }
 
-  // Ejecución inicial segura
   renderGroups();
   renderMatches();
-  fetchLiveScores();
-
-  setInterval(() => {
-    updateCountdowns();
-  }, 1000);
-
-  // Actualizar marcador en vivo cada 60 segundos
-  setInterval(() => {
-    fetchLiveScores();
-  }, 60000);
+  setInterval(updateCountdowns, 1000);
 </script>
-
 </body>
 </html>
