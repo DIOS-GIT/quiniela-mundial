@@ -128,18 +128,31 @@
   }
   .team{
     display:flex;
-    flex-direction:column;
     align-items:center;
-    gap: 8px;
-    text-align:center;
+    justify-content:center;
+    gap: 14px;
+    text-align:left;
+  }
+  .team.away{
+    flex-direction: row-reverse;
+    text-align:right;
+  }
+  .team-info{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap: 4px;
+  }
+  .team.away .team-info{
+    align-items:flex-end;
   }
   .flag{
-    font-size: 40px;
+    font-size: 32px;
     line-height:1;
   }
   .team-name{
     font-family:'Bebas Neue', sans-serif;
-    font-size: 18px;
+    font-size: 20px;
     letter-spacing: 1px;
   }
   .vs{
@@ -149,17 +162,15 @@
   }
 
   .card-thumb{
-    width: 84px;
-    border-radius: 8px;
+    width: 130px;
+    border-radius: 10px;
     border: 1px solid var(--line);
-    margin-top: 4px;
   }
   .card-label{
     font-size: 10px;
     text-transform:uppercase;
     letter-spacing: 1px;
     color: var(--text-dim);
-    margin-top: 2px;
   }
 
   /* BET FORM */
@@ -332,8 +343,11 @@
 
   @media (max-width: 480px){
     .teams{ grid-template-columns: 1fr auto 1fr; gap: 8px; }
-    .flag{ font-size: 32px; }
-    .team-name{ font-size: 14px; }
+    .flag{ font-size: 24px; }
+    .team-name{ font-size: 13px; }
+    .card-thumb{ width: 70px; }
+    .card-label{ font-size: 8px; }
+    .team{ gap: 6px; }
     .name-row{ flex-direction: column; }
     .btn-bet{ width:100%; }
   }
@@ -520,15 +534,21 @@
         </div>
         <div class="teams">
           <div class="team">
-            <div class="flag">${match.home.flag}</div>
-            <div class="team-name">${match.home.name}</div>
-            ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}"><div class="card-label">🃏 Carta en juego</div>` : ''}
+            ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}">` : ''}
+            <div class="team-info">
+              <div class="flag">${match.home.flag}</div>
+              <div class="team-name">${match.home.name}</div>
+              ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
+            </div>
           </div>
           <div class="vs">VS</div>
-          <div class="team">
-            <div class="flag">${match.away.flag}</div>
-            <div class="team-name">${match.away.name}</div>
-            ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}"><div class="card-label">🃏 Carta en juego</div>` : ''}
+          <div class="team away">
+            ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}">` : ''}
+            <div class="team-info">
+              <div class="flag">${match.away.flag}</div>
+              <div class="team-name">${match.away.name}</div>
+              ${match.away.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
+            </div>
           </div>
         </div>
         <div class="bet-form">
