@@ -1,13 +1,13 @@
 // matches-config.js
-// Configuración oficial de los versus de hoy para la Quiniela Mundial
+// Configuración corregida según imagen_8.png para la Quiniela Mundial
 
 const GROUPS = {
   "E": [
     {
       id: "match_e1",
       groupName: "Grupo E",
-      date: "Hoy · 3:00 p. m.",
-      closeTime: "2026-06-14T15:00:00-05:00", // Cierre automático a la hora del partido (GMT-5)
+      date: "Hoy · 12:00 p. m.",
+      closeTime: "2026-06-14T12:00:00-05:00", // Hora exacta de imagen_8.png (GMT-5)
       cardsInPlay: 2,
       home: { name: "Alemania", flag: "🇩🇪", card: "MITICO-alemania.jpg" },
       away: { name: "Curazao", flag: "🇨🇼", card: "MITICO-curazao.jpg" }
@@ -26,8 +26,8 @@ const GROUPS = {
     {
       id: "match_f1",
       groupName: "Grupo F",
-      date: "Hoy · 12:00 p. m.",
-      closeTime: "2026-06-14T12:00:00-05:00",
+      date: "Hoy · 3:00 p. m.",
+      closeTime: "2026-06-14T15:00:00-05:00", // Hora exacta de imagen_8.png (GMT-5)
       cardsInPlay: 2,
       home: { name: "Países Bajos", flag: "🇳🇱", card: "MITICO-paisesbajos.jpg" },
       away: { name: "Japón", flag: "🇯🇵", card: "MITICO-japon.jpg" }
