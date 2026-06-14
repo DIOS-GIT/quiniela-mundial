@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mundial de Manhwas · Entorno de Pruebas (Index2)</title>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --bg-panel: #141922;
+      --bg-card: #1b212c;
+      --line: #2a3242;
+      --grass: #1ed87f;
+      --gold: #f5b942;
+      --text: #eef1f5;
+      --text-dim: #8b96a8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+    }
+
+    .badge-test {
+      display: inline-block;
+      background: rgba(245, 185, 66, 0.1);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h1 { font-size: 28px; color: var(--grass); margin-bottom: 6px; }
+    .sub { color: var(--text-dim); font-size: 14px; }
+
+    .section-title {
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .grid-partidos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 20px;
+    }
+
+    .partido-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .grupo-badge {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hora-badge {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--gold);
+    }
+
+    .vs-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 25px;
+    }
+
+    .team {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+    }
+
+    .team img {
+      width: 70px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+
+    .team img:hover {
+      transform: scale(1.05);
+      border-color: var(--grass);
+    }
+
+    .team-name {
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .vs-divider {
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vs-text {
+      font-style: italic;
+      font-weight: 900;
+      color: var(--text-dim);
+      font-size: 18px;
+      background: var(--bg-card);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+    }
+
+    .simular-btn {
+      margin-top: 15px;
+      background: transparent;
+      border: 1px dashed var(--grass);
+      color: var(--grass);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .simular-btn:hover {
+      background: var(--grass);
+      color: #06291a;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge-test">⚙️ Servidor de Pruebas</div>
+    <h1>Mundial de Manhwas · Panel de Control de Marcadores</h1>
+    <div class="sub">Simulador visual de la siguiente jornada para la Quiniela y entrega automática del Bot.</div>
+  </header>
+
+  <h2 class="section-title">📅 Fase de grupos · Mañana (Simulación)</h2>
+
+  <div class="grid-partidos">
+
+    <!-- PARTIDO 1: GRUPO E -->
+    <div class="partido-card">
+      <div class="grupo-badge">Grupo E</div>
+      <div class="hora-badge">Mañana · 12:00 p. m.</div>
+      
+      <div class="vs-container">
+        <div class="team">
+          <!-- Apunta exacto al archivo corregido de GitHub -->
+          <img src="MITICO-alemania.jpg" alt="Alemania">
+          <span class="team-name">Alemania</span>
+        </div>
+        
+        <div class="vs-divider">
+          <span class="vs-text">VS</span>
+          <button class="simular-btn" onclick="probarMarcador('Alemania', 'Costa de Marfil')">Simular</button>
+        </div>
+        
+        <div class="team">
+          <img src="MITICO-costademarfil.jpg" alt="Costa de Marfil">
+          <span class="team-name">Costa de Marfil</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTIDO 2: GRUPO E -->
+    <div class="partido-card">
+      <div class="grupo-badge">Grupo E</div>
+      <div class="hora-badge">Mañana · 3:00 p. m.</div>
+      
+      <div class="vs-container">
+        <div class="team">
+          <img src="MITICO-curazao.jpg" alt="Curazao">
+          <span class="team-name">Curazao</span>
+        </div>
+        
+        <div class="vs-divider">
+          <span class="vs-text">VS</span>
+          <button class="simular-btn" onclick="probarMarcador('Curazao', 'Ecuador')">Simular</button>
+        </div>
+        
+        <div class="team">
+          <img src="MITICO-ecuador.jpg" alt="Ecuador">
+          <span class="team-name">Ecuador</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTIDO 3: GRUPO F -->
+    <div class="partido-card">
+      <div class="grupo-badge">Grupo F</div>
+      <div class="hora-badge">Mañana · 6:00 p. m.</div>
+      
+      <div class="vs-container">
+        <div class="team">
+          <img src="MITICO-paisesbajos.jpg" alt="Países Bajos">
+          <span class="team-name">Países Bajos</span>
+        </div>
+        
+        <div class="vs-divider">
+          <span class="vs-text">VS</span>
+          <button class="simular-btn" onclick="probarMarcador('Países Bajos', 'Suecia')">Simular</button>
+        </div>
+        
+        <div class="team">
+          <img src="MITICO-suecia.jpg" alt="Suecia">
+          <span class="team-name">Suecia</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTIDO 4: GRUPO F -->
+    <div class="partido-card">
+      <div class="grupo-badge">Grupo F</div>
+      <div class="hora-badge">Mañana · 9:00 p. m.</div>
+      
+      <div class="vs-container">
+        <div class="team">
+          <img src="MITICO-japon.jpg" alt="Japón">
+          <span class="team-name">Japón</span>
+        </div>
+        
+        <div class="vs-divider">
+          <span class="vs-text">VS</span>
+          <button class="simular-btn" onclick="probarMarcador('Japón', 'Túnez')">Simular</button>
+        </div>
+        
+        <div class="team">
+          <img src="MITICO-tunez.jpg" alt="Túnez">
+          <span class="team-name">Túnez</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function probarMarcador(equipo1, equipo2) {
+    // Función mock de prueba para cuando hagas simulaciones de clicks
+    const goles1 = Math.floor(Math.random() * 4);
+    const goles2 = Math.floor(Math.random() * 4);
+    alert(`🧪 Marcador de Prueba:\n${equipo1} [ ${goles1} - ${goles2} ] ${equipo2}\n\nListo para validar ganadores de cartas.`);
+  }
+</script>
+</body>
+</html>
