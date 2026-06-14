@@ -1,43 +1,45 @@
-// 🛠️ CONFIGURACIÓN CENTRALIZADA DE PARTIDOS
-// Edita solo aquí para cambiar los partidos del index y del admin al mismo tiempo.
+// matches-config.js
+// Configuración oficial de los versus de hoy para la Quiniela Mundial
 
 const GROUPS = {
-  "D": [
-    { 
-      id: "2026_b1", 
-      groupName: "Grupo B", 
-      home: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }, 
-      away: { name: "Suiza", flag: "🇨🇭", card: "MITICO-suiza.jpg" }, 
-      date: "Hoy · 14:00 (2:00 p.m.)", 
-      closeTime: "2026-06-13T14:00:00-05:00", 
-      cardsInPlay: 2 
+  "E": [
+    {
+      id: "match_e1",
+      groupName: "Grupo E",
+      date: "Hoy · 3:00 p. m.",
+      closeTime: "2026-06-14T15:00:00-05:00", // Cierre automático a la hora del partido (GMT-5)
+      cardsInPlay: 2,
+      home: { name: "Alemania", flag: "🇩🇪", card: "MITICO-alemania.jpg" },
+      away: { name: "Curazao", flag: "🇨🇼", card: "MITICO-curazao.jpg" }
     },
-    { 
-      id: "2026_c1", 
-      groupName: "Grupo C", 
-      home: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }, 
-      away: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" }, 
-      date: "Hoy · 17:00 (5:00 p.m.)", 
-      closeTime: "2026-06-13T17:00:00-05:00", 
-      cardsInPlay: 2 
+    {
+      id: "match_e2",
+      groupName: "Grupo E",
+      date: "Hoy · 6:00 p. m.",
+      closeTime: "2026-06-14T18:00:00-05:00",
+      cardsInPlay: 2,
+      home: { name: "Costa de Marfil", flag: "🇨🇮", card: "MITICO-costademarfil.jpg" },
+      away: { name: "Ecuador", flag: "🇪🇨", card: "MITICO-ecuador.jpg" }
+    }
+  ],
+  "F": [
+    {
+      id: "match_f1",
+      groupName: "Grupo F",
+      date: "Hoy · 12:00 p. m.",
+      closeTime: "2026-06-14T12:00:00-05:00",
+      cardsInPlay: 2,
+      home: { name: "Países Bajos", flag: "🇳🇱", card: "MITICO-paisesbajos.jpg" },
+      away: { name: "Japón", flag: "🇯🇵", card: "MITICO-japon.jpg" }
     },
-    { 
-      id: "2026_c2", 
-      groupName: "Grupo C", 
-      home: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }, 
-      away: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" }, 
-      date: "Hoy · 20:00 (8:00 p.m.)", 
-      closeTime: "2026-06-13T20:00:00-05:00", 
-      cardsInPlay: 2 
-    },
-    { 
-      id: "2026_d1", 
-      groupName: "Grupo D", 
-      home: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }, //  ¡Corregido!
-      away: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" }, 
-      date: "Hoy · 23:00 (11:00 p.m.)", 
-      closeTime: "2026-06-13T23:00:00-05:00", 
-      cardsInPlay: 2 
+    {
+      id: "match_f2",
+      groupName: "Grupo F",
+      date: "Hoy · 9:00 p. m.",
+      closeTime: "2026-06-14T21:00:00-05:00",
+      cardsInPlay: 2,
+      home: { name: "Suecia", flag: "🇸🇪", card: "MITICO-suecia.jpg" },
+      away: { name: "Túnez", flag: "🇹🇳", card: "MITICO-tunez.jpg" }
     }
   ]
 };
