@@ -632,7 +632,7 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
-<script src="matches-config.js?v=1.4"></script>
+<script src="matches-config.js?v=1.5"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -976,7 +976,7 @@
         const statusClass = status === "FINISHED" ? "finished" : "in-play";
 
         liveEl.innerHTML = `
-          <div class="live-score-status ${statusClass}">${statusText}</div>
+          <div class="live-score-status ${statusClass}">${statusText}</div>        
           <div class="live-score">
             <div class="score-box">${home ?? 0}</div>
             <div class="score-sep">—</div>
