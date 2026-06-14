@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SUBMANHWA · Entorno de Pruebas (Index2)</title>
+<title>SUBMANHWA · Entorno de Pruebas Autónomo (Index2)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -119,9 +119,8 @@
     text-align: center;
     flex-wrap: wrap;
   }
-  .match-meta .live{ color: var(--gold); }
 
-  /*💻 DISEÑO DE ESCRITORIO SANO */
+  /* DESIGN ESCRITORIO */
   .teams{
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -138,11 +137,19 @@
 
   .match-center-zone {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 240px;
+  }
+
+  .teams-row-display {
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    min-width: 240px;
+    width: 100%;
   }
 
   .team-identity {
@@ -231,30 +238,16 @@
   .name-row{
     display:flex;
     gap: 10px;
+    justify-content: center;
   }
-  .name-row input[type="text"]{
-    flex:1;
-    height: 44px;
-    padding: 0 14px;
-    background: var(--bg-panel);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    color: var(--text);
-    font-size: 14px;
-  }
-  .name-row input[type="text"]:focus{
-    outline:none;
-    border-color: var(--grass);
-  }
-  .name-row input[type="text"]::placeholder{ color: var(--text-dim); }
 
   .btn-bet{
     height: 44px;
-    padding: 0 24px;
+    padding: 0 32px;
     border: none;
     border-radius: 10px;
-    background: var(--grass);
-    color: #06291a;
+    background: #f5b942;
+    color: #0c0f14;
     font-family:'Bebas Neue', sans-serif;
     font-size: 16px;
     letter-spacing: 2px;
@@ -263,138 +256,28 @@
     white-space:nowrap;
   }
   .btn-bet:hover{ filter: brightness(1.1); }
-  .btn-bet:disabled{ opacity:.5; cursor:not-allowed; }
 
-  /* Clases añadidas exclusivamente para el aviso visual del entorno de pruebas */
   .badge-prueba {
-    background: rgba(30,216,127,0.15);
+    background: rgba(30,216,127,0.11);
     border: 1px dashed var(--grass);
     color: var(--grass);
     padding: 4px 12px;
     border-radius: 6px;
     font-size: 11px;
     display: inline-block;
-    margin-bottom: 10px;
   }
 
-  .form-msg{
-    margin-top: 10px;
-    font-size: 13px;
-    text-align:center;
-    min-height: 18px;
+  /* LIVE SCORE LIMPIO SIN COMPORTAMIENTO DUPLICADO */
+  .live-score-wrapper {
+    width: 100%;
+    margin-top: 5px;
   }
-  .form-msg.ok{ color: var(--grass); }
-  .form-msg.err{ color: var(--red); }
-
-  /* BETS LIST */
-  .bets-list{
-    margin-top: 16px;
-    border-top: 1px dashed var(--line);
-    padding-top: 12px;
-  }
-  .bets-list h4{
-    font-size: 12px;
-    text-transform:uppercase;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .bets-count{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 1px;
-    color: var(--text);
-    background: var(--bg-panel);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 2px 8px;
-  }
-
-  .bet-side{
-    margin-bottom: 10px;
-  }
-  .bet-side-label{
-    font-size: 11px;
-    text-transform:uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-    display:flex;
-    align-items:center;
-    gap: 6px;
-  }
-  .bet-side-label .dot{
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    display:inline-block;
-  }
-  .dot.red{ background: var(--red); }
-  .dot.blue{ background: #5d9dff; }
-  .dot.white{ background: #e8e8e8; }
-
-  .bet-side.red .bet-side-label{ color: var(--red); }
-  .bet-side.blue .bet-side-label{ color: #5d9dff; }
-  .bet-side.white .bet-side-label{ color: #e8e8e8; }
-
-  .bet-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding: 8px 12px;
-    font-size: 14px;
-    border-radius: 6px;
-    margin-bottom: 4px;
-    transition: all 0.3s ease;
-  }
-  .bet-row.red{ background: rgba(255,93,93,0.05); border-left: 3px solid var(--red); }
-  .bet-row.blue{ background: rgba(93,157,255,0.05); border-left: 3px solid #5d9dff; }
-  .bet-row.white{ background: rgba(255,255,255,0.04); border-left: 3px solid #e8e8e8; }
-
-  .bet-row.perfect-match {
-    background: linear-gradient(90deg, rgba(245,185,66,0.18) 0%, rgba(20,25,34,0.6) 100%) !important;
-    border-left: 4px solid var(--gold) !important;
-    box-shadow: 0 0 10px rgba(245,185,66,0.15);
-  }
-  .bet-row.perfect-match .bname {
-    color: var(--gold) !important;
-    font-weight: 700;
-  }
-  .winner-tag {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 11px;
-    letter-spacing: 1px;
-    background: var(--gold);
-    color: #0c0f14;
-    padding: 1px 6px;
-    border-radius: 4px;
-    margin-left: 10px;
-    display: inline-block;
-    vertical-align: middle;
-  }
-
-  .bet-row .bname{ color: var(--text); font-weight:500; }
-  .bet-row .bscore{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 16px;
-    color: var(--gold);
-    letter-spacing: 1px;
-  }
-  .bets-empty{
-    color: var(--text-dim);
-    font-size: 13px;
-    text-align:center;
-    padding: 8px 0;
-  }
-
-  /* LIVE SCORE */
   .live-score{
     display:flex;
     align-items:center;
     justify-content:center;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 6px;
   }
   .live-score .score-box{
     font-family:'Bebas Neue', sans-serif;
@@ -408,24 +291,16 @@
     min-width: 60px;
     text-align:center;
   }
-  .live-score .score-sep{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 28px;
-    color: var(--text-dim);
-  }
   .live-score-status{
     text-align:center;
     font-size: 12px;
     letter-spacing: 1px;
     text-transform:uppercase;
-    margin-bottom: 12px;
+    color: var(--grass);
+    font-weight: bold;
+    margin-bottom: 4px;
   }
-  .live-score-status.in-play{ color: var(--red); font-weight:700; animation: blink 1.2s step-start infinite; }
-  .live-score-status.finished{ color: var(--grass); }
-  .live-score-status.loading{ color: var(--text-dim); }
-  @keyframes blink{ 50%{ opacity:0; } }
 
-  /* RULES */
   .rules{
     background: var(--bg-card);
     border: 1px solid var(--line);
@@ -438,441 +313,191 @@
     font-size: 20px;
     letter-spacing: 2px;
     color: var(--gold);
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
-  .rules ol{
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .rules ol li{
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    font-size: 14px;
-    line-height: 1.4;
-    color: var(--text);
-  }
-  .rules ol li .num-badge{
-    flex: 0 0 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: rgba(30,216,127,0.12);
-    color: var(--grass);
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1px;
-  }
-  .rules ol li .text-content {
-    flex: 1;
-  }
-  .rules .reward{ color: var(--gold); font-weight: 700; }
+  .rules p { font-size: 14px; color: var(--text-dim); line-height: 1.4; }
 
-  /* CARDS BANNER */
-  .cards-banner{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap: 10px;
-    background: linear-gradient(135deg, rgba(245,185,66,0.12), rgba(30,216,127,0.08));
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 24px;
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 1px;
-    text-align:center;
-  }
-  .cards-banner .num{
-    color: var(--gold);
-    font-size: 24px;
-  }
+  footer { text-align: center; padding: 40px 20px; color: var(--text-dim); font-size: 13px; }
 
-  /* COUNTDOWN */
-  .countdown{
-    font-family:'Bebas Neue', sans-serif;
-    letter-spacing: 1px;
-    color: var(--gold);
-  }
-  .countdown.soon{ color: var(--red); }
-
-  footer {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-dim);
-    font-size: 13px;
-  }
-  footer a { color: var(--grass); text-decoration: none; }
-
-  /* RESPONSIVE PERFECTO */
   @media (max-width: 640px) {
-    .container { padding: 16px 12px 60px; }
-    
-    .teams {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    
-    .match-center-zone {
-      grid-column: 1 / span 2;
-      width: 100%;
-      background: var(--bg-panel);
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      justify-content: space-evenly;
-    }
-    
-    .home-card-zone { grid-column: 1; width: 100%; display: inline-flex; }
-    .away-card-zone { grid-column: 2; width: 100%; display: inline-flex; }
-
-    .team-identity { flex-direction: row; gap: 8px; }
+    .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .match-center-zone { grid-column: 1 / span 2; width: 100%; background: var(--bg-panel); padding: 12px; border-radius: 10px; border: 1px solid var(--line); }
+    .home-card-zone { grid-column: 1; }
+    .away-card-zone { grid-column: 2; }
     .team-name { font-size: 18px; }
-    .flag { font-size: 26px; }
-    .vs { font-size: 20px; }
-
-    .card-container { max-width: 100%; }
-    .card-label { font-size: 9px; }
-
-    .name-row { flex-direction: column; }
-    .btn-bet { width: 100%; }
-    
-    .score-inputs input {
-      width: 65px;
-      height: 65px;
-      font-size: 32px;
-    }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">SUBMANHWA · ENTORNO DE SIMULACIÓN</div>
-  <h1>QUINIELA <span>MUNDIAL (TEST)</span> 🧪</h1>
-  <p class="subtitle">Área de desarrollo experimental para probar los marcadores de mañana</p>
+  <div class="brand">SUBMANHWA · AMBIENTE DE PRUEBAS OFFLINE</div>
+  <h1>QUINIELA <span>HOY (SIMULADOR)</span> 🧪</h1>
+  <p class="subtitle">Partidos cargados del Grupo C y Grupo D sin conexión a base de datos externa</p>
 </header>
 
 <div class="container">
 
-  <div class="cards-banner" id="cards-banner">
-    🃏 <span class="num" id="cards-total">0</span> cartas en juego hoy
-  </div>
-
   <div class="rules">
-    <h3>📜 Modo Simulador Activado</h3>
-    <ol>
-      <li>
-        <span class="num-badge">!</span>
-        <span class="text-content">Este archivo es un clon exacto de tu index de producción de 1000 líneas.</span>
-      </li>
-      <li>
-        <span class="num-badge">!</span>
-        <span class="text-content">Las imágenes de las cartas ahora apuntan a la ruta nativa <span class="reward">cards/</span> para validar que no haya enlaces rotos.</span>
-      </li>
-    </ol>
+    <h3>⚙️ Modo Aislado Local</h3>
+    <p>Se ha desconectado por completo Firebase. Los marcadores en vivo no se duplicarán ni guardarán datos fuera de tu pestaña de desarrollo actual.</p>
   </div>
 
-  <div class="groups" id="groups" style="display:none;"></div>
-  <div id="matches"></div>
+  <div class="groups">
+    <button class="group-tab active" id="tab-C" onclick="cambiarGrupo('C')">Grupo C</button>
+    <button class="group-tab" id="tab-D" onclick="cambiarGrupo('D')">Grupo D</button>
+  </div>
+
+  <div id="matches-target"></div>
 
 </div>
 
 <footer>
-  Área de Pruebas · Desarrollado de forma idéntica a submanhwa.com ⚽
+  Entorno Local Seguro para Desarrollo · Quiniela Mundial
 </footer>
 
-<script src="matches-config.js?v=1.3"></script>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getDatabase, ref, push, onValue
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
-    authDomain: "submanhwa-apuestas.firebaseapp.com",
-    projectId: "submanhwa-apuestas",
-    storageBucket: "submanhwa-apuestas.firebasestorage.app",
-    messagingSenderId: "197537057888",
-    appId: "1:197537057888:web:48cd6427bd9184ba5e0705",
-    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
+<script>
+  // Datos crudos basados exactamente en partidos.jpg
+  const DATA_PARTIDOS = {
+    C: [
+      {
+        id: "match_c1",
+        date: "Hoy · 3:00 p. m.",
+        home: { name: "Paraguay", flag: "🇵🇾", card: "MITICO-paraguay.jpg" },
+        away: { name: "Curazao", flag: "🇨🇼", card: "MITICO-curazao.jpg" }
+      },
+      {
+        id: "match_c2",
+        date: "Hoy · 6:00 p. m.",
+        home: { name: "Canadá", flag: "🇨🇦", card: "MITICO-canada.jpg" },
+        away: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }
+      }
+    ],
+    D: [
+      {
+        id: "match_d1",
+        date: "Hoy · 12:00 p. m.",
+        home: { name: "Costa de Marfil", flag: "🇨🇮", card: "MITICO-costademarfil.jpg" },
+        away: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }
+      },
+      {
+        id: "match_d2",
+        date: "Hoy · 9:00 p. m.",
+        home: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" },
+        away: { name: "Bosnia", flag: "🇧🇦", card: "MITICO-bosnia.jpg" }
+      }
+    ]
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  let grupoActivo = "C";
 
-  const groupsEl = document.getElementById("groups");
-  const matchesEl = document.getElementById("matches");
-  let currentGroup = Object.keys(GROUPS)[0];
-  const currentBets = {};
-  const liveScoresState = {};
-
-  function renderGroups(){
-    if(!groupsEl) return;
-    groupsEl.innerHTML = "";
-    Object.keys(GROUPS).forEach(g => {
-      const btn = document.createElement("button");
-      btn.className = "group-tab" + (g === currentGroup ? " active" : "");
-      btn.textContent = "Grupo " + g;
-      btn.onclick = () => { currentGroup = g; renderGroups(); renderMatches(); };
-      groupsEl.appendChild(btn);
-    });
+  function cambiarGrupo(grupo) {
+    grupoActivo = grupo;
+    document.getElementById("tab-C").classList.toggle("active", grupo === "C");
+    document.getElementById("tab-D").classList.toggle("active", grupo === "D");
+    renderizarPartidosLocal();
   }
 
-  function renderMatches(){
-    if(!matchesEl) return;
-    matchesEl.innerHTML = "";
-    if(!GROUPS[currentGroup]) return;
+  function renderizarPartidosLocal() {
+    const target = document.getElementById("matches-target");
+    target.innerHTML = "";
 
-    GROUPS[currentGroup].forEach(match => {
-      // Fuerza a que las apuestas nunca salgan cerradas en el entorno de pruebas para poder interactuar
-      const closed = false; 
-
-      const card = document.createElement("div");
-      card.className = "match";
-      card.innerHTML = `
+    DATA_PARTIDOS[grupoActivo].forEach(match => {
+      const div = document.createElement("div");
+      div.className = "match";
+      div.innerHTML = `
         <div class="match-meta">
-          <span>${match.groupName}</span>
+          <span>Grupo ${grupoActivo}</span>
           <span>·</span>
           <span>${match.date}</span>
-          <span class="badge-prueba">🧪 ENTORNO DE PRUEBAS</span>
+          <span class="badge-prueba">LOCAL DISCONNECTED</span>
         </div>
         
         <div class="teams">
-          <!-- CARTA IZQUIERDA -->
           <div class="home-card-zone">
             <div class="card-container">
-              ${match.home.card ? `<img class="card-thumb" src="cards/${match.home.card}" alt="Carta ${match.home.name}">` : ''}
-              ${match.home.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
+              <img class="card-thumb" src="cards/${match.home.card}" alt="${match.home.name}" onerror="this.src='cards/default.jpg'">
+              <div class="card-label">🃏 Mítico</div>
             </div>
           </div>
           
-          <!-- BLOQUE CENTRAL DEL VERSUS -->
           <div class="match-center-zone">
-            <div class="team-identity">
-              <div class="flag">${match.home.flag}</div>
-              <div class="team-name">${match.home.name}</div>
+            <div class="teams-row-display" id="teams-row-${match.id}">
+              <div class="team-identity">
+                <div class="flag">${match.home.flag}</div>
+                <div class="team-name">${match.home.name}</div>
+              </div>
+              <div class="vs">VS</div>
+              <div class="team-identity">
+                <div class="flag">${match.away.flag}</div>
+                <div class="team-name">${match.away.name}</div>
+              </div>
             </div>
-            <div class="vs" id="vs-${match.id}">VS</div>
-            <div class="team-identity">
-              <div class="flag">${match.away.flag}</div>
-              <div class="team-name">${match.away.name}</div>
-            </div>
+            <div class="live-score-wrapper" id="live-wrapper-${match.id}"></div>
           </div>
           
-          <!-- CARTA DERECHA -->
           <div class="away-card-zone">
             <div class="card-container">
-              ${match.away.card ? `<img class="card-thumb" src="cards/${match.away.card}" alt="Carta ${match.away.name}">` : ''}
-              ${match.away.card ? `<div class="card-label">🃏 Carta en juego</div>` : ''}
+              <img class="card-thumb" src="cards/${match.away.card}" alt="${match.away.name}" onerror="this.src='cards/default.jpg'">
+              <div class="card-label">🃏 Mítico</div>
             </div>
           </div>
         </div>
 
-        <div id="livescore-${match.id}"></div>
         <div class="bet-form">
           <div class="score-inputs">
-            <input type="number" min="0" max="20" placeholder="0" id="home-${match.id}">
+            <input type="number" min="0" placeholder="0" id="score-home-${match.id}">
             <span class="score-sep">—</span>
-            <input type="number" min="0" max="20" placeholder="0" id="away-${match.id}">
+            <input type="number" min="0" placeholder="0" id="score-away-${match.id}">
           </div>
           <div class="name-row">
-            <input type="text" style="display:none;" value="Tester" id="name-${match.id}">
-            <button class="btn-bet" data-id="${match.id}" style="background: #f5b942; color: #0c0f14;">Simular Partido</button>
-          </div>
-          <div class="form-msg" id="msg-${match.id}"></div>
-          
-          <div class="bets-list">
-            <h4>
-              <span>Apuestas registradas (Mundo Real)</span>
-              <span class="bets-count" id="count-${match.id}">0</span>
-            </h4>
-            <div id="bets-${matchIdToSelector(match.id)}"><div class="bets-empty">Aún no hay apuestas.</div></div>
+            <button class="btn-bet" onclick="ejecutarMarcadorSimulado('${match.id}')">Simular Resultado</button>
           </div>
         </div>
       `;
-      matchesEl.appendChild(card);
-
-      // Mutación del botón para que actúe localmente como un simulador visual
-      const btnBet = card.querySelector(`.btn-bet[data-id="${match.id}"]`);
-      if(btnBet) {
-        btnBet.onclick = () => {
-          const hScore = document.getElementById(`home-${match.id}`).value || "0";
-          const aScore = document.getElementById(`away-${match.id}`).value || "0";
-          
-          // Simula la inyección local del marcador en vivo sin alterar Firebase de verdad
-          const liveEl = document.getElementById(`livescore-${match.id}`);
-          const vsEl = document.getElementById(`vs-${match.id}`);
-          if(vsEl) vsEl.style.opacity = "0";
-          if(liveEl) {
-            liveEl.innerHTML = `
-              <div class="live-score-status finished">⚽ Partido finalizado (Simulación Local)</div>
-              <div class="live-score">
-                <div class="score-box">${hScore}</div>
-                <div class="score-sep">—</div>
-                <div class="score-box">${aScore}</div>
-              </div>
-            `;
-          }
-        };
-      }
-
-      listenLiveScore(match);
-    });
-
-    updateCardsBanner();
-  }
-
-  function matchIdToSelector(id) {
-    return id.replace(/[^a-zA-Z0-9-_]/g, '_');
-  }
-
-  function updateCardsBanner(){
-    const totalEl = document.getElementById("cards-total");
-    if (!totalEl || !GROUPS[currentGroup]) return;
-    const total = GROUPS[currentGroup].reduce((sum, m) => sum + (m.cardsInPlay ?? 2), 0);
-    totalEl.textContent = total;
-  }
-
-  function listenBets(matchId){
-    const safeId = matchIdToSelector(matchId);
-    const betsEl = document.getElementById(`bets-${safeId}`);
-    const countEl = document.getElementById(`count-${matchId}`);
-    const betsRef = ref(db, "bets/" + matchId);
-
-    onValue(betsRef, (snapshot) => {
-      if (!betsEl) return;
-      if (!snapshot.exists()){
-        currentBets[matchId] = [];
-        betsEl.innerHTML = `<div class="bets-empty">Aún no hay apuestas.</div>`;
-        if (countEl) countEl.textContent = "0";
-        return;
-      }
-      const rawData = snapshot.val();
-      const entries = Object.values(rawData).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      currentBets[matchId] = entries;
-      if (countEl) countEl.textContent = entries.length;
-      buildBetsListDOM(matchId, entries, betsEl);
+      target.appendChild(div);
     });
   }
 
-  function buildBetsListDOM(matchId, entries, betsEl) {
-    const groups = { red: [], blue: [], white: [] };
-    entries.forEach(d => {
-      if (d.homeScore > d.awayScore) groups.red.push(d);
-      else if (d.homeScore < d.awayScore) groups.blue.push(d);
-      else groups.white.push(d);
-    });
+  function ejecutarMarcadorSimulado(matchId) {
+    const hScore = document.getElementById(`score-home-${matchId}`).value || "0";
+    const aScore = document.getElementById(`score-away-${matchId}`).value || "0";
+    
+    // Ocultar los nombres y banderas centrales como hace tu index principal al entrar a En Vivo
+    const displayOriginal = document.getElementById(`teams-row-${matchId}`);
+    if (displayOriginal) displayOriginal.style.display = "none";
 
-    const match = GROUPS[currentGroup].find(m => m.id === matchId);
-    const labels = {
-      red:   `🔴 Gana ${match ? match.home.name : "Local"} (${groups.red.length})`,
-      blue:  `🔵 Gana ${match ? match.away.name : "Visitante"} (${groups.blue.length})`,
-      white: `⚪ Empate (${groups.white.length})`
-    };
-
-    const liveInfo = liveScoresState[matchId];
-
-    betsEl.innerHTML = "";
-    ["red", "blue", "white"].forEach(color => {
-      if (groups[color].length === 0) return;
-      const section = document.createElement("div");
-      section.className = `bet-side ${color}`;
-      section.innerHTML = `<div class="bet-side-label"><span class="dot ${color}"></span>${labels[color]}</div>`;
-      
-      groups[color].forEach(d => {
-        const row = document.createElement("div");
-        let isPerfect = false;
-        let tagHtml = "";
-
-        if (liveInfo && (liveInfo.status === "IN_PLAY" || liveInfo.status === "PAUSED" || liveInfo.status === "FINISHED")) {
-          if (Number(d.homeScore) === Number(liveInfo.home) && Number(d.awayScore) === Number(liveInfo.away)) {
-            isPerfect = true;
-            if (liveInfo.status === "FINISHED") {
-              tagHtml = `<span class="winner-tag">🏆 ¡GANADOR! (2 Cartas)</span>`;
-            } else {
-              tagHtml = `<span class="winner-tag">🔥 Atinando</span>`;
-            }
-          }
-        }
-
-        row.className = `bet-row ${color} ${isPerfect ? 'perfect-match' : ''}`;
-        row.innerHTML = `
-          <span class="bname">${escapeHtml(d.username)}${tagHtml}</span>
-          <span class="bscore">${d.homeScore} - ${d.awayScore}</span>
-        `;
-        section.appendChild(row);
-      });
-      betsEl.appendChild(section);
-    });
+    // Modificar exclusivamente el contenedor controlado para que pinte una sola caja limpia
+    const liveWrapper = document.getElementById(`live-wrapper-${matchId}`);
+    if (liveWrapper) {
+      liveWrapper.innerHTML = `
+        <div class="live-score-status">⚽ PARTIDO FINALIZADO (PRUEBA)</div>
+        <div class="live-score">
+          <div class="score-box">${hScore}</div>
+          <div class="score-sep">—</div>
+          <div class="score-box">${aScore}</div>
+        </div>
+        <div style="text-align:center; margin-top: 10px;">
+          <button class="btn-bet" style="background:transparent; border: 1px solid var(--red); color:var(--red); padding: 4px 12px; font-size:12px; height:auto;" onclick="reiniciarPartidoLocal('${matchId}')">Reiniciar</button>
+        </div>
+      `;
+    }
   }
 
-  function escapeHtml(str){
-    if(!str) return "";
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
+  function reiniciarPartidoLocal(matchId) {
+    // Revierte el estado visual sin recargar toda la página
+    const displayOriginal = document.getElementById(`teams-row-${matchId}`);
+    const liveWrapper = document.getElementById(`live-wrapper-${matchId}`);
+    
+    if (displayOriginal) displayOriginal.style.display = "flex";
+    if (liveWrapper) liveWrapper.innerHTML = "";
+    
+    document.getElementById(`score-home-${matchId}`).value = "";
+    document.getElementById(`score-away-${matchId}`).value = "";
   }
 
-  function listenLiveScore(match){
-    const scoreRef = ref(db, `scores/${match.id}`);
-    onValue(scoreRef, (snap) => {
-      const liveEl = document.getElementById(`livescore-${match.id}`);
-      const vsEl = document.getElementById(`vs-${match.id}`);
-      if(!liveEl) return;
-
-      if(!snap.exists()){
-        delete liveScoresState[match.id];
-        liveEl.innerHTML = "";
-        if(vsEl) vsEl.style.opacity = "1";
-        const safeId = matchIdToSelector(match.id);
-        const betsEl = document.getElementById(`bets-${safeId}`);
-        if(betsEl && currentBets[match.id]) buildBetsListDOM(match.id, currentBets[match.id], betsEl);
-        return;
-      }
-
-      const d = snap.val();
-      liveScoresState[match.id] = d;
-      const { home, away, status } = d;
-
-      if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED"){
-        if(vsEl) vsEl.style.opacity = "0";
-        const statusText = status === "FINISHED" ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
-        const statusClass = status === "FINISHED" ? "finished" : "in-play";
-
-        liveEl.innerHTML = `
-          <div class="live-score-status ${statusClass}">${statusText}</div>
-          <div class="live-score">
-            <div class="score-box">${home ?? 0}</div>
-            <div class="score-sep">—</div>
-            <div class="score-box">${away ?? 0}</div>
-          </div>
-        `;
-      } else {
-        liveEl.innerHTML = "";
-        if(vsEl) vsEl.style.opacity = "1";
-      }
-
-      const safeId = matchIdToSelector(match.id);
-      const betsEl = document.getElementById(`bets-${safeId}`);
-      if(betsEl && currentBets[match.id]) {
-        buildBetsListDOM(match.id, currentBets[match.id], betsEl);
-      }
-    });
-
-    listenBets(match.id);
-  }
-
-  renderGroups();
-  renderMatches();
+  // Carga inicial limpia
+  renderizarPartidosLocal();
 </script>
 </body>
 </html>
