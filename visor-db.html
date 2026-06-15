@@ -4,20 +4,17 @@
 <meta charset="UTF-8">
 <title>Centro de Control Total</title>
 <style>
-  body { background: #0c0f14; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+  body { background: #0c0f14; color: #fff; font-family: sans-serif; padding: 20px; }
   .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
   .panel { background: #141922; padding: 20px; border-radius: 10px; }
   table { width: 100%; border-collapse: collapse; }
   th, td { padding: 12px; border-bottom: 1px solid #2a3242; text-align: left; }
   .btn-save { background: #1ed87f; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
   .bet-card { background: #1b212c; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid #f5b942; }
-  h2 { color: #f5b942; margin-top: 0; }
-  .score-input { width: 45px; background: #1b212c; border: 1px solid #2a3242; color: white; padding: 5px; text-align: center; }
 </style>
 </head>
 <body>
 <h1>🚀 CENTRO DE CONTROL</h1>
-
 <div class="grid">
   <div class="panel">
     <h2>⚽ Partidos</h2>
@@ -26,9 +23,8 @@
       <tbody id="match-body"></tbody>
     </table>
   </div>
-
   <div class="panel">
-    <h2>👥 Apuestas por Partido</h2>
+    <h2>👥 Apuestas</h2>
     <div id="users-body"></div>
   </div>
 </div>
@@ -37,58 +33,50 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const db = getDatabase(initializeApp({ 
-    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" 
-  }));
+  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+  
+  // Definimos la función ANTES de usarla
+  window.render = () => {
+    console.log("Renderizando...");
+    const matchBody = document.getElementById("match-body");
+    const usersBody = document.getElementById("users-body");
+    if (!matchBody) return;
+    
+    matchBody.innerHTML = "";
+    usersBody.innerHTML = "";
 
-  let cache = { bets: {}, scores: {} };
+    onValue(ref(db), (snap) => {
+      const data = snap.val() || {};
+      const bets = data.bets || {};
+      const scores = data.scores || {};
 
-  onValue(ref(db), (snap) => {
-    const data = snap.val() || {};
-    cache.bets = data.bets || {};
-    cache.scores = data.scores || {};
-    render();
-  });
+      Object.keys(bets).forEach(id => {
+        const s = scores[id] || { home: 0, away: 0 };
+        const b = Object.values(bets[id])[0];
+        
+        matchBody.innerHTML += `<tr>
+          <td>${id}</td><td>${b.home} vs ${b.away}</td>
+          <td><input type="number" id="h-${id}" value="${s.home}" style="width:30px"> - 
+              <input type="number" id="a-${id}" value="${s.away}" style="width:30px"></td>
+          <td><button class="btn-save" onclick="guardarMarcador('${id}')">✓</button></td>
+        </tr>`;
+
+        usersBody.innerHTML += `<h4 style="color:#f5b942">Partido ${id}</h4>`;
+        Object.values(bets[id]).forEach(bet => {
+          usersBody.innerHTML += `<div class="bet-card"><strong>${bet.username}</strong>: ${bet.homeScore}-${bet.awayScore}</div>`;
+        });
+      });
+    }, { onlyOnce: false });
+  };
 
   window.guardarMarcador = (id) => {
     const h = document.getElementById(`h-${id}`).value;
     const a = document.getElementById(`a-${id}`).value;
-    set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED' })
-    .then(() => alert("Marcador guardado"));
+    set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED' });
   };
 
-  function render() {
-    const matchBody = document.getElementById("match-body");
-    const usersBody = document.getElementById("users-body");
-    matchBody.innerHTML = "";
-    usersBody.innerHTML = "";
-
-    Object.keys(cache.bets).forEach(id => {
-      const s = cache.scores[id] || { home: 0, away: 0 };
-      const betsObj = cache.bets[id]; // El objeto de apuestas de este partido
-      const firstBet = Object.values(betsObj)[0] || { home: "...", away: "..." };
-      
-      // Render Partidos
-      matchBody.innerHTML += `<tr>
-        <td>${id}</td>
-        <td>${firstBet.home} vs ${firstBet.away}</td>
-        <td>
-          <input type="number" id="h-${id}" value="${s.home}" class="score-input"> - 
-          <input type="number" id="a-${id}" value="${s.away}" class="score-input">
-        </td>
-        <td><button class="btn-save" onclick="guardarMarcador('${id}')">✓</button></td>
-      </tr>`;
-
-      // Render Apuestas de Usuarios
-      usersBody.innerHTML += `<h3 style="color:#1ed87f">Partido ${id}</h3>`;
-      Object.values(betsObj).forEach(bet => {
-        usersBody.innerHTML += `
-          <div class="bet-card">
-            <strong>${bet.username || 'Usuario'}</strong>: ${bet.homeScore} - ${bet.awayScore}
-          </div>`;
-      });
-    });
-  }
+  // Ejecutamos una vez al cargar
+  window.render();
 </script>
 </body>
 </html>
