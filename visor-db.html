@@ -1,162 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visor de Base de Datos · Basado en Bets</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0c0f14;
-    --bg-panel: #141922;
-    --bg-card: #1b212c;
-    --line: #2a3242;
-    --grass: #1ed87f;
-    --gold: #f5b942;
-    --red: #ff5d5d;
-    --text: #eef1f5;
-    --text-dim: #8b96a8;
-  }
-  body {
-    font-family: 'Rubik', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 30px 15px;
-    margin: 0;
-  }
-  .container { max-width: 900px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--grass); letter-spacing: 2px; text-align: center; margin-bottom: 5px; }
-  .subtitle { text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 30px; }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
-  }
-  .stat-box {
-    background: var(--bg-panel);
-    border: 1px solid var(--line);
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-  }
-  .stat-box h4 { margin: 0 0 5px 0; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-  .stat-box p { margin: 0; font-size: 28px; font-family: 'Bebas Neue', sans-serif; color: #fff; }
-
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: var(--gold);
-    letter-spacing: 1px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 5px;
-  }
-
-  .table-wrapper {
-    background: var(--bg-panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 4px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 14px;
-  }
-  th {
-    background: var(--bg-card);
-    color: var(--text-dim);
-    padding: 12px 16px;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--line);
-  }
-  td {
-    padding: 14px 16px;
-    border-bottom: 1px solid rgba(42, 50, 66, 0.5);
-    color: var(--text);
-  }
-  tr:last-child td { border-bottom: none; }
-
-  .badge {
-    display: inline-block;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .badge-scheduled { background: rgba(238,241,245,0.1); color: var(--text-dim); }
-  .badge-finished { background: rgba(30,216,127,0.15); color: var(--grass); }
-
-  .raw-box {
-    background: #06080b;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 15px;
-    font-family: monospace;
-    font-size: 12px;
-    color: #a4efaa;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    max-height: 300px;
-  }
-  .loading { text-align: center; color: var(--gold); padding: 40px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; }
-  .error-msg { text-align: center; color: var(--red); padding: 40px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
-</style>
-</head>
-<body>
-
-<div class="container">
-  <h1>🔍 INSPECTOR DE BASE DE DATOS (`BETS`)</h1>
-  <div class="subtitle">Mundial Quiniela · Extrayendo IDs directos del Historial de Apuestas</div>
-
-  <div class="stats-grid">
-    <div class="stat-box">
-      <h4>Partidos Detectados</h4>
-      <p id="stat-total">—</p>
-    </div>
-    <div class="stat-box">
-      <h4>Con Marcador Oficial</h4>
-      <p id="stat-finished" style="color: var(--grass);">—</p>
-    </div>
-    <div class="stat-box">
-      <h4>Sin Asentar (Pendientes)</h4>
-      <p id="stat-active" style="color: var(--gold);">—</p>
-    </div>
-  </div>
-
-  <div class="section-title">📊 Historial Mapeado desde `bets/`</div>
-  <div class="table-wrapper">
-    <div id="loading-msg" class="loading">Leyendo apuestas de Firebase...</div>
-    <table id="db-table" style="display: none;">
-      <thead>
-        <tr>
-          <th>ID Partido</th>
-          <th>Grupo</th>
-          <th>Equipos Identificados</th>
-          <th>Marcador Oficial</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
-  </div>
-
-  <div class="section-title" style="margin-top: 40px;">🌐 Endpoint / Estructura API Generada</div>
-  <div class="raw-box" id="json-output">Estructurando JSON...</div>
-</div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
@@ -172,102 +16,39 @@
   const db = getDatabase(app);
   const loadingEl = document.getElementById("loading-msg");
 
-  try {
-    // ✅ Leer bets y scores por separado (evita el problema de permisos en la raíz)
-    const [betsSnap, scoresSnap] = await Promise.all([
-      get(ref(db, "bets")),
-      get(ref(db, "scores"))
-    ]);
+  // Estado local para combinar datos
+  let cache = { bets: {}, scores: {} };
 
-    if (!betsSnap.exists()) {
-      loadingEl.textContent = "No hay apuestas registradas todavía.";
-      document.getElementById("json-output").textContent = "{}";
-      return;
-    }
-
-    const betsData = betsSnap.val();
-    const scoresData = scoresSnap.exists() ? scoresSnap.val() : {};
-
-    const matchIds = Object.keys(betsData);
-    let total = matchIds.length;
-    let withScore = 0;
-    let pendingScore = 0;
-
-    const processedMatches = {};
+  function procesarDatos() {
+    console.log("Procesando datos combinados...", cache);
+    const matchIds = Object.keys(cache.bets);
     const tableBody = document.getElementById("table-body");
     tableBody.innerHTML = "";
 
-    matchIds.forEach(matchId => {
-      const matchBets = betsData[matchId];
-      const matchScore = scoresData[matchId];
-
-      let homeName = "Local";
-      let awayName = "Visitante";
-      let groupName = "Fase General";
-
-      if (matchBets) {
-        const firstBetKey = Object.keys(matchBets)[0];
-        const sample = matchBets[firstBetKey];
-        if (sample) {
-          homeName = sample.home || homeName;
-          awayName = sample.away || awayName;
-          groupName = sample.group ? `Grupo ${sample.group}` : groupName;
-        }
-      }
-
-      const hasScore = matchScore !== undefined;
-      if (hasScore) withScore++;
-      else pendingScore++;
-
-      const homeGoals = hasScore ? (matchScore.home ?? 0) : "—";
-      const awayGoals = hasScore ? (matchScore.away ?? 0) : "—";
-      const currentStatus = hasScore ? (matchScore.status || "FINISHED") : "SCHEDULED";
-
-      processedMatches[matchId] = {
-        matchId,
-        title: `⚽ ${homeName} vs ${awayName}`,
-        group: groupName,
-        homeScore: hasScore ? Number(matchScore.home) : null,
-        awayScore: hasScore ? Number(matchScore.away) : null,
-        status: currentStatus
-      };
-
-      const statusBadge = hasScore
-        ? `<span class="badge badge-finished">Asentado ✅</span>`
-        : `<span class="badge badge-scheduled">No Asentado</span>`;
-
+    matchIds.forEach(id => {
+      const score = cache.scores[id] || { home: 0, away: 0, status: 'PENDING' };
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td style="font-family: monospace; font-weight: bold; color: var(--gold);">${matchId}</td>
-        <td>${groupName}</td>
-        <td style="font-weight: 500;">⚽ ${homeName} vs ${awayName}</td>
-        <td style="font-size: 16px; font-weight: bold; text-align: center; font-family: 'Bebas Neue', sans-serif;">
-          ${homeGoals} — ${awayGoals}
-        </td>
-        <td>${statusBadge}</td>
+        <td style="color:var(--gold)">${id}</td>
+        <td>${score.home} - ${score.away}</td>
+        <td>${score.status}</td>
       `;
       tableBody.appendChild(row);
     });
-
-    document.getElementById("stat-total").textContent = total;
-    document.getElementById("stat-finished").textContent = withScore;
-    document.getElementById("stat-active").textContent = pendingScore;
-
-    loadingEl.style.display = "none";
+    
     document.getElementById("db-table").style.display = "table";
-    document.getElementById("json-output").textContent = JSON.stringify(processedMatches, null, 2);
-
-    window.MundialAPI = {
-      getScores: () => processedMatches,
-      isReady: true
-    };
-
-  } catch (err) {
-    loadingEl.className = "error-msg";
-    loadingEl.textContent = `❌ Error al leer Firebase: ${err.message}`;
-    document.getElementById("json-output").textContent = `Error: ${err.message}`;
-    console.error("Firebase error:", err);
+    loadingEl.style.display = "none";
   }
+
+  // Escuchar Bets
+  onValue(ref(db, "bets"), (snap) => {
+    cache.bets = snap.val() || {};
+    procesarDatos();
+  });
+
+  // Escuchar Scores
+  onValue(ref(db, "scores"), (snap) => {
+    cache.scores = snap.val() || {};
+    procesarDatos();
+  });
 </script>
-</body>
-</html>
