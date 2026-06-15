@@ -2,27 +2,29 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ranking Oficial</title>
+<title>Tabla de Posiciones</title>
 <style>
   body { background: #0c0f14; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
   .rank-row { background: #1b212c; padding: 15px; margin: 10px auto; max-width: 500px; border-radius: 8px; display: flex; justify-content: space-between; }
-  button { background: #1ed87f; padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
 </style>
 </head>
 <body>
 <h1>🏆 TABLA DE POSICIONES</h1>
-<button onclick="calcularRanking()">ACTUALIZAR RANKING AHORA</button>
-<div id="ranking-list" style="margin-top: 20px;"></div>
+<div id="ranking-list">Esperando actualización del administrador...</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
 
-  window.calcularRanking = async () => {
+  // Cada vez que cambie 'lastUpdate', el ranking se recalcula solo
+  onValue(ref(db, "lastUpdate"), async () => {
     const list = document.getElementById("ranking-list");
-    list.innerHTML = "Calculando...";
+    list.innerHTML = "Actualizando...";
+    
+    // Traemos toda la base de datos de una vez
+    import { get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
     const snap = await get(ref(db));
     const data = snap.val();
     const scores = data.scores || {};
@@ -41,7 +43,7 @@
 
     list.innerHTML = Object.entries(users).sort((a,b) => b[1] - a[1])
       .map(([u, p]) => `<div class="rank-row"><span>${u}</span><span>${p} pts</span></div>`).join("");
-  };
+  });
 </script>
 </body>
 </html>
