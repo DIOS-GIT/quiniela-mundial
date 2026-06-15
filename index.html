@@ -460,6 +460,18 @@
   }
   .rules .reward{ color: var(--gold); font-weight: 700; }
 
+/* IMAGEN DE REFERENCIA EN REGLAS */
+  .rules-img {
+    display: block;
+    max-width: 100%;
+    width: 280px;
+    height: auto;
+    margin: 10px 0 6px 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
   /* CARDS BANNER */
   .cards-banner{
     display:flex;
@@ -559,9 +571,12 @@
     <ol>
       <li>
         <span class="num-badge">1</span>
-        <span class="text-content">Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color: var(--grass);">submanhwa.com</a> en el campo de nombre.</span>
+        <span class="text-content">
+          Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color: var(--grass);">submanhwa.com</a> en el campo de nombre.
+          <br>
+          <img class="rules-img" src="img/referencia-nick.jpg" alt="Referencia de Nombre de Usuario">
+        </span>
       </li>
-      <li>
         <span class="num-badge">2</span>
         <span class="text-content">Coloca el marcador que crees que será el resultado final del partido.</span>
       </li>
