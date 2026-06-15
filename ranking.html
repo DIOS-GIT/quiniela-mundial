@@ -8,6 +8,7 @@
   body { background: #0c0f14; color: white; font-family: 'Rubik', sans-serif; padding: 20px; }
   .container { max-width: 500px; margin: 0 auto; }
   h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 30px; }
+  
   .rank-row { background: #1b212c; padding: 20px; margin-bottom: 12px; border-radius: 12px; display: flex; align-items: center; border-left: 5px solid #1ed87f; }
   .pos { font-family: 'Bebas Neue'; font-size: 24px; color: #f5b942; width: 40px; }
   .name { flex-grow: 1; font-weight: bold; }
@@ -18,27 +19,22 @@
 
 <div class="container">
   <h1>🏆 RANKING OFICIAL</h1>
-  <div id="ranking-list">Cargando posiciones...</div>
+  <div id="ranking-list">Esperando datos del sistema...</div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
 
-  onValue(ref(db, "lastUpdate"), async () => {
+  // Lógica de cálculo unificada
+  const calcularRanking = (bets, scores) => {
     const list = document.getElementById("ranking-list");
-    const snap = await get(ref(db));
-    const data = snap.val();
-    if (!data) return;
-    
-    const scores = data.scores || {};
-    const bets = data.bets || {};
     let users = {};
 
     Object.keys(bets).forEach(mId => {
-      // Solo contamos partidos marcados como 'SI'
+      // Solo contamos partidos marcados con status 'SI'
       if (!scores[mId] || scores[mId].status !== 'SI') return;
 
       Object.values(bets[mId]).forEach(b => {
@@ -72,6 +68,20 @@
         <div class="pts">${data.pts} pts</div>
       </div>
     `).join("");
+  };
+
+  // Escucha directa a los nodos necesarios
+  let betsData = null;
+  let scoresData = null;
+
+  onValue(ref(db, "bets"), (snap) => {
+    betsData = snap.val() || {};
+    if (scoresData) calcularRanking(betsData, scoresData);
+  });
+
+  onValue(ref(db, "scores"), (snap) => {
+    scoresData = snap.val() || {};
+    if (betsData) calcularRanking(betsData, scoresData);
   });
 </script>
 </body>
