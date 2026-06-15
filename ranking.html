@@ -2,181 +2,68 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ranking Oficial · Quiniela Mundial</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Ranking Oficial · Mundial</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg: #0c0f14;
-    --bg-panel: #141922;
-    --bg-card: #1b212c;
-    --line: #2a3242;
-    --grass: #1ed87f;
-    --gold: #f5b942;
-    --text: #eef1f5;
-    --text-dim: #8b96a8;
-  }
-  body { font-family: 'Rubik', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-  .container { max-width: 700px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 42px; text-align: center; margin-bottom: 5px; }
-  h1 span { color: var(--gold); }
-  .subtitle { text-align: center; color: var(--text-dim); margin-bottom: 30px; font-size: 14px; }
-  
-  .rules-box { display: flex; justify-content: space-around; background: var(--bg-card); border: 1px solid var(--line); padding: 15px; border-radius: 10px; margin-bottom: 25px; font-size: 14px; }
-  .rule-item span { padding: 2px 6px; border-radius: 4px; font-weight: bold; font-family: 'Bebas Neue', sans-serif; margin-right: 5px; }
-  
-  table { width: 100%; border-collapse: collapse; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-  th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); }
-  th { background: #1c2330; font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--text-dim); letter-spacing: 0.5px; }
-  td { font-size: 15px; }
-  .pts { color: var(--grass); font-weight: bold; font-size: 16px; }
-  
-  .back-link { display: block; text-align: center; margin-bottom: 20px; color: var(--grass); text-decoration: none; font-size: 14px; }
-  .back-link:hover { text-decoration: underline; }
+  body { font-family: 'Rubik', sans-serif; background: #0c0f14; color: white; padding: 20px; }
+  .container { max-width: 600px; margin: 0 auto; }
+  h1 { font-family: 'Bebas Neue', color: #f5b942; text-align: center; }
+  .rank-row { background: #1b212c; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .score { font-family: 'Bebas Neue'; font-size: 24px; color: #1ed87f; }
 </style>
 </head>
 <body>
-
 <div class="container">
-  <h1>🏆 RANKING <span>GENERAL</span></h1>
-  <div class="subtitle">Tabla de posiciones oficial en tiempo real basada en los resultados del mundial</div>
-  
-  <a href="index.html" class="back-link">← Volver a la Quiniela</a>
-
-  <div class="rules-box">
-    <div class="rule-item"><span style="background: rgba(245,185,66,0.15); color: var(--gold);">+3 PTS</span> Marcador exacto</div>
-    <div class="rule-item"><span style="background: rgba(30,216,127,0.15); color: var(--grass);">+1 PT</span> Acertar ganador o empate</div>
-  </div>
-  
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 70px;">Pos</th>
-        <th>Usuario</th>
-        <th style="text-align: center;">🎯 Plenos</th>
-        <th style="text-align: center;">⚽ Aciertos</th>
-        <th style="text-align: right;">Puntos Totales</th>
-      </tr>
-    </thead>
-    <tbody id="ranking-body">
-      <tr><td colspan="5" style="text-align:center; color: var(--text-dim); padding: 30px;">Cargando posiciones oficiales...</td></tr>
-    </tbody>
-  </table>
+  <h1>🏆 TABLA DE POSICIONES</h1>
+  <div id="ranking-list">Calculando puntos...</div>
 </div>
 
 <script type="module">
+  // IMPORTANTE: Este archivo necesita cargar la data del visor. 
+  // Para pruebas, lo haremos leyendo el mismo Firebase.
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
-    authDomain: "submanhwa-apuestas.firebaseapp.com",
-    projectId: "submanhwa-apuestas",
-    storageBucket: "submanhwa-apuestas.firebasestorage.app",
-    messagingSenderId: "197537057888",
-    appId: "1:197537057888:web:48cd6427bd9184ba5e0705",
+  const db = getDatabase(initializeApp({
     databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
-  };
+  }));
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  onValue(ref(db), (snap) => {
+    const data = snap.val();
+    const scores = data.scores || {};
+    const bets = data.bets || {};
+    let users = {};
 
-  let allBets = {};
-  let allScores = {};
+    // Lógica: Calcular puntos por cada apuesta
+    Object.keys(bets).forEach(matchId => {
+      const matchScore = scores[matchId];
+      if (!matchScore || matchScore.status !== 'FINISHED') return;
 
-  // Escuchamos el nodo de Apuestas de los usuarios
-  onValue(ref(db, "bets"), snap => {
-    allBets = snap.exists() ? snap.val() : {};
-    processRanking();
+      Object.values(bets[matchId]).forEach(bet => {
+        if (!users[bet.username]) users[bet.username] = 0;
+        
+        // Regla de puntos: 3 pts exacto, 1 pt si acierta ganador
+        if (bet.homeScore == matchScore.home && bet.awayScore == matchScore.away) {
+          users[bet.username] += 3;
+        } else if ((bet.homeScore > bet.awayScore && matchScore.home > matchScore.away) ||
+                   (bet.homeScore < bet.awayScore && matchScore.home < matchScore.away) ||
+                   (bet.homeScore == bet.awayScore && matchScore.home == matchScore.away)) {
+          users[bet.username] += 1;
+        }
+      });
+    });
+
+    // Render
+    const list = document.getElementById("ranking-list");
+    list.innerHTML = Object.entries(users)
+      .sort((a,b) => b[1] - a[1])
+      .map(([user, pts]) => `
+        <div class="rank-row">
+          <span>${user}</span>
+          <span class="score">${pts} pts</span>
+        </div>
+      `).join("");
   });
-
-  // Escuchamos los Marcadores Oficiales asentados por el Admin
-  onValue(ref(db, "scores"), snap => {
-    allScores = snap.exists() ? snap.val() : {};
-    processRanking();
-  });
-
-  function processRanking() {
-    const tbody = document.getElementById("ranking-body");
-    const userMap = {};
-
-    // 1. Filtramos cuáles partidos están marcados como "FINISHED"
-    const finishedMatches = {};
-    Object.keys(allScores).forEach(id => {
-      if (allScores[id] && allScores[id].status === "FINISHED") {
-        finishedMatches[id] = allScores[id];
-      }
-    });
-
-    // Si no hay partidos finalizados todavía
-    if (Object.keys(finishedMatches).length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding:30px;">⚽ Aún no se han asentado partidos oficiales en el historial. ¡Vuelve pronto!</td></tr>`;
-      return;
-    }
-
-    // 2. Cruzamos los partidos finalizados con las apuestas reales de los usuarios
-    Object.keys(finishedMatches).forEach(matchId => {
-      const matchResult = finishedMatches[matchId];
-      const matchBets = allBets[matchId]; // Contiene los IDs de apuesta empujados por el index
-
-      if (matchBets) {
-        Object.keys(matchBets).forEach(betPushId => {
-          const betData = matchBets[betPushId];
-          const username = (betData.username || "").trim();
-          if (!username) return;
-
-          const userKey = username.toLowerCase();
-
-          // Inicializamos el récord del usuario si no existe
-          if (!userMap[userKey]) {
-            userMap[userKey] = { name: username, points: 0, exacts: 0, tendencies: 0 };
-          }
-
-          const betHome = Number(betData.homeScore);
-          const betAway = Number(betData.awayScore);
-          const realHome = Number(matchResult.home);
-          const realAway = Number(matchResult.away);
-
-          // REGLA 1: Pleno Exacto (3 Puntos)
-          if (betHome === realHome && betAway === realAway) {
-            userMap[userKey].points += 3;
-            userMap[userKey].exacts += 1;
-          } else {
-            // REGLA 2: Acierto de Tendencia / Ganador o Empate (1 Punto)
-            const betTrend = betHome > betAway ? 'W' : betHome < betAway ? 'L' : 'D';
-            const realTrend = realHome > realAway ? 'W' : realHome < realAway ? 'L' : 'D';
-            
-            if (betTrend === realTrend) {
-              userMap[userKey].points += 1;
-              userMap[userKey].tendencies += 1;
-            }
-          }
-        });
-      }
-    });
-
-    // 3. Convertimos a Array y Ordenamos (Primero Puntos, desempate por Plenos)
-    const sortedList = Object.values(userMap).sort((a, b) => b.points - a.points || b.exacts - a.exacts);
-
-    if (sortedList.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding:30px;">Ningún usuario realizó apuestas en los partidos finalizados.</td></tr>`;
-      return;
-    }
-
-    // 4. Dibujamos la tabla limpia
-    tbody.innerHTML = "";
-    sortedList.forEach((user, index) => {
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>#${index + 1}</strong></td>
-          <td><strong>${user.name}</strong></td>
-          <td style="text-align: center; color: var(--gold);">🎯 ${user.exacts}</td>
-          <td style="text-align: center; color: var(--text-dim);">⚽ ${user.tendencies}</td>
-          <td style="text-align: right;" class="pts">${user.points} pts</td>
-        </tr>
-      `;
-    });
-  }
 </script>
 </body>
 </html>
