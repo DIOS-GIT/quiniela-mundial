@@ -8,13 +8,10 @@
   body { background: #0c0f14; color: white; font-family: 'Rubik', sans-serif; padding: 20px; }
   .container { max-width: 500px; margin: 0 auto; }
   h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 30px; }
-  
   .rank-row { background: #1b212c; padding: 20px; margin-bottom: 12px; border-radius: 12px; display: flex; align-items: center; border-left: 5px solid #1ed87f; }
   .pos { font-family: 'Bebas Neue'; font-size: 24px; color: #f5b942; width: 40px; }
   .name { flex-grow: 1; font-weight: bold; }
   .pts { font-family: 'Bebas Neue'; font-size: 28px; color: #1ed87f; }
-  
-  .medal { font-size: 20px; margin-right: 10px; }
 </style>
 </head>
 <body>
@@ -34,23 +31,30 @@
     const list = document.getElementById("ranking-list");
     const snap = await get(ref(db));
     const data = snap.val();
+    if (!data) return;
+    
     const scores = data.scores || {};
     const bets = data.bets || {};
     let users = {};
 
     Object.keys(bets).forEach(mId => {
+      // Solo contamos partidos marcados como 'SI'
       if (!scores[mId] || scores[mId].status !== 'SI') return;
 
       Object.values(bets[mId]).forEach(b => {
         if (!users[b.username]) users[b.username] = { pts: 0, exactos: 0 };
         
-        // Puntos: 3 por exacto, 1 por ganador/empate
-        if (b.homeScore == scores[mId].home && b.awayScore == scores[mId].away) {
+        const homeReal = Number(scores[mId].home);
+        const awayReal = Number(scores[mId].away);
+        const homeBet = Number(b.homeScore);
+        const awayBet = Number(b.awayScore);
+
+        if (homeBet === homeReal && awayBet === awayReal) {
           users[b.username].pts += 3;
           users[b.username].exactos += 1;
-        } else if ((b.homeScore > b.awayScore && scores[mId].home > scores[mId].away) || 
-                   (b.homeScore < b.awayScore && scores[mId].home < scores[mId].away) ||
-                   (b.homeScore == b.awayScore && scores[mId].home == scores[mId].away)) {
+        } else if ((homeBet > awayBet && homeReal > awayReal) || 
+                   (homeBet < awayBet && homeReal < awayReal) ||
+                   (homeBet === awayBet && homeReal === awayReal)) {
           users[b.username].pts += 1;
         }
       });
