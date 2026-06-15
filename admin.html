@@ -68,9 +68,25 @@
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
+    position: relative;
   }
-  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #fff; margin-bottom: 12px; text-align: center; }
-  .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+  .match-badge {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 10px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+  .badge-current { background: rgba(30,216,127,0.15); color: var(--grass); }
+  .badge-history { background: rgba(245,185,66,0.15); color: var(--gold); }
+
+  .group-lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; text-align: center; display: block; margin-bottom: 4px; }
+  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #fff; margin-bottom: 15px; text-align: center; letter-spacing: 0.5px; }
+  .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 18px; }
   .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; text-align: center; background: var(--bg-panel); border: 1px solid var(--line); color: #fff; border-radius: 6px; padding: 4px; }
   
   .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
@@ -78,12 +94,13 @@
     background: var(--bg-panel);
     border: 1px solid var(--line);
     color: var(--text-dim);
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-size: 13px;
     border-radius: 6px;
     width: auto;
     font-family: inherit;
     cursor: pointer;
+    transition: all 0.2s ease;
   }
   .status-btn.active {
     border-color: var(--grass);
@@ -120,7 +137,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, set, onValue, query, limitToFirst, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
@@ -152,7 +169,7 @@
       document.getElementById("login-box").style.display = "none";
       document.getElementById("panel-box").style.display = "block";
       
-      // Escucha global de TODO el nodo 'scores' para asegurar lectura completa del historial
+      // 1. Escucha global e inmediata a 'scores' (La Verdad Absoluta)
       onValue(ref(db, "scores"), snap => {
         firebaseScores = snap.exists() ? snap.val() : {};
         buildAdminPanel();
@@ -169,66 +186,115 @@
     buildAdminPanel();
   }
 
-  function buildAdminPanel() {
+  async function buildAdminPanel() {
     const listEl = document.getElementById("match-list");
     listEl.innerHTML = "";
 
-    // 1. Mapeamos de forma estructurada los partidos del archivo de configuración local
+    // Mapeamos los partidos vigentes del archivo matches-config.js
     const knownMatches = {};
     if (typeof GROUPS !== 'undefined') {
       Object.keys(GROUPS).forEach(groupKey => {
         GROUPS[groupKey].forEach(m => {
           knownMatches[m.id] = {
             id: m.id,
-            title: `${m.groupName || ('Grupo ' + groupKey)}: ${m.home.flag || ''} ${m.home.name} vs ${m.away.name} ${m.away.flag || ''}`
+            group: m.groupName || `Grupo ${groupKey}`,
+            title: `${m.home.flag || ''} ${m.home.name} VS ${m.away.name} ${m.away.flag || ''}`,
+            isLegacy: false
           };
         });
       });
     }
 
-    // 2. Unimos los datos conocidos con TODO lo que aparezca en Firebase (Historial Completo)
-    const allUniqueIds = new Set([...Object.keys(knownMatches), ...Object.keys(firebaseScores)]);
-    let matchesCount = 0;
+    // Unimos los IDs de Firebase con los locales para asegurar cobertura total sin omisiones
+    const allUniqueIds = Array.from(new Set([...Object.keys(knownMatches), ...Object.keys(firebaseScores)]));
+    
+    // Convertimos a array y ordenamos cronológicamente por updatedAt de Firebase
+    const sortedMatches = allUniqueIds.map(id => {
+      return { id, data: firebaseScores[id] || { status: "SCHEDULED", updatedAt: 0 } };
+    }).sort((a, b) => (b.data.updatedAt || 0) - (a.data.updatedAt || 0));
 
-    allUniqueIds.forEach(matchId => {
-      const currentStatus = firebaseScores[matchId]?.status || "SCHEDULED";
+    let visibleCount = 0;
 
-      // Filtro estricto de las pestañas
-      if (currentTab === "live" && currentStatus === "FINISHED") return;
-      if (currentTab === "close" && currentStatus !== "FINISHED") return;
+    for (const item of sortedMatches) {
+      const matchId = item.id;
+      const currentStatus = item.data.status || "SCHEDULED";
 
-      matchesCount++;
+      // Filtro estricto de separación por pestañas
+      if (currentTab === "live" && currentStatus === "FINISHED") continue;
+      if (currentTab === "close" && currentStatus !== "FINISHED") continue;
 
-      // Si el partido está en Firebase pero no en el JS local, le ponemos un título genérico con su ID
-      const matchInfo = knownMatches[matchId] || { id: matchId, title: `Partido del Historial (ID: ${matchId})` };
+      visibleCount++;
 
+      // Contenedor temporal (Placeholder) para evitar parpadeos en renderizado
       const card = document.createElement("div");
       card.className = "admin-card";
-      card.innerHTML = `
-        <h3>${matchInfo.title}</h3>
-        <div class="score-row">
-          <input type="number" min="0" id="score-h-${matchId}" value="${firebaseScores[matchId]?.home ?? 0}">
-          <span style="color: var(--text-dim)">—</span>
-          <input type="number" min="0" id="score-a-${matchId}" value="${firebaseScores[matchId]?.away ?? 0}">
-        </div>
-        <div class="status-row">
-          ${STATUSES.map(s => `
-            <button class="status-btn btn-${matchId}" data-m="${matchId}" data-s="${s.value}" onclick="setUIStatus('${matchId}','${s.value}')">
-              ${s.label}
-            </button>
-          `).join("")}
-        </div>
-        <button style="background: var(--gold)" onclick="updateMatchFirebase('${matchId}')">Asentar Marcador Oficial 🚀</button>
-        <div class="msg" id="msg-${matchId}"></div>
-      `;
+      card.id = `card-${matchId}`;
       listEl.appendChild(card);
 
-      setUIStatus(matchId, currentStatus);
-    });
+      // Si el partido está activo en el config JS, lo pintamos de inmediato de forma síncrona
+      if (knownMatches[matchId]) {
+        renderCardContents(matchId, knownMatches[matchId], item.data, currentStatus);
+      } else {
+        // Caso Historial: Recuperación inteligente usando limitToFirst(1) del nodo 'bets'
+        try {
+          const betsRef = query(ref(db, `bets/${matchId}`), limitToFirst(1));
+          const betsSnap = await get(betsRef);
+          
+          let legacyData = {
+            id: matchId,
+            group: "Historial",
+            title: `Partido Rescatado (ID: ${matchId})`,
+            isLegacy: true
+          };
 
-    if(matchesCount === 0) {
-      listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim); padding: 30px;">No hay partidos en esta categoría por ahora.</p>`;
+          if (betsSnap.exists()) {
+            const firstBetKey = Object.keys(betsSnap.val())[0];
+            const sampleBet = betsSnap.val()[firstBetKey];
+            legacyData.group = sampleBet.group ? `Fase Grupo ${sampleBet.group}` : "Fase Anterior";
+            legacyData.title = `⚽ ${sampleBet.home} VS ${sampleBet.away}`;
+          }
+
+          renderCardContents(matchId, legacyData, item.data, currentStatus);
+        } catch (err) {
+          console.error("Error recuperando partido del historial:", err);
+          renderCardContents(matchId, { id: matchId, group: "Error", title: `ID Partido: ${matchId}`, isLegacy: true }, item.data, currentStatus);
+        }
+      }
     }
+
+    if (visibleCount === 0) {
+      listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim); padding: 40px;">No hay partidos en esta categoría por ahora.</p>`;
+    }
+  }
+
+  function renderCardContents(matchId, info, fbData, currentStatus) {
+    const card = document.getElementById(`card-${matchId}`);
+    if (!card) return;
+
+    const badgeClass = info.isLegacy ? "badge-history" : "badge-current";
+    const badgeText = info.isLegacy ? "📜 Historial" : "⚡ Activo";
+
+    card.innerHTML = `
+      <span class="match-badge ${badgeClass}">${badgeText}</span>
+      <span class="group-lbl">${info.group} · ID: ${matchId}</span>
+      <h3>${info.title}</h3>
+      <div class="score-row">
+        <input type="number" min="0" id="score-h-${matchId}" value="${fbData?.home ?? 0}">
+        <span style="color: var(--text-dim); font-weight: bold;">—</span>
+        <input type="number" min="0" id="score-a-${matchId}" value="${fbData?.away ?? 0}">
+      </div>
+      <div class="status-row">
+        ${STATUSES.map(s => `
+          <button class="status-btn btn-${matchId}" data-m="${matchId}" data-s="${s.value}" onclick="setUIStatus('${matchId}','${s.value}')">
+            ${s.label}
+          </button>
+        `).join("")}
+      </div>
+      <button style="background: var(--gold); font-weight: bold;" onclick="updateMatchFirebase('${matchId}')">Asentar Marcador Oficial 🚀</button>
+      <div class="msg" id="msg-${matchId}"></div>
+    `;
+
+    setUIStatus(matchId, currentStatus);
   }
 
   window.setUIStatus = function(matchId, status) {
@@ -247,7 +313,7 @@
     try {
       await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Actualizado con éxito! 🚀";
+      msgEl.textContent = "¡Marcador oficial asentado con éxito! 🚀";
       setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
     } catch(e) {
       msgEl.className = "msg";
