@@ -5,13 +5,14 @@
 <title>Centro de Control Total</title>
 <style>
   body { background: #0c0f14; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
   .panel { background: #141922; padding: 20px; border-radius: 10px; }
   table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 10px; border-bottom: 1px solid #2a3242; text-align: left; }
+  th, td { padding: 12px; border-bottom: 1px solid #2a3242; text-align: left; }
   .btn-save { background: #1ed87f; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-  .bet-card { background: #1b212c; padding: 10px; margin-bottom: 5px; border-radius: 5px; font-size: 0.9em; }
-  h2 { color: #f5b942; }
+  .bet-card { background: #1b212c; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid #f5b942; }
+  h2 { color: #f5b942; margin-top: 0; }
+  .score-input { width: 45px; background: #1b212c; border: 1px solid #2a3242; color: white; padding: 5px; text-align: center; }
 </style>
 </head>
 <body>
@@ -27,7 +28,7 @@
   </div>
 
   <div class="panel">
-    <h2>👥 Apuestas de Usuarios</h2>
+    <h2>👥 Apuestas por Partido</h2>
     <div id="users-body"></div>
   </div>
 </div>
@@ -36,7 +37,10 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+  const db = getDatabase(initializeApp({ 
+    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" 
+  }));
+
   let cache = { bets: {}, scores: {} };
 
   onValue(ref(db), (snap) => {
@@ -49,7 +53,8 @@
   window.guardarMarcador = (id) => {
     const h = document.getElementById(`h-${id}`).value;
     const a = document.getElementById(`a-${id}`).value;
-    set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED' });
+    set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED' })
+    .then(() => alert("Marcador guardado"));
   };
 
   function render() {
@@ -58,25 +63,28 @@
     matchBody.innerHTML = "";
     usersBody.innerHTML = "";
 
-    // Render Partidos
     Object.keys(cache.bets).forEach(id => {
       const s = cache.scores[id] || { home: 0, away: 0 };
-      const b = Object.values(cache.bets[id])[0];
+      const betsObj = cache.bets[id]; // El objeto de apuestas de este partido
+      const firstBet = Object.values(betsObj)[0] || { home: "...", away: "..." };
+      
+      // Render Partidos
       matchBody.innerHTML += `<tr>
-        <td>${id}</td><td>${b.home} vs ${b.away}</td>
-        <td><input type="number" id="h-${id}" value="${s.home}" style="width:30px"> - 
-            <input type="number" id="a-${id}" value="${s.away}" style="width:30px"></td>
+        <td>${id}</td>
+        <td>${firstBet.home} vs ${firstBet.away}</td>
+        <td>
+          <input type="number" id="h-${id}" value="${s.home}" class="score-input"> - 
+          <input type="number" id="a-${id}" value="${s.away}" class="score-input">
+        </td>
         <td><button class="btn-save" onclick="guardarMarcador('${id}')">✓</button></td>
       </tr>`;
-    });
 
-    // Render Usuarios (Cruzando los datos)
-    Object.keys(cache.bets).forEach(mId => {
-      usersBody.innerHTML += `<h3>Partido ${mId}</h3>`;
-      Object.values(cache.bets[mId]).forEach(bet => {
+      // Render Apuestas de Usuarios
+      usersBody.innerHTML += `<h3 style="color:#1ed87f">Partido ${id}</h3>`;
+      Object.values(betsObj).forEach(bet => {
         usersBody.innerHTML += `
           <div class="bet-card">
-            <strong>${bet.username}</strong>: ${bet.homeScore} - ${bet.awayScore}
+            <strong>${bet.username || 'Usuario'}</strong>: ${bet.homeScore} - ${bet.awayScore}
           </div>`;
       });
     });
