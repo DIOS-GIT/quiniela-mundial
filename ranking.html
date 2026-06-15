@@ -2,38 +2,111 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ranking Oficial · Quiniela Mundial</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Ranking Pro · Quiniela</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg: #0c0f14; --bg-panel: #141922; --line: #2a3242; --grass: #1ed87f; --gold: #f5b942; --text: #eef1f5; --text-dim: #8b96a8; }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{ font-family:'Rubik', sans-serif; background: var(--bg); color: var(--text); min-height:100vh; }
+  :root { --accent: #f5b942; --bg: #0a0c10; --card: #151921; --text: #eef1f5; }
+  body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding-bottom: 20px; }
   
-  /* Mismo estilo de menú que en index */
-  .nav-menu{ display: flex; justify-content: center; gap: 30px; padding: 20px; background: #0c0f14; border-bottom: 1px solid var(--line); }
+  /* Menú de navegación */
+  .nav-menu { display: flex; justify-content: center; gap: 30px; padding: 20px; background: #0c0f14; border-bottom: 1px solid #2a3242; }
+  .nav-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none; }
   
-  .container { max-width: 600px; margin: 0 auto; padding: 20px; text-align: center; }
-  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 40px; margin: 20px 0; color: var(--text); }
+  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+  h1 { text-align: center; font-size: 3rem; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; }
+  .subtitle { text-align: center; color: #888; margin-bottom: 25px; }
+
+  .info-panel { background: linear-gradient(135deg, #1e2633 0%, #151921 100%); border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #2a3242; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  .info-panel h3 { margin-top: 0; color: var(--accent); }
+
+  #search-bar { width: 100%; padding: 18px; border-radius: 12px; border: none; background: #1b212c; color: white; margin-bottom: 20px; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
   
-  /* Aquí puedes poner tus estilos del ranking que tenías antes */
-  #ranking-list { text-align: left; }
+  .rank-row { background: var(--card); padding: 20px; margin-bottom: 15px; border-radius: 16px; border: 1px solid #2a3242; cursor: pointer; transition: transform 0.2s; }
+  .rank-row:hover { transform: scale(1.02); border-color: var(--accent); }
+  
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .name-block { display: flex; align-items: center; gap: 15px; font-weight: 900; font-size: 1.2em; }
+  .pts-block { font-weight: 900; font-size: 1.8em; color: #1ed87f; }
+
+  .details { display: none; margin-top: 20px; padding: 15px; background: #0a0c10; border-radius: 12px; border: 1px dashed #333; }
+  .bet-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e2633; font-size: 0.9em; }
+  .pts-badge { background: #1e2633; padding: 2px 8px; border-radius: 6px; font-size: 0.8em; color: var(--accent); }
 </style>
 </head>
 <body>
 
+<!-- Menú añadido aquí -->
 <nav class="nav-menu">
-  <a href="index.html" style="color: #555; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none;">APUESTAS</a>
-  <a href="ranking.html" style="color: #f5b942; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none;">RANKING</a>
+  <a href="index.html" style="color: #555;">APUESTAS</a>
+  <a href="ranking.html" style="color: #f5b942;">RANKING</a>
 </nav>
 
 <div class="container">
   <h1>CLASIFICACIÓN</h1>
-  <!-- El script inyectará el contenido aquí -->
-  <div id="ranking-list"></div>
+  <div class="subtitle">Quiniela Oficial · Seguimiento en vivo</div>
+  
+  <div class="info-panel">
+    <h3>📊 Sistema de Puntuación</h3>
+    <div style="display:flex; justify-content: space-between;">
+      <span>🎯 <b>Marcador Exacto</b>: 3 pts</span>
+      <span>⚽ <b>Ganador/Empate</b>: 1 pt</span>
+    </div>
+  </div>
+
+  <input type="text" id="search-bar" placeholder="🔍 Buscar nombre..." onkeyup="filtrar()">
+  <div id="ranking-list">Cargando datos...</div>
 </div>
 
-<!-- IMPORTANTE: Asegúrate de tener el script que carga los datos aquí abajo -->
-<script src="ranking-script.js?v=1.8"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+  let cachedData = [];
+  let bets = {}, scores = {};
+
+  const process = () => {
+    let users = {};
+    Object.keys(bets).forEach(mId => {
+      if (!scores[mId] || scores[mId].status !== 'SI') return;
+      Object.values(bets[mId]).forEach(b => {
+        if (!users[b.username]) users[b.username] = { pts: 0, games: [] };
+        const hR = Number(scores[mId].home), aR = Number(scores[mId].away);
+        const hB = Number(b.homeScore), aB = Number(b.awayScore);
+        
+        let p = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
+        users[b.username].pts += p;
+        users[b.username].games.push({ match: `${b.home} vs ${b.away}`, bet: `${hB}-${aB}`, off: `${hR}-${aR}`, p });
+      });
+    });
+    cachedData = Object.entries(users).sort((a,b) => b[1].pts - a[1].pts);
+    render(cachedData);
+  };
+
+  onValue(ref(db, "bets"), (s) => { bets = s.val() || {}; process(); });
+  onValue(ref(db, "scores"), (s) => { scores = s.val() || {}; process(); });
+
+  window.render = (data) => {
+    document.getElementById("ranking-list").innerHTML = data.map(([n, d], i) => `
+      <div class="rank-row" onclick="this.querySelector('.details').style.display = this.querySelector('.details').style.display === 'block' ? 'none' : 'block'">
+        <div class="header-row">
+          <div class="name-block"><span style="color:#f5b942">#${i+1}</span> ${n.toUpperCase()}</div>
+          <div class="pts-block">${d.pts}</div>
+        </div>
+        <div class="details">
+          ${d.games.map(g => `<div class="bet-item">
+            <span>${g.match}</span>
+            <span>${g.bet} vs ${g.off} <span class="pts-badge">+${g.p} pts</span></span>
+          </div>`).join('')}
+        </div>
+      </div>
+    `).join("");
+  };
+
+  window.filtrar = () => {
+    const t = document.getElementById("search-bar").value.toLowerCase();
+    render(cachedData.filter(([n]) => n.toLowerCase().includes(t)));
+  };
+</script>
 </body>
 </html>
