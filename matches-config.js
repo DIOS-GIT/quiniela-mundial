@@ -1,45 +1,58 @@
-// matches-config.js
-// CONFIGURACIÓN COMPLETA DE LOS 4 PARTIDOS SEGÚN SCREENSHOT_3.JPG
-
-const GROUPS = {
-  "E": [
-    {
-      id: "match_e1",
-      groupName: "Grupo E",
-      date: "Hoy · 12:00 p. m.",
-      closeTime: "2026-06-14T12:00:00-05:00", // Hora exacta de Screenshot_3.jpg (Cartagena)
-      cardsInPlay: 2,
-      home: { name: "Alemania", flag: "🇩🇪", card: "MITICO-alemania.jpg" },
-      away: { name: "Curazao", flag: "🇨🇼", card: "MITICO-curazao.jpg" }
+[
+  {
+    "id": 1,
+    "group": "H",
+    "time": "11:00 a.m.",
+    "home_team": {
+      "name": "España",
+      "image": "MITICO-espana.jpg"
     },
-    {
-      id: "match_e2",
-      groupName: "Grupo E",
-      date: "Hoy · 6:00 p. m.",
-      closeTime: "2026-06-14T18:00:00-05:00", // Hora exacta de Screenshot_3.jpg
-      cardsInPlay: 2,
-      home: { name: "Costa de Marfil", flag: "🇨🇮", card: "MITICO-costademarfil.jpg" },
-      away: { name: "Ecuador", flag: "🇪🇨", card: "MITICO-ecuador.jpg" }
-    }
-  ],
-  "F": [
-    {
-      id: "match_f1",
-      groupName: "Grupo F",
-      date: "Hoy · 3:00 p. m.",
-      closeTime: "2026-06-14T15:00:00-05:00", // Hora exacta de Screenshot_3.jpg
-      cardsInPlay: 2,
-      home: { name: "Países Bajos", flag: "🇳🇱", card: "MITICO-paisesbajos.jpg" },
-      away: { name: "Japón", flag: "🇯🇵", card: "MITICO-japon.jpg" }
+    "away_team": {
+      "name": "Cabo Verde",
+      "image": "MITICO-caboverde.jpg"
     },
-    {
-      id: "match_f2",
-      groupName: "Grupo F",
-      date: "Hoy · 9:00 p. m.",
-      closeTime: "2026-06-14T21:00:00-05:00", // Hora exacta de Screenshot_3.jpg
-      cardsInPlay: 2,
-      home: { name: "Suecia", flag: "🇸🇪", card: "MITICO-suecia.jpg" },
-      away: { name: "Túnez", flag: "🇹🇳", card: "MITICO-tunez.jpg" }
-    }
-  ]
-};
+    "status": "scheduled"
+  },
+  {
+    "id": 2,
+    "group": "G",
+    "time": "2:00 p.m.",
+    "home_team": {
+      "name": "Bélgica",
+      "image": "MITICO-belgica.jpg"
+    },
+    "away_team": {
+      "name": "Egipto",
+      "image": "MITICO-egipto.jpg"
+    },
+    "status": "scheduled"
+  },
+  {
+    "id": 3,
+    "group": "H",
+    "time": "5:00 p.m.",
+    "home_team": {
+      "name": "Arabia Saudita",
+      "image": "MITICO-arabia.jpg"
+    },
+    "away_team": {
+      "name": "Uruguay",
+      "image": "MITICO-uruguay.jpg"
+    },
+    "status": "scheduled"
+  },
+  {
+    "id": 4,
+    "group": "G",
+    "time": "8:00 p.m.",
+    "home_team": {
+      "name": "Irán",
+      "image": "MITICO-iran.jpg"
+    },
+    "away_team": {
+      "name": "Nueva Zelanda",
+      "image": "MITICO-nuevazelanda.jpg"
+    },
+    "status": "scheduled"
+  }
+]
