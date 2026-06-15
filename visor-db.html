@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor e Inspector de Base de Datos · API</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0f14;
+    --bg-panel: #141922;
+    --bg-card: #1b212c;
+    --line: #2a3242;
+    --grass: #1ed87f;
+    --gold: #f5b942;
+    --red: #ff5d5d;
+    --text: #eef1f5;
+    --text-dim: #8b96a8;
+  }
+  body {
+    font-family: 'Rubik', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 30px 15px;
+    margin: 0;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--grass); letter-spacing: 2px; text-align: center; margin-bottom: 5px; }
+  .subtitle { text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 30px; }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  .stat-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .stat-box h4 { margin: 0 0 5px 0; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-box p { margin: 0; font-size: 28px; font-family: 'Bebas Neue', sans-serif; color: #fff; }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 5px;
+  }
+
+  .table-wrapper {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+  }
+  th {
+    background: var(--bg-card);
+    color: var(--text-dim);
+    padding: 12px 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--line);
+  }
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(42, 50, 66, 0.5);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-scheduled { background: rgba(238,241,245,0.1); color: var(--text-dim); }
+  .badge-inplay { background: rgba(255,93,93,0.15); color: var(--red); }
+  .badge-paused { background: rgba(245,185,66,0.15); color: var(--gold); }
+  .badge-finished { background: rgba(30,216,127,0.15); color: var(--grass); }
+
+  .raw-box {
+    background: #06080b;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #a4efaa;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    max-height: 300px;
+  }
+  .loading { text-align: center; color: var(--gold); padding: 40px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🔍 INSPECTOR DE BASE DE DATOS PROFUNDA</h1>
+  <div class="subtitle">Mundial Quiniela · Espejo de Datos en Tiempo Real y Endpoint Estructurado</div>
+
+  <div class="stats-grid">
+    <div class="stat-box">
+      <h4>Total en Historial</h4>
+      <p id="stat-total">0</p>
+    </div>
+    <div class="stat-box">
+      <h4>Finalizados (Asentados)</h4>
+      <p id="stat-finished" style="color: var(--grass);">0</p>
+    </div>
+    <div class="stat-box">
+      <h4>En Vivo / Pendientes</h4>
+      <p id="stat-active" style="color: var(--gold);">0</p>
+    </div>
+  </div>
+
+  <div class="section-title">📊 Partidos Registrados de Forma Oficial (`scores/`)</div>
+  <div class="table-wrapper">
+    <div id="loading-msg" class="loading">Sincronizando con Firebase...</div>
+    <table id="db-table" style="display: none;">
+      <thead>
+        <tr>
+          <th>ID Partido</th>
+          <th>Fase / Grupo</th>
+          <th>Partido Real (Identificado)</th>
+          <th>Marcador Oficial</th>
+          <th>Estado Real</th>
+          <th>Última Actualización</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <div class="section-title" style="margin-top: 40px;">🌐 Respuesta Limpia de Datos (Estructura de API Destilada)</div>
+  <p style="font-size: 13px; color: var(--text-dim); margin-top: -10px; margin-bottom: 10px;">
+    Esta es la estructura JSON unificada que usaremos para alimentar el cálculo automatizado en el archivo <code>ranking.html</code>.
+  </p>
+  <div class="raw-box" id="json-output">Generando objeto de datos estructurado...</div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue, query, limitToFirst, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
+    authDomain: "submanhwa-apuestas.firebaseapp.com",
+    projectId: "submanhwa-apuestas",
+    storageBucket: "submanhwa-apuestas.firebasestorage.app",
+    messagingSenderId: "197537057888",
+    appId: "1:197537057888:web:48cd6427bd9184ba5e0705",
+    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Escucha maestra de 'scores'
+  onValue(ref(db, "scores"), async (snapshot) => {
+    if (!snapshot.exists()) {
+      document.getElementById("loading-msg").textContent = "La base de datos está vacía o el nodo 'scores' no existe.";
+      return;
+    }
+
+    const scoresData = snapshot.val();
+    const matchIds = Object.keys(scoresData);
+    
+    // Contadores de métricas
+    let total = matchIds.length;
+    let finished = 0;
+    let active = 0;
+
+    const processedMatches = {};
+    const tableBody = document.getElementById("table-body");
+    tableBody.innerHTML = "";
+
+    // Procesamos cada ID de forma asíncrona buscando su identidad real en bets/
+    for (const matchId of matchIds) {
+      const matchScore = scoresData[matchId];
+      const currentStatus = matchScore.status || "SCHEDULED";
+      
+      if (currentStatus === "FINISHED") finished++;
+      else active++;
+
+      // Valores por defecto si no hay apuestas registradas para este ID
+      let detectedTitle = `ID: ${matchId} (Sin Apuestas Realizadas)`;
+      let detectedGroup = "Desconocido";
+
+      try {
+        // Ejecutamos la consulta optimizada limitToFirst(1) sugerida en el mapa lógico
+        const betsRef = query(ref(db, `bets/${matchId}`), limitToFirst(1));
+        const betsSnap = await get(betsRef);
+
+        if (betsSnap.exists()) {
+          const firstBetKey = Object.keys(betsSnap.val())[0];
+          const sampleBet = betsSnap.val()[firstBetKey];
+          
+          detectedGroup = sampleBet.group ? `Grupo ${sampleBet.group}` : "Fase Eliminatoria";
+          detectedTitle = `⚽ ${sampleBet.home} vs ${sampleBet.away}`;
+        }
+      } catch (err) {
+        console.error("Error al resolver identidad del partido: " + matchId, err);
+      }
+
+      // Formateo de fecha legible
+      const dateStr = matchScore.updatedAt 
+        ? new Date(matchScore.updatedAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) 
+        : 'Sin registro';
+
+      // Guardamos la información unificada en nuestro objeto de datos global (Formato API)
+      processedMatches[matchId] = {
+        matchId: matchId,
+        title: detectedTitle,
+        group: detectedGroup,
+        homeScore: matchScore.home ?? 0,
+        awayScore: matchScore.away ?? 0,
+        status: currentStatus,
+        lastUpdateTimestamp: matchScore.updatedAt || 0
+      };
+
+      // Elegimos la etiqueta de estado correspondiente
+      let statusBadge = `<span class="badge badge-scheduled">Pendiente</span>`;
+      if (currentStatus === "IN_PLAY") statusBadge = `<span class="badge badge-inplay">En Vivo 🔴</span>`;
+      if (currentStatus === "PAUSED") statusBadge = `<span class="badge badge-paused">Medio T. ⏸</span>`;
+      if (currentStatus === "FINISHED") statusBadge = `<span class="badge badge-finished">Finalizado ✅</span>`;
+
+      // Inyectamos fila en la tabla visual
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td style="font-family: monospace; font-weight: bold; color: var(--gold);">${matchId}</td>
+        <td>${detectedGroup}</td>
+        <td style="font-weight: 500;">${detectedTitle}</td>
+        <td style="font-size: 16px; font-weight: bold; text-align: center; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;">
+          ${matchScore.home ?? 0} — ${matchScore.away ?? 0}
+        </td>
+        <td>${statusBadge}</td>
+        <td style="font-size: 12px; color: var(--text-dim);">${dateStr}</td>
+      `;
+      tableBody.appendChild(row);
+    }
+
+    // Actualizamos el cuadro de estadísticas
+    document.getElementById("stat-total").textContent = total;
+    document.getElementById("stat-finished").textContent = finished;
+    document.getElementById("stat-active").textContent = active;
+
+    // Ocultamos cargador y mostramos tabla reconstruida
+    document.getElementById("loading-msg").style.display = "none";
+    document.getElementById("db-table").style.display = "table";
+
+    // Mostramos la salida limpia formateada en JSON estructurado listo para ser consumido
+    document.getElementById("json-output").textContent = JSON.stringify(processedMatches, null, 2);
+
+    // EXPONEMOS GLOBALMENTE EL OBJETO COMO UNA API INTERNA EN EL WINDOW
+    // De esta forma cualquier script externo (como ranking.html) podrá invocarlo de forma limpia
+    window.MundialAPI = {
+      getScores: () => processedMatches,
+      isReady: true
+    };
+  });
+</script>
+</body>
+</html>
