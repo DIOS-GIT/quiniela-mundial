@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel · Solo Staff</title>
+<title>Admin Panel · Quiniela</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -17,24 +17,81 @@
     --text: #eef1f5;
     --text-dim: #8b96a8;
   }
-  body { font-family: 'Rubik', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; }
+  body {
+    font-family: 'Rubik', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 20px;
+  }
   .container { max-width: 600px; margin: 0 auto; }
   h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
   
-  .login-box { background: var(--bg-card); border: 1px solid var(--line); padding: 30px; border-radius: 14px; text-align: center; }
-  input { background: var(--bg-panel); border: 1px solid var(--line); color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; margin-bottom: 15px; text-align: center; }
-  button { background: var(--grass); color: #000; border: none; padding: 12px 24px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; border-radius: 8px; cursor: pointer; width: 100%; }
+  /* Pestañas */
+  .tabs { display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid var(--line); margin-bottom: 25px; padding-bottom: 10px; }
+  .tab-btn { background: none; border: none; color: var(--text-dim); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; cursor: pointer; padding: 5px 10px; width: auto; }
+  .tab-btn.active { color: var(--grass); border-bottom: 2px solid var(--grass); }
+
+  .login-box {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 30px;
+    border-radius: 14px;
+    text-align: center;
+  }
+  input {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  button {
+    background: var(--grass);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+  }
   
-  .admin-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .admin-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .group-tag { font-size: 10px; color: var(--text-dim); text-transform: uppercase; text-align: center; letter-spacing: 1px; margin-bottom: 5px; }
   .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #fff; margin-bottom: 12px; text-align: center; }
-  .card-id { font-size: 11px; color: var(--text-dim); text-transform: uppercase; text-align: center; margin-bottom: 6px; }
-  
   .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
-  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; text-align: center; background: var(--bg-panel); border: 1px solid var(--line); color: #fff; border-radius: 6px; padding: 4px; }
+  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; background: var(--bg-panel); border: 1px solid var(--line); color: #fff; border-radius: 6px; padding: 4px; }
   
   .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
-  .status-btn { background: var(--bg-panel); border: 1px solid var(--line); color: var(--text-dim); padding: 6px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; }
-  .status-btn.active { border-color: var(--grass); color: var(--grass); background: rgba(30,216,127,0.1); }
+  .status-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    width: auto;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .status-btn.active {
+    border-color: var(--grass);
+    color: var(--grass);
+    background: rgba(30,216,127,0.1);
+  }
   .msg { font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
   .msg.ok { color: var(--grass); }
   .msg.err { color: var(--red); }
@@ -43,18 +100,26 @@
 <body>
 
 <div class="container">
-  <h1>⚙️ PANEL DE CONTROL DIRECTO</h1>
+  <h1>⚙️ PANEL DE ADMINISTRACIÓN</h1>
 
   <div class="login-box" id="login-box">
-    <input type="password" id="pin-input" placeholder="Introduce el PIN de acceso">
+    <p style="margin-bottom: 15px; color: var(--text-dim);">Introduce el código PIN de acceso</p>
+    <input type="password" id="pin-input" placeholder="••••">
     <button onclick="verifyPin()">Ingresar</button>
     <p id="login-err" style="color: var(--red); font-size: 13px; margin-top: 10px;"></p>
   </div>
 
   <div id="panel-box" style="display: none;">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('live')">🔴 Transmisión en Vivo</button>
+      <button class="tab-btn" onclick="switchTab('close')">📜 Cierre de Ranking</button>
+    </div>
+
     <div id="match-list"></div>
   </div>
 </div>
+
+<script src="matches-config.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -74,85 +139,90 @@
   const db = getDatabase(app);
 
   const ADMIN_PIN = "1234";
-  window.currentStatuses = {};
-  let globalBets = {};
+  let currentTab = 'live'; // 'live' o 'close'
+  window.uiStatuses = {};  // Control temporal de estados seleccionados en la UI
+
+  const STATUSES = [
+    { value: "SCHEDULED", label: "Pendiente" },
+    { value: "IN_PLAY",   label: "🔴 En Vivo" },
+    { value: "PAUSED",    label: "⏸ Medio Tiempo" },
+    { value: "FINISHED",  label: "✅ Finalizado" }
+  ];
 
   window.verifyPin = function() {
     if(document.getElementById("pin-input").value === ADMIN_PIN) {
       document.getElementById("login-box").style.display = "none";
       document.getElementById("panel-box").style.display = "block";
-      
-      // Primero leemos las apuestas para extraer nombres reales de equipos, luego cargamos los partidos
-      onValue(ref(db, "bets"), betSnap => {
-        globalBets = betSnap.exists() ? betSnap.val() : {};
-        listenFirebaseMatches();
-      });
+      renderAdminPanel();
     } else {
       document.getElementById("login-err").textContent = "PIN incorrecto.";
     }
   }
 
-  function listenFirebaseMatches() {
-    onValue(ref(db, "scores"), snap => {
-      const listEl = document.getElementById("match-list");
-      listEl.innerHTML = "";
+  window.switchTab = function(tabName) {
+    currentTab = tabName;
+    document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+      btn.classList.toggle('active', (idx === 0 && tabName === 'live') || (idx === 1 && tabName === 'close'));
+    });
+    renderAdminPanel();
+  }
 
-      if(!snap.exists()){
-        listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim);">No hay partidos en 'scores'.</p>`;
-        return;
-      }
+  function renderAdminPanel() {
+    const listEl = document.getElementById("match-list");
+    listEl.innerHTML = "";
 
-      const matchesData = snap.val();
-
-      Object.keys(matchesData).forEach(matchId => {
-        const match = matchesData[matchId];
+    // Iteramos los partidos estructurados en tu archivo local matches-config.js
+    Object.keys(GROUPS).forEach(groupKey => {
+      GROUPS[groupKey].forEach(match => {
         
-        // Buscamos nombres legibles dentro del nodo de apuestas (ej: "Brasil" vs "Marruecos")
-        let homeName = "Equipo Local";
-        let awayName = "Equipo Visitante";
-        
-        if (globalBets[matchId]) {
-          const firstBetKey = Object.keys(globalBets[matchId])[0];
-          if (firstBetKey && globalBets[matchId][firstBetKey]) {
-            homeName = globalBets[matchId][firstBetKey].home || homeName;
-            awayName = globalBets[matchId][firstBetKey].away || awayName;
-          }
-        }
-
-        if (!window.currentStatuses[matchId]) {
-          window.currentStatuses[matchId] = match.status || "SCHEDULED";
-        }
-
+        // Creamos la tarjeta del partido con su diseño limpio
         const card = document.createElement("div");
         card.className = "admin-card";
         card.innerHTML = `
-          <div class="card-id">ID: ${matchId}</div>
-          <h3>${homeName} vs ${awayName}</h3>
+          <div class="group-tag">Grupo ${groupKey} · ID: ${match.id}</div>
+          <h3>${match.home.flag || ''} ${match.home.name} vs ${match.away.name} ${match.away.flag || ''}</h3>
           
           <div class="score-row">
-            <input type="number" min="0" id="score-h-${matchId}" value="${match.home ?? 0}">
-            <span style="color:var(--text-dim); font-weight:bold;">—</span>
-            <input type="number" min="0" id="score-a-${matchId}" value="${match.away ?? 0}">
+            <input type="number" min="0" id="score-h-${match.id}" value="0">
+            <span style="color: var(--text-dim)">—</span>
+            <input type="number" min="0" id="score-a-${match.id}" value="0">
           </div>
 
           <div class="status-row">
-            <button class="status-btn btn-${matchId}" data-s="SCHEDULED" onclick="setUIStatus('${matchId}','SCHEDULED')">Pendiente</button>
-            <button class="status-btn btn-${matchId}" data-s="IN_PLAY" onclick="setUIStatus('${matchId}','IN_PLAY')">🔴 En Vivo</button>
-            <button class="status-btn btn-${matchId}" data-s="PAUSED" onclick="setUIStatus('${matchId}','PAUSED')">⏸ Medio</button>
-            <button class="status-btn btn-${matchId}" data-s="FINISHED" onclick="setUIStatus('${matchId}','FINISHED')">✅ Finalizado</button>
+            ${STATUSES.map(s => `
+              <button class="status-btn btn-${match.id}" data-s="${s.value}" onclick="setUIStatus('${match.id}','${s.value}')">
+                ${s.label}
+              </button>
+            `).join("")}
           </div>
 
-          <button onclick="saveMatch('${matchId}')">Asentar Marcador Oficial 🚀</button>
-          <div class="msg" id="msg-${matchId}"></div>
+          <button style="background: var(--gold)" onclick="updateMatchFirebase('${match.id}')">Asentar Marcador Oficial 🚀</button>
+          <div class="msg" id="msg-${match.id}"></div>
         `;
         listEl.appendChild(card);
-        updateButtonVisuals(matchId, window.currentStatuses[matchId]);
+
+        // Escuchamos Firebase en tiempo real para rellenar los campos con lo que esté guardado en la nube
+        onValue(ref(db, `scores/${match.id}`), snap => {
+          if(!snap.exists()) return;
+          const data = snap.val();
+          
+          const homeInput = document.getElementById(`score-h-${match.id}`);
+          const awayInput = document.getElementById(`score-a-${match.id}`);
+          
+          if(data.home !== undefined && homeInput) homeInput.value = data.home;
+          if(data.away !== undefined && awayInput) awayInput.value = data.away;
+          
+          if(data.status) {
+            window.uiStatuses[match.id] = data.status;
+            updateButtonVisuals(match.id, data.status);
+          }
+        });
       });
     });
   }
 
   window.setUIStatus = function(matchId, status) {
-    window.currentStatuses[matchId] = status;
+    window.uiStatuses[matchId] = status;
     updateButtonVisuals(matchId, status);
   }
 
@@ -162,22 +232,25 @@
     });
   }
 
-  window.saveMatch = async function(matchId) {
-    const homeScore = Number(document.getElementById(`score-h-${matchId}`).value);
-    const awayScore = Number(document.getElementById(`score-a-${matchId}`).value);
-    const status = window.currentStatuses[matchId] || "SCHEDULED";
-    const msgEl = document.getElementById(`msg-${matchId}`);
+  window.updateMatchFirebase = async function(matchId) {
+    const home = Number(document.getElementById(`score-h-${matchId}`).value);
+    const away = Number(document.getElementById(`score-a-${matchId}`).value);
+    const status = window.uiStatuses[matchId] || "SCHEDULED";
+    const msgEl = document.getElementById("msg-" + matchId);
 
     try {
-      await set(ref(db, `scores/${matchId}/home`), homeScore);
-      await set(ref(db, `scores/${matchId}/away`), awayScore);
-      await set(ref(db, `scores/${matchId}/status`), status);
-      await set(ref(db, `scores/${matchId}/updatedAt`), Date.now());
-
+      // Guardamos la estructura limpia tal como la maneja tu Firebase original
+      await set(ref(db, `scores/${matchId}`), {
+        home,
+        away,
+        status,
+        updatedAt: Date.now()
+      });
+      
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Marcador asentado con éxito! 🏆";
+      msgEl.textContent = "¡Base de datos sincronizada con éxito! 🏆";
       setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
-    } catch (e) {
+    } catch(e) {
       msgEl.className = "msg err";
       msgEl.textContent = "Error: " + e.message;
     }
