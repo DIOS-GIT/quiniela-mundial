@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SUBMANHWA · Tabla de Posiciones</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>SUBMANHWA · Ranking Oficial</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -14,230 +13,48 @@
     --line: #2a3242;
     --grass: #1ed87f;
     --gold: #f5b942;
-    --red: #ff5d5d;
     --text: #eef1f5;
     --text-dim: #8b96a8;
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
   body{
-    font-family:'Rubik', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height:100vh;
-    background-image:
-      radial-gradient(circle at 10% 0%, rgba(30,216,127,0.08), transparent 40%),
-      radial-gradient(circle at 90% 100%, rgba(245,185,66,0.06), transparent 40%);
+    font-family:'Rubik', sans-serif; background: var(--bg); color: var(--text); padding: 20px;
   }
-
-  /* HEADER */
-  header{
-    border-bottom: 1px solid var(--line);
-    padding: 28px 20px;
-    text-align:center;
-    position:relative;
-    overflow:hidden;
-  }
-  header::before{
-    content:"";
-    position:absolute; inset:0;
-    background: repeating-linear-gradient(135deg, transparent 0 40px, rgba(255,255,255,0.015) 40px 80px);
-    pointer-events:none;
-  }
-  .brand{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: 14px;
-    letter-spacing: 4px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-  h1{
-    font-family:'Bebas Neue', sans-serif;
-    font-size: clamp(32px, 6vw, 56px);
-    letter-spacing: 2px;
-    line-height:1.1;
-  }
-  h1 span{ color: var(--gold); }
-  .subtitle{
-    color: var(--text-dim);
-    font-size: 14px;
-    margin-top: 8px;
-  }
-
-  /* CONTAINER */
-  .container{
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 32px 20px 80px;
-  }
-
-  /* BOTÓN VOLVER */
-  .back-btn-container {
-    margin-bottom: 20px;
-  }
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--grass);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: opacity 0.2s;
-  }
-  .back-btn:hover { opacity: 0.8; }
-
-  /* SCORE RULES BRIEF */
-  .score-rules-brief {
-    background: var(--bg-card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 24px;
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 12px;
-    font-size: 13px;
-  }
-  .rule-item { display: flex; align-items: center; gap: 8px; }
-  .badge-rule {
-    font-family: 'Bebas Neue', sans-serif;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-  .badge-rule.exact { background: rgba(245,185,66,0.15); color: var(--gold); border: 1px solid var(--gold); }
-  .badge-rule.winner { background: rgba(30,216,127,0.15); color: var(--grass); border: 1px solid var(--grass); }
-
-  /* RANKING TABLE CONTAINER */
-  .ranking-wrapper {
-    background: var(--bg-panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  }
-
-  .loading-state, .empty-state {
-    padding: 40px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 14px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-  }
-
-  th {
-    background: rgba(42, 50, 66, 0.4);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 15px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--line);
-    text-transform: uppercase;
-  }
-
-  td {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--line);
-    font-size: 14px;
-    vertical-align: middle;
-  }
-
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,0.01); }
-
-  /* COLUMNAS ESPECÍFICAS */
-  .col-pos { width: 70px; text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: 18px; }
-  .col-user { font-weight: 500; color: var(--text); }
-  .col-stat { text-align: center; width: 90px; color: var(--text-dim); }
-  .col-pts { text-align: center; width: 100px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--grass); }
-
-  /* DISEÑO TOP POSICIONES */
-  .pos-podium {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 14px;
-  }
-  tr:nth-child(1) .pos-podium { background: rgba(245,185,66,0.2); color: var(--gold); border: 1px solid var(--gold); font-size: 16px; }
-  tr:nth-child(2) .pos-podium { background: rgba(238,241,245,0.15); color: #cbd5e1; border: 1px solid #cbd5e1; }
-  tr:nth-child(3) .pos-podium { background: rgba(205,127,50,0.2); color: #cd7f32; border: 1px solid #cd7f32; }
-
-  /* MEDIA QUERIES */
-  @media(max-width: 540px) {
-    th, td { padding: 12px 10px; font-size: 13px; }
-    .col-pos { width: 50px; }
-    .col-stat { width: 70px; }
-    .col-pts { width: 70px; font-size: 18px; }
-    .score-rules-brief { flex-direction: column; align-items: flex-start; gap: 8px; }
-  }
+  .container{ max-width: 700px; margin: 0 auto; }
+  h1{ font-family:'Bebas Neue', sans-serif; font-size: 42px; text-align: center; margin-bottom: 20px; }
+  h1 span { color: var(--gold); }
+  
+  table { width: 100%; border-collapse: collapse; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { background: #1c2330; font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--text-dim); }
+  .pts { color: var(--grass); font-weight: bold; font-size: 16px; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">SUBMANHWA · COMPETENCIA</div>
-  <h1>RANKING <span>GENERAL</span> 🏆</h1>
-  <p class="subtitle">Tabla de posiciones oficial en tiempo real basada en los resultados del mundial</p>
-</header>
-
 <div class="container">
+  <h1>🏆 RANKING <span>GENERAL</span></h1>
+  <p style="text-align: center; margin-bottom: 20px; color: var(--text-dim);"><a href="index.html" style="color: var(--grass); text-decoration: none;">⬅ Volver a la Quiniela</a></p>
   
-  <div class="back-btn-container">
-    <a href="index.html" class="back-btn">⬅ Volver a la Quiniela</a>
-  </div>
-
-  <div class="score-rules-brief">
-    <div class="rule-item">
-      <span class="badge-rule exact">+3 PTS</span>
-      <span>Marcador exacto</span>
-    </div>
-    <div class="rule-item">
-      <span class="badge-rule winner">+1 PT</span>
-      <span>Acertar ganador o empate</span>
-    </div>
-  </div>
-
-  <div class="ranking-wrapper">
-    <div id="loading" class="loading-state">⏳ Cargando y procesando puntajes en tiempo real...</div>
-    <div id="empty" class="empty-state" style="display:none;">⚽ Aún no se han asentado partidos oficiales en el historial. ¡Vuelve pronto!</div>
-    
-    <table id="ranking-table" style="display:none;">
-      <thead>
-        <tr>
-          <th style="text-align:center;">Pos</th>
-          <th>Usuario (submanhwa.com)</th>
-          <th style="text-align:center;">Plenos (3pt)</th>
-          <th style="text-align:center;">Aciertos (1pt)</th>
-          <th style="text-align:center;">Partidos</th>
-          <th style="text-align:center;">Puntos</th>
-        </tr>
-      </thead>
-      <tbody id="ranking-tbody">
-        </tbody>
-    </table>
-  </div>
-
+  <table>
+    <thead>
+      <tr>
+        <th>Pos</th>
+        <th>Usuario</th>
+        <th>Plenos (3pt)</th>
+        <th>Aciertos (1pt)</th>
+        <th>Puntos Totales</th>
+      </tr>
+    </thead>
+    <tbody id="ranking-table-body">
+      <tr><td colspan="5" style="text-align:center; color: var(--text-dim);">Cargando posiciones en tiempo real...</td></tr>
+    </tbody>
+  </table>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-  
-  // Importamos la función calculadora desde tu archivo separado
-  import { buildRankingData } from "./ranking-logic.js";
 
-  // Tu misma configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
     authDomain: "submanhwa-apuestas.firebaseapp.com",
@@ -251,73 +68,101 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const loadingEl = document.getElementById("loading");
-  const emptyEl = document.getElementById("empty");
-  const tableEl = document.getElementById("ranking-table");
-  const tbodyEl = document.getElementById("ranking-tbody");
-
-  // Escucha masiva combinada de apuestas y resultados
-  const betsRef = ref(db, "bets");
-  const resultsRef = ref(db, "results");
-
   let allBets = {};
-  let officialResults = {};
+  let allScores = {};
 
-  function checkAndRender() {
-    // Generar el ranking ejecutando la matemática de ranking-logic.js
-    const ranking = buildRankingData(allBets, officialResults);
-    
-    loadingEl.style.display = "none";
+  // Escuchar nodo de Apuestas
+  onValue(ref(db, "bets"), snap => {
+    allBets = snap.exists() ? snap.val() : {};
+    calculatePositions();
+  });
 
-    if (ranking.length === 0) {
-      tableEl.style.display = "none";
-      emptyEl.style.display = "block";
+  // Escuchar nodo central de partidos (scores)
+  onValue(ref(db, "scores"), snap => {
+    allScores = snap.exists() ? snap.val() : {};
+    calculatePositions();
+  });
+
+  function calculatePositions() {
+    const userScores = {};
+    const tbody = document.getElementById("ranking-table-body");
+
+    // Filtrar cuáles partidos están realmente marcados como FINISHED por el admin
+    const finishedMatches = {};
+    Object.keys(allScores).forEach(id => {
+      if (allScores[id] && allScores[id].status === "FINISHED") {
+        finishedMatches[id] = allScores[id];
+      }
+    });
+
+    // Si no hay partidos cerrados en la DB, mostramos el mensaje limpio
+    if (Object.keys(finishedMatches).length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-dim);">Esperando que finalice el primer partido para abrir el ranking.</td></tr>`;
       return;
     }
 
-    emptyEl.style.display = "none";
-    tableEl.style.display = "table";
-    tbodyEl.innerHTML = "";
+    // Procesar las matemáticas cruzando los partidos terminados con las apuestas registradas
+    Object.keys(finishedMatches).forEach(matchId => {
+      const matchResult = finishedMatches[matchId];
+      const matchBets = allBets[matchId];
 
-    // Construir visualmente la tabla de posiciones fila por fila
-    ranking.forEach((user, index) => {
-      const position = index + 1;
-      const tr = document.createElement("tr");
-      
-      // Formatear los tres primeros lugares con una medalla/círculo especial
-      const posHtml = position <= 3 
-        ? `<span class="pos-podium">${position}</span>` 
-        : position;
+      if (matchBets) {
+        Object.values(matchBets).forEach(bet => {
+          const username = (bet.username || "").trim();
+          if (!username) return;
 
-      tr.innerHTML = `
-        <td class="col-pos">${posHtml}</td>
-        <td class="col-user">${escapeHtml(user.username)}</td>
-        <td class="col-stat" style="color: var(--gold); font-weight:500;">🎯 ${user.exacts}</td>
-        <td class="col-stat" style="color: #cbd5e1;">⚽ ${user.tendencies}</td>
-        <td class="col-stat">${user.totalMatches}</td>
-        <td class="col-pts">${user.points} pts</td>
+          const userKey = username.toLowerCase();
+
+          // Inicializamos al participante si no existía en el mapa
+          if (!userScores[userKey]) {
+            userScores[userKey] = { name: username, points: 0, exacts: 0, tendencies: 0 };
+          }
+
+          const bH = Number(bet.homeScore);
+          const bA = Number(bet.awayScore);
+          const rH = Number(matchResult.home);
+          const rA = Number(matchResult.away);
+
+          // REGLA 1: Pleno absoluto (3 Puntos)
+          if (bH === rH && bA === rA) {
+            userScores[userKey].points += 3;
+            userScores[userKey].exacts += 1;
+          } else {
+            // REGLA 2: Acierto de Tendencia / Ganador o Empate (1 Punto)
+            const betTrend = bH > bA ? 'W' : bH < bA ? 'L' : 'D';
+            const resTrend = rH > rA ? 'W' : rH < rA ? 'L' : 'D';
+            
+            if (betTrend === resTrend) {
+              userScores[userKey].points += 1;
+              userScores[userKey].tendencies += 1;
+            }
+          }
+        });
+      });
+    });
+
+    // Ordenar participantes de mayor a menor puntuación (y por plenos en caso de empate)
+    const sortedRanking = Object.values(userScores).sort((a, b) => b.points - a.points || b.exacts - a.exacts);
+
+    tbody.innerHTML = "";
+    if (sortedRanking.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-dim);">Ningún usuario apostó en los partidos finalizados.</td></tr>`;
+      return;
+    }
+
+    // Pintar los resultados en la tabla de forma organizada
+    sortedRanking.forEach((user, index) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${index + 1}</td>
+          <td><strong>${user.name}</strong></td>
+          <td style="color:var(--gold);">🎯 ${user.exacts}</td>
+          <td>⚽ ${user.tendencies}</td>
+          <td class="pts">${user.points} pts</td>
+        </tr>
       `;
-      tbodyEl.appendChild(tr);
     });
   }
-
-  function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  // Listener para capturar cambios en el nodo de apuestas
-  onValue(betsRef, (snapshot) => {
-    allBets = snapshot.exists() ? snapshot.val() : {};
-    checkAndRender();
-  });
-
-  // Listener para capturar cambios en el nodo de resultados históricos
-  onValue(resultsRef, (snapshot) => {
-    officialResults = snapshot.exists() ? snapshot.val() : {};
-    checkAndRender();
-  });
 </script>
 </body>
 </html>
