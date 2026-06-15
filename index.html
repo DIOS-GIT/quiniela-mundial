@@ -460,7 +460,7 @@
   }
   .rules .reward{ color: var(--gold); font-weight: 700; }
 
-/* IMAGEN DE REFERENCIA EN REGLAS */
+  /* IMAGEN DE REFERENCIA EN REGLAS */
   .rules-img {
     display: block;
     max-width: 100%;
@@ -573,10 +573,10 @@
         <span class="num-badge">1</span>
         <span class="text-content">
           Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color: var(--grass);">submanhwa.com</a> en el campo de nombre.
-          <br>
           <img class="rules-img" src="referencia-nick.jpg" alt="Referencia de Nombre de Usuario">
         </span>
       </li>
+      <li>
         <span class="num-badge">2</span>
         <span class="text-content">Coloca el marcador que crees que será el resultado final del partido.</span>
       </li>
@@ -603,7 +603,6 @@
     </ol>
   </div>
 
-  <!-- SE REPARÓ: quitamos el style="display:none;" para permitir navegar los grupos -->
   <div class="groups" id="groups"></div>
   <div id="matches"></div>
 
@@ -736,7 +735,6 @@
         if(btnBet) btnBet.onclick = () => placeBet(match);
       }
 
-      // SE SOLUCIONÓ: Retrasamos un milisegundo la lectura del socket en vivo para que no corte el render de los demás partidos
       setTimeout(() => {
         listenLiveScore(match);
       }, 0);
@@ -779,7 +777,6 @@
     const totalEl = document.getElementById("cards-total");
     if (!totalEl) return;
     
-    // Calcula el total sumando TODOS los grupos activos de la quiniela
     let total = 0;
     Object.keys(GROUPS).forEach(g => {
       total += GROUPS[g].reduce((sum, m) => sum + (m.cardsInPlay ?? 2), 0);
@@ -884,7 +881,6 @@
       else groups.white.push(d);
     });
 
-    // Búsqueda robusta inter-grupo del partido
     let match = null;
     Object.keys(GROUPS).forEach(g => {
       const found = GROUPS[g].find(m => m.id === matchId);
