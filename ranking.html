@@ -2,29 +2,36 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Tabla de Posiciones</title>
+<title>Ranking Oficial · Posiciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  body { background: #0c0f14; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
-  .rank-row { background: #1b212c; padding: 15px; margin: 10px auto; max-width: 500px; border-radius: 8px; display: flex; justify-content: space-between; }
+  body { background: #0c0f14; color: white; font-family: 'Rubik', sans-serif; padding: 20px; }
+  .container { max-width: 500px; margin: 0 auto; }
+  h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 30px; }
+  
+  .rank-row { background: #1b212c; padding: 20px; margin-bottom: 12px; border-radius: 12px; display: flex; align-items: center; border-left: 5px solid #1ed87f; }
+  .pos { font-family: 'Bebas Neue'; font-size: 24px; color: #f5b942; width: 40px; }
+  .name { flex-grow: 1; font-weight: bold; }
+  .pts { font-family: 'Bebas Neue'; font-size: 28px; color: #1ed87f; }
+  
+  .medal { font-size: 20px; margin-right: 10px; }
 </style>
 </head>
 <body>
-<h1>🏆 TABLA DE POSICIONES</h1>
-<div id="ranking-list">Esperando actualización del administrador...</div>
+
+<div class="container">
+  <h1>🏆 RANKING OFICIAL</h1>
+  <div id="ranking-list">Cargando posiciones...</div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
 
-  // Cada vez que cambie 'lastUpdate', el ranking se recalcula solo
   onValue(ref(db, "lastUpdate"), async () => {
     const list = document.getElementById("ranking-list");
-    list.innerHTML = "Actualizando...";
-    
-    // Traemos toda la base de datos de una vez
-    import { get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
     const snap = await get(ref(db));
     const data = snap.val();
     const scores = data.scores || {};
@@ -32,17 +39,35 @@
     let users = {};
 
     Object.keys(bets).forEach(mId => {
-      if (!scores[mId] || scores[mId].status !== 'FINISHED') return;
+      if (!scores[mId] || scores[mId].status !== 'SI') return;
+
       Object.values(bets[mId]).forEach(b => {
-        if (!users[b.username]) users[b.username] = 0;
-        if (b.homeScore == scores[mId].home && b.awayScore == scores[mId].away) users[b.username] += 3;
-        else if ((b.homeScore > b.awayScore && scores[mId].home > scores[mId].away) || 
-                 (b.homeScore < b.awayScore && scores[mId].home < scores[mId].away)) users[b.username] += 1;
+        if (!users[b.username]) users[b.username] = { pts: 0, exactos: 0 };
+        
+        // Puntos: 3 por exacto, 1 por ganador/empate
+        if (b.homeScore == scores[mId].home && b.awayScore == scores[mId].away) {
+          users[b.username].pts += 3;
+          users[b.username].exactos += 1;
+        } else if ((b.homeScore > b.awayScore && scores[mId].home > scores[mId].away) || 
+                   (b.homeScore < b.awayScore && scores[mId].home < scores[mId].away) ||
+                   (b.homeScore == b.awayScore && scores[mId].home == scores[mId].away)) {
+          users[b.username].pts += 1;
+        }
       });
     });
 
-    list.innerHTML = Object.entries(users).sort((a,b) => b[1] - a[1])
-      .map(([u, p]) => `<div class="rank-row"><span>${u}</span><span>${p} pts</span></div>`).join("");
+    const sortedUsers = Object.entries(users).sort((a, b) => {
+      if (b[1].pts !== a[1].pts) return b[1].pts - a[1].pts;
+      return b[1].exactos - a[1].exactos;
+    });
+
+    list.innerHTML = sortedUsers.map(([name, data], i) => `
+      <div class="rank-row">
+        <div class="pos">${i + 1}º</div>
+        <div class="name">${name.toUpperCase()}</div>
+        <div class="pts">${data.pts} pts</div>
+      </div>
+    `).join("");
   });
 </script>
 </body>
