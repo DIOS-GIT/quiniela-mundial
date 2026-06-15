@@ -69,24 +69,34 @@
 
   function render() {
     const tableBody = document.getElementById("table-body");
+    if (!tableBody) return;
+    
     tableBody.innerHTML = "";
     document.getElementById("loading-msg").style.display = "none";
     document.getElementById("db-table").style.display = "table";
 
+    // Validar que cache.bets sea un objeto
+    if (!cache.bets || typeof cache.bets !== 'object') return;
+
     Object.keys(cache.bets).forEach(id => {
+      // Si el partido no tiene apuestas o scores, ponemos valores por defecto
       const score = cache.scores[id] || { home: 0, away: 0 };
+      const betsInfo = cache.bets[id];
+      const firstBet = betsInfo ? Object.values(betsInfo)[0] : { home: "Local", away: "Visitante" };
+
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${id}</td>
-        <td>${Object.values(cache.bets[id])[0].home} vs ${Object.values(cache.bets[id])[0].away}</td>
+        <td>${firstBet.home} vs ${firstBet.away}</td>
         <td>
-          <input type="number" id="h-${id}" class="score-input" value="${score.home}">
-          <input type="number" id="a-${id}" class="score-input" value="${score.away}">
+          <input type="number" id="h-${id}" class="score-input" value="${Number(score.home) || 0}">
+          <input type="number" id="a-${id}" class="score-input" value="${Number(score.away) || 0}">
         </td>
         <td><button class="btn-save" onclick="guardarMarcador('${id}')">Guardar</button></td>
       `;
       tableBody.appendChild(row);
     });
+  }
   }
 </script>
 </body>
