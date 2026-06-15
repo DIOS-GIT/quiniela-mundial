@@ -26,7 +26,6 @@
   .container { max-width: 600px; margin: 0 auto; }
   h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
   
-  /* Pestañas */
   .tabs { display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid var(--line); margin-bottom: 25px; padding-bottom: 10px; }
   .tab-btn { background: none; border: none; color: var(--text-dim); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; cursor: pointer; padding: 5px 10px; width: auto; }
   .tab-btn.active { color: var(--grass); border-bottom: 2px solid var(--grass); }
@@ -70,10 +69,9 @@
     padding: 20px;
     margin-bottom: 20px;
   }
-  .group-tag { font-size: 10px; color: var(--text-dim); text-transform: uppercase; text-align: center; letter-spacing: 1px; margin-bottom: 5px; }
   .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #fff; margin-bottom: 12px; text-align: center; }
   .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
-  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; background: var(--bg-panel); border: 1px solid var(--line); color: #fff; border-radius: 6px; padding: 4px; }
+  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; text-align: center; background: var(--bg-panel); border: 1px solid var(--line); color: #fff; border-radius: 6px; padding: 4px; }
   
   .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
   .status-btn {
@@ -94,7 +92,6 @@
   }
   .msg { font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
   .msg.ok { color: var(--grass); }
-  .msg.err { color: var(--red); }
 </style>
 </head>
 <body>
@@ -111,10 +108,10 @@
 
   <div id="panel-box" style="display: none;">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('live')">🔴 Transmisión en Vivo</button>
-      <button class="tab-btn" onclick="switchTab('close')">📜 Cierre de Ranking</button>
+      <button class="tab-btn active" id="tab-live" onclick="switchTab('live')">🔴 Transmisión en Vivo</button>
+      <button class="tab-btn" id="tab-close" onclick="switchTab('close')">📜 Cierre de Ranking</button>
     </div>
-
+    
     <div id="match-list"></div>
   </div>
 </div>
@@ -139,8 +136,8 @@
   const db = getDatabase(app);
 
   const ADMIN_PIN = "1234";
-  let currentTab = 'live'; // 'live' o 'close'
-  window.uiStatuses = {};  // Control temporal de estados seleccionados en la UI
+  let currentTab = "live";
+  let firebaseScores = {}; 
 
   const STATUSES = [
     { value: "SCHEDULED", label: "Pendiente" },
@@ -150,108 +147,111 @@
   ];
 
   window.verifyPin = function() {
-    if(document.getElementById("pin-input").value === ADMIN_PIN) {
+    const entered = document.getElementById("pin-input").value;
+    if(entered === ADMIN_PIN) {
       document.getElementById("login-box").style.display = "none";
       document.getElementById("panel-box").style.display = "block";
-      renderAdminPanel();
+      
+      // Escucha global de TODO el nodo 'scores' para asegurar lectura completa del historial
+      onValue(ref(db, "scores"), snap => {
+        firebaseScores = snap.exists() ? snap.val() : {};
+        buildAdminPanel();
+      });
     } else {
       document.getElementById("login-err").textContent = "PIN incorrecto.";
     }
   }
 
-  window.switchTab = function(tabName) {
-    currentTab = tabName;
-    document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
-      btn.classList.toggle('active', (idx === 0 && tabName === 'live') || (idx === 1 && tabName === 'close'));
-    });
-    renderAdminPanel();
+  window.switchTab = function(tab) {
+    currentTab = tab;
+    document.getElementById("tab-live").classList.toggle("active", tab === "live");
+    document.getElementById("tab-close").classList.toggle("active", tab === "close");
+    buildAdminPanel();
   }
 
-  function renderAdminPanel() {
+  function buildAdminPanel() {
     const listEl = document.getElementById("match-list");
     listEl.innerHTML = "";
 
-    // Iteramos los partidos estructurados en tu archivo local matches-config.js
-    Object.keys(GROUPS).forEach(groupKey => {
-      GROUPS[groupKey].forEach(match => {
-        
-        // Creamos la tarjeta del partido con su diseño limpio
-        const card = document.createElement("div");
-        card.className = "admin-card";
-        card.innerHTML = `
-          <div class="group-tag">Grupo ${groupKey} · ID: ${match.id}</div>
-          <h3>${match.home.flag || ''} ${match.home.name} vs ${match.away.name} ${match.away.flag || ''}</h3>
-          
-          <div class="score-row">
-            <input type="number" min="0" id="score-h-${match.id}" value="0">
-            <span style="color: var(--text-dim)">—</span>
-            <input type="number" min="0" id="score-a-${match.id}" value="0">
-          </div>
-
-          <div class="status-row">
-            ${STATUSES.map(s => `
-              <button class="status-btn btn-${match.id}" data-s="${s.value}" onclick="setUIStatus('${match.id}','${s.value}')">
-                ${s.label}
-              </button>
-            `).join("")}
-          </div>
-
-          <button style="background: var(--gold)" onclick="updateMatchFirebase('${match.id}')">Asentar Marcador Oficial 🚀</button>
-          <div class="msg" id="msg-${match.id}"></div>
-        `;
-        listEl.appendChild(card);
-
-        // Escuchamos Firebase en tiempo real para rellenar los campos con lo que esté guardado en la nube
-        onValue(ref(db, `scores/${match.id}`), snap => {
-          if(!snap.exists()) return;
-          const data = snap.val();
-          
-          const homeInput = document.getElementById(`score-h-${match.id}`);
-          const awayInput = document.getElementById(`score-a-${match.id}`);
-          
-          if(data.home !== undefined && homeInput) homeInput.value = data.home;
-          if(data.away !== undefined && awayInput) awayInput.value = data.away;
-          
-          if(data.status) {
-            window.uiStatuses[match.id] = data.status;
-            updateButtonVisuals(match.id, data.status);
-          }
+    // 1. Mapeamos de forma estructurada los partidos del archivo de configuración local
+    const knownMatches = {};
+    if (typeof GROUPS !== 'undefined') {
+      Object.keys(GROUPS).forEach(groupKey => {
+        GROUPS[groupKey].forEach(m => {
+          knownMatches[m.id] = {
+            id: m.id,
+            title: `${m.groupName || ('Grupo ' + groupKey)}: ${m.home.flag || ''} ${m.home.name} vs ${m.away.name} ${m.away.flag || ''}`
+          };
         });
       });
+    }
+
+    // 2. Unimos los datos conocidos con TODO lo que aparezca en Firebase (Historial Completo)
+    const allUniqueIds = new Set([...Object.keys(knownMatches), ...Object.keys(firebaseScores)]);
+    let matchesCount = 0;
+
+    allUniqueIds.forEach(matchId => {
+      const currentStatus = firebaseScores[matchId]?.status || "SCHEDULED";
+
+      // Filtro estricto de las pestañas
+      if (currentTab === "live" && currentStatus === "FINISHED") return;
+      if (currentTab === "close" && currentStatus !== "FINISHED") return;
+
+      matchesCount++;
+
+      // Si el partido está en Firebase pero no en el JS local, le ponemos un título genérico con su ID
+      const matchInfo = knownMatches[matchId] || { id: matchId, title: `Partido del Historial (ID: ${matchId})` };
+
+      const card = document.createElement("div");
+      card.className = "admin-card";
+      card.innerHTML = `
+        <h3>${matchInfo.title}</h3>
+        <div class="score-row">
+          <input type="number" min="0" id="score-h-${matchId}" value="${firebaseScores[matchId]?.home ?? 0}">
+          <span style="color: var(--text-dim)">—</span>
+          <input type="number" min="0" id="score-a-${matchId}" value="${firebaseScores[matchId]?.away ?? 0}">
+        </div>
+        <div class="status-row">
+          ${STATUSES.map(s => `
+            <button class="status-btn btn-${matchId}" data-m="${matchId}" data-s="${s.value}" onclick="setUIStatus('${matchId}','${s.value}')">
+              ${s.label}
+            </button>
+          `).join("")}
+        </div>
+        <button style="background: var(--gold)" onclick="updateMatchFirebase('${matchId}')">Asentar Marcador Oficial 🚀</button>
+        <div class="msg" id="msg-${matchId}"></div>
+      `;
+      listEl.appendChild(card);
+
+      setUIStatus(matchId, currentStatus);
     });
+
+    if(matchesCount === 0) {
+      listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim); padding: 30px;">No hay partidos en esta categoría por ahora.</p>`;
+    }
   }
 
   window.setUIStatus = function(matchId, status) {
-    window.uiStatuses[matchId] = status;
-    updateButtonVisuals(matchId, status);
-  }
-
-  function updateButtonVisuals(matchId, status) {
     document.querySelectorAll(`.btn-${matchId}`).forEach(btn => {
-      btn.classList.toggle("active", btn.getAttribute("data-s") === status);
+      btn.classList.toggle("active", btn.dataset.s === status);
     });
   }
 
   window.updateMatchFirebase = async function(matchId) {
     const home = Number(document.getElementById(`score-h-${matchId}`).value);
     const away = Number(document.getElementById(`score-a-${matchId}`).value);
-    const status = window.uiStatuses[matchId] || "SCHEDULED";
+    const activeBtn = document.querySelector(`.btn-${matchId}.active`);
+    const status = activeBtn ? activeBtn.dataset.s : "SCHEDULED";
     const msgEl = document.getElementById("msg-" + matchId);
 
     try {
-      // Guardamos la estructura limpia tal como la maneja tu Firebase original
-      await set(ref(db, `scores/${matchId}`), {
-        home,
-        away,
-        status,
-        updatedAt: Date.now()
-      });
-      
+      await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Base de datos sincronizada con éxito! 🏆";
+      msgEl.textContent = "¡Actualizado con éxito! 🚀";
       setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
     } catch(e) {
-      msgEl.className = "msg err";
+      msgEl.className = "msg";
+      msgEl.style.color = "var(--red)";
       msgEl.textContent = "Error: " + e.message;
     }
   }
