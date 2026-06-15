@@ -22,9 +22,11 @@
     background: var(--bg);
     color: var(--text);
     padding: 40px 20px;
+    background-image: radial-gradient(circle at 50% 0%, rgba(30,216,127,0.04), transparent 50%);
   }
   .container { max-width: 600px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
+  h1 { font-family: 'Bebas Neue', sans-serif; color: #fff; letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
+  h1 span { color: var(--grass); }
   
   .login-box {
     background: var(--bg-card);
@@ -56,8 +58,43 @@
     border-radius: 8px;
     cursor: pointer;
     width: 100%;
+    transition: filter 0.2s;
   }
+  button:hover { filter: brightness(1.1); }
   
+  /* PESTAÑAS DE NAVEGACIÓN NUEVAS */
+  .admin-tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    justify-content: center;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    cursor: pointer;
+    width: auto;
+    position: relative;
+  }
+  .tab-btn.active { color: var(--grass); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -9px; left: 0; right: 0;
+    height: 2px; background: var(--grass);
+  }
+
+  .panel-section { display: none; }
+  .panel-section.active { display: block; }
+
+  /* CARDS ORIGINALES MEJORADAS */
   .admin-card {
     background: var(--bg-card);
     border: 1px solid var(--line);
@@ -65,7 +102,9 @@
     padding: 20px;
     margin-bottom: 20px;
   }
-  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #fff; margin-bottom: 12px; }
+  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; margin-bottom: 4px; text-align: center; }
+  .card-meta { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 12px; text-transform: uppercase; }
+  
   .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
   .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; }
   
@@ -79,20 +118,22 @@
     border-radius: 6px;
     width: auto;
     font-family: inherit;
+    cursor: pointer;
   }
   .status-btn.active {
     border-color: var(--grass);
     color: var(--grass);
     background: rgba(30,216,127,0.1);
   }
-  .msg { font-size: 13px; text-align: center; margin-top: 10px; }
+  .msg { font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
   .msg.ok { color: var(--grass); }
+  .msg.err { color: var(--red); }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>⚙️ PANEL DE ADMINISTRACIÓN</h1>
+  <h1>⚙️ PANEL DE <span>ADMINISTRACIÓN</span></h1>
 
   <!-- PANTALLA DE ACCESO -->
   <div class="login-box" id="login-box">
@@ -102,9 +143,24 @@
     <p id="login-err" style="color: var(--red); font-size: 13px; margin-top: 10px;"></p>
   </div>
 
-  <!-- PANEL PRINCIPAL -->
+  <!-- PANEL PRINCIPAL CON DISTRIBUCIÓN AUTOMÁTICA -->
   <div id="panel-box" style="display: none;">
-    <div id="match-list"></div>
+    
+    <div class="admin-tabs">
+      <button class="tab-btn active" onclick="switchTab('live-section', this)">🔴 Transmisión En Vivo</button>
+      <button class="tab-btn" onclick="switchTab('history-section', this)">📜 Cierre de Ranking</button>
+    </div>
+
+    <!-- PESTAÑA 1: MINUTO A MINUTO -->
+    <div id="live-section" class="panel-section active">
+      <div id="live-match-list"></div>
+    </div>
+
+    <!-- PESTAÑA 2: MARCADORES OFICIALES DEFINITIVOS -->
+    <div id="history-section" class="panel-section">
+      <div id="history-match-list"></div>
+    </div>
+
   </div>
 </div>
 
@@ -128,84 +184,173 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const ADMIN_PIN = "1234"; // 🔧 Puedes cambiar este pin por el número que quieras
+  const ADMIN_PIN = "1234"; // 🔧 Tu PIN original
   const STATUSES = [
     { value: "SCHEDULED", label: "Pendiente" },
     { value: "IN_PLAY",   label: "🔴 En Vivo" },
-    { value: "PAUSED",    label: "⏸ Medio Tiempo" },
+    { value: "PAUSED",    label: "⏸ Medio" },
     { value: "FINISHED",  label: "✅ Finalizado" }
   ];
+
+  let firebaseScores = {};
+  let firebaseResults = {};
+
+  // Convertimos el mapa de grupos en un array plano para iterar más fácil
+  const allMatchesList = [];
+  Object.keys(GROUPS).forEach(groupKey => {
+    GROUPS[groupKey].forEach(match => {
+      allMatchesList.push(match);
+    });
+  });
 
   window.verifyPin = function() {
     const entered = document.getElementById("pin-input").value;
     if(entered === ADMIN_PIN) {
       document.getElementById("login-box").style.display = "none";
       document.getElementById("panel-box").style.display = "block";
-      buildAdminPanel();
+      initListeners();
     } else {
       document.getElementById("login-err").textContent = "PIN incorrecto.";
     }
   }
 
-  function buildAdminPanel() {
-    const listEl = document.getElementById("match-list");
-    listEl.innerHTML = "";
+  window.switchTab = function(sectionId, btn) {
+    document.querySelectorAll('.panel-section').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    btn.classList.add('active');
+  };
 
-    Object.keys(GROUPS).forEach(groupKey => {
-      GROUPS[groupKey].forEach(match => {
-        const card = document.createElement("div");
-        card.className = "admin-card";
-        card.innerHTML = `
-          <h3>${match.groupName}: ${match.home.name} vs ${match.away.name}</h3>
-          <div class="score-row">
-            <input type="number" min="0" id="score-h-${match.id}" value="0">
-            <span style="color: var(--text-dim)">—</span>
-            <input type="number" min="0" id="score-a-${match.id}" value="0">
-          </div>
-          <div class="status-row">
-            ${STATUSES.map(s => `
-              <button class="status-btn" data-m="${match.id}" data-s="${s.value}" onclick="setUIStatus('${match.id}','${s.value}')">
-                ${s.label}
-              </button>
-            `).join("")}
-          </div>
-          <button style="background: var(--gold)" onclick="updateMatchFirebase('${match.id}')">Actualizar en Vivo</button>
-          <div class="msg" id="msg-${match.id}"></div>
-        `;
-        listEl.appendChild(card);
+  function initListeners() {
+    // Escuchar el nodo clásico de transmisión en vivo
+    onValue(ref(db, "scores"), snap => {
+      firebaseScores = snap.exists() ? snap.val() : {};
+      buildLivePanel();
+    });
 
-        onValue(ref(db, `scores/${match.id}`), snap => {
-          if(!snap.exists()) return;
-          const data = snap.val();
-          if(data.home !== undefined) document.getElementById(`score-h-${match.id}`).value = data.home;
-          if(data.away !== undefined) document.getElementById(`score-a-${match.id}`).value = data.away;
-          if(data.status) setUIStatus(match.id, data.status);
-        });
-      });
+    // Escuchar el nuevo nodo de resultados definitivos del ranking
+    onValue(ref(db, "results"), snap => {
+      firebaseResults = snap.exists() ? snap.val() : {};
+      buildHistoryPanel();
     });
   }
 
-  window.setUIStatus = function(matchId, status) {
-    document.querySelectorAll(`[data-m="${matchId}"]`).forEach(btn => {
+  // --- SECCIÓN 1: VIVO ---
+  function buildLivePanel() {
+    const listEl = document.getElementById("live-match-list");
+    listEl.innerHTML = "";
+
+    allMatchesList.forEach(match => {
+      const liveData = firebaseScores[match.id] || { home: 0, away: 0, status: "SCHEDULED" };
+      const card = document.createElement("div");
+      card.className = "admin-card";
+      card.innerHTML = `
+        <div class="card-meta">${match.groupName} · ${match.date || ""}</div>
+        <h3>${match.home.flag} ${match.home.name} vs ${match.away.name} ${match.away.flag}</h3>
+        <div class="score-row">
+          <input type="number" min="0" id="live-h-${match.id}" value="${liveData.home ?? 0}">
+          <span style="color: var(--text-dim)">—</span>
+          <input type="number" min="0" id="live-a-${match.id}" value="${liveData.away ?? 0}">
+        </div>
+        <div class="status-row">
+          ${STATUSES.map(s => `
+            <button class="status-btn live-btn-${match.id} ${liveData.status === s.value ? 'active' : ''}" 
+                    data-m="${match.id}" data-s="${s.value}" 
+                    onclick="setUIStatus('live', '${match.id}','${s.value}')">
+              ${s.label}
+            </button>
+          `).join("")}
+        </div>
+        <button style="background: var(--grass); color: #000;" onclick="updateLiveFirebase('${match.id}')">Actualizar En Vivo</button>
+        <div class="msg" id="live-msg-${match.id}"></div>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  // --- SECCIÓN 2: HISTORIAL RANKING ---
+  function buildHistoryPanel() {
+    const listEl = document.getElementById("history-match-list");
+    listEl.innerHTML = "";
+
+    allMatchesList.forEach(match => {
+      const official = firebaseResults[match.id];
+      const isSaved = !!official;
+
+      const card = document.createElement("div");
+      card.className = "admin-card";
+      if(isSaved) card.style.borderLeft = "4px solid var(--gold)";
+
+      card.innerHTML = `
+        <div class="card-meta">
+          ${match.groupName} 
+          ${isSaved ? '· <span style="color:var(--gold); font-weight:bold;">⚖️ ASENTADO EN RANKING</span>' : ''}
+        </div>
+        <h3>${match.home.flag} ${match.home.name} vs ${match.away.name} ${match.away.flag}</h3>
+        <div class="score-row">
+          <input type="number" min="0" placeholder="0" id="hist-h-${match.id}" value="${isSaved ? official.homeScore : ''}">
+          <span style="color: var(--text-dim)">—</span>
+          <input type="number" min="0" placeholder="0" id="hist-a-${match.id}" value="${isSaved ? official.awayScore : ''}">
+        </div>
+        <button style="background: var(--gold); color: #000;" onclick="updateHistoryFirebase('${match.id}')">
+          ${isSaved ? "Modificar Cierre" : "Asentar Marcador Oficial"}
+        </button>
+        <div class="msg" id="hist-msg-${match.id}"></div>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  window.setUIStatus = function(prefix, matchId, status) {
+    document.querySelectorAll(`.${prefix}-btn-${matchId}`).forEach(btn => {
       btn.classList.toggle("active", btn.dataset.s === status);
     });
   }
 
-  window.updateMatchFirebase = async function(matchId) {
-    const home = Number(document.getElementById(`score-h-${matchId}`).value);
-    const away = Number(document.getElementById(`score-a-${matchId}`).value);
-    const activeBtn = document.querySelector(`[data-m="${matchId}"].active`);
+  // Guardar en el nodo clássico de scores
+  window.updateLiveFirebase = async function(matchId) {
+    const home = Number(document.getElementById(`live-h-${matchId}`).value);
+    const away = Number(document.getElementById(`live-a-${matchId}`).value);
+    const activeBtn = document.querySelector(`.live-btn-${matchId}.active`);
     const status = activeBtn ? activeBtn.dataset.s : "SCHEDULED";
-    const msgEl = document.getElementById("msg-" + matchId);
+    const msgEl = document.getElementById(`live-msg-${matchId}`);
 
     try {
       await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Actualizado con éxito! 🚀";
+      msgEl.textContent = "¡Transmisión en vivo actualizada! 🚀";
       setTimeout(() => msgEl.textContent = "", 3000);
     } catch(e) {
-      msgEl.className = "msg";
-      msgEl.style.color = "var(--red)";
+      msgEl.className = "msg err";
+      msgEl.textContent = "Error: " + e.message;
+    }
+  }
+
+  // Guardar en el nodo nuevo de results para el ranking matemático
+  window.updateHistoryFirebase = async function(matchId) {
+    const homeScoreStr = document.getElementById(`hist-h-${matchId}`).value;
+    const awayScoreStr = document.getElementById(`hist-a-${matchId}`).value;
+    const msgEl = document.getElementById(`hist-msg-${matchId}`);
+
+    if (homeScoreStr === "" || awayScoreStr === "") {
+      msgEl.className = "msg err";
+      msgEl.textContent = "Coloca goles válidos para cerrar el partido.";
+      return;
+    }
+
+    try {
+      await set(ref(db, `results/${matchId}`), {
+        matchId,
+        homeScore: Number(homeScoreStr),
+        awayScore: Number(awayScoreStr),
+        status: "FINISHED",
+        updatedAt: Date.now()
+      });
+      msgEl.className = "msg ok";
+      msgEl.textContent = "¡Resultado oficial guardado! Ranking recalculado. 🏆";
+      setTimeout(() => msgEl.textContent = "", 3000);
+    } catch(e) {
+      msgEl.className = "msg err";
       msgEl.textContent = "Error: " + e.message;
     }
   }
