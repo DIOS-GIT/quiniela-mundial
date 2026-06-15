@@ -2,68 +2,46 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ranking Oficial · Mundial</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+<title>Ranking Oficial</title>
 <style>
-  body { font-family: 'Rubik', sans-serif; background: #0c0f14; color: white; padding: 20px; }
-  .container { max-width: 600px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue', color: #f5b942; text-align: center; }
-  .rank-row { background: #1b212c; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-  .score { font-family: 'Bebas Neue'; font-size: 24px; color: #1ed87f; }
+  body { background: #0c0f14; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
+  .rank-row { background: #1b212c; padding: 15px; margin: 10px auto; max-width: 500px; border-radius: 8px; display: flex; justify-content: space-between; }
+  button { background: #1ed87f; padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>🏆 TABLA DE POSICIONES</h1>
-  <div id="ranking-list">Calculando puntos...</div>
-</div>
+<h1>🏆 TABLA DE POSICIONES</h1>
+<button onclick="calcularRanking()">ACTUALIZAR RANKING AHORA</button>
+<div id="ranking-list" style="margin-top: 20px;"></div>
 
 <script type="module">
-  // IMPORTANTE: Este archivo necesita cargar la data del visor. 
-  // Para pruebas, lo haremos leyendo el mismo Firebase.
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const db = getDatabase(initializeApp({
-    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
-  }));
+  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
 
-  onValue(ref(db), (snap) => {
+  window.calcularRanking = async () => {
+    const list = document.getElementById("ranking-list");
+    list.innerHTML = "Calculando...";
+    const snap = await get(ref(db));
     const data = snap.val();
     const scores = data.scores || {};
     const bets = data.bets || {};
     let users = {};
 
-    // Lógica: Calcular puntos por cada apuesta
-    Object.keys(bets).forEach(matchId => {
-      const matchScore = scores[matchId];
-      if (!matchScore || matchScore.status !== 'FINISHED') return;
-
-      Object.values(bets[matchId]).forEach(bet => {
-        if (!users[bet.username]) users[bet.username] = 0;
-        
-        // Regla de puntos: 3 pts exacto, 1 pt si acierta ganador
-        if (bet.homeScore == matchScore.home && bet.awayScore == matchScore.away) {
-          users[bet.username] += 3;
-        } else if ((bet.homeScore > bet.awayScore && matchScore.home > matchScore.away) ||
-                   (bet.homeScore < bet.awayScore && matchScore.home < matchScore.away) ||
-                   (bet.homeScore == bet.awayScore && matchScore.home == matchScore.away)) {
-          users[bet.username] += 1;
-        }
+    Object.keys(bets).forEach(mId => {
+      if (!scores[mId] || scores[mId].status !== 'FINISHED') return;
+      Object.values(bets[mId]).forEach(b => {
+        if (!users[b.username]) users[b.username] = 0;
+        if (b.homeScore == scores[mId].home && b.awayScore == scores[mId].away) users[b.username] += 3;
+        else if ((b.homeScore > b.awayScore && scores[mId].home > scores[mId].away) || 
+                 (b.homeScore < b.awayScore && scores[mId].home < scores[mId].away)) users[b.username] += 1;
       });
     });
 
-    // Render
-    const list = document.getElementById("ranking-list");
-    list.innerHTML = Object.entries(users)
-      .sort((a,b) => b[1] - a[1])
-      .map(([user, pts]) => `
-        <div class="rank-row">
-          <span>${user}</span>
-          <span class="score">${pts} pts</span>
-        </div>
-      `).join("");
-  });
+    list.innerHTML = Object.entries(users).sort((a,b) => b[1] - a[1])
+      .map(([u, p]) => `<div class="rank-row"><span>${u}</span><span>${p} pts</span></div>`).join("");
+  };
 </script>
 </body>
 </html>
