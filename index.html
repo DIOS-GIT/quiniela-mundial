@@ -18,6 +18,7 @@
     --text: #eef1f5;
     --text-dim: #8b96a8;
   }
+  
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
     font-family:'Rubik', sans-serif;
@@ -554,9 +555,14 @@
 </head>
 <body>
 
-<header>
-  <div class="brand">SUBMANHWA · ANUNCIOS</div>
-  <h1>QUINIELA <span>MUNDIAL</span> 🏆</h1>
+  <nav style="display: flex; justify-content: center; gap: 30px; padding: 20px; background: #0c0f14;">
+    <a href="index.html" style="color: #f5b942; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none;">APUESTAS</a>
+    <a href="ranking.html" style="color: #555; font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none;">RANKING</a>
+  </nav>
+
+  <header>
+    <div class="brand">SUBMANHWA · ANUNCIOS</div>
+    <h1>QUINIELA <span>MUNDIAL</span> 🏆</h1>
   <p class="subtitle">Predice el resultado exacto de cada partido y entra al ranking</p>
 </header>
 
@@ -612,7 +618,7 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
-<script src="matches-config.js?v=1.7"></script>
+<script src="matches-config.js?v=1.8"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
