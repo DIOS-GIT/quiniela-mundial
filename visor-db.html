@@ -6,18 +6,12 @@
 <style>
   body { background: #0c0f14; color: #eef1f5; font-family: 'Inter', sans-serif; padding: 20px; }
   .btn-master { background: #f5b942; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; color: #000; }
-  
-  /* Tarjeta de Partido */
   .match-card { background: #141922; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a3242; }
   .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #2a3242; padding-bottom: 10px; }
   .match-title { font-size: 1.2em; font-weight: bold; color: #1ed87f; }
-  
-  /* Controles */
   .controls { display: flex; gap: 10px; align-items: center; }
   .btn-pub { background: #1ed87f; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; color: black; font-weight: bold; }
   .btn-no { background: #3a4456; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; color: white; }
-  
-  /* Grid de Apuestas */
   .bets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
   .bet-item { background: #1b212c; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.85em; border: 1px solid #2a3242; }
 </style>
@@ -31,7 +25,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   let bets = {}; let scores = {};
@@ -40,7 +34,13 @@
   onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; render(); });
 
   window.togglePublicar = (id, status) => { update(ref(db, `scores/${id}`), { status: status }); };
-  window.publicarRanking = () => { set(ref(db, "lastUpdate"), Date.now()).then(() => alert("Ranking Actualizado!")); };
+  
+  // Función corregida: actualiza la raíz para disparar el evento de cambio
+  window.publicarRanking = () => {
+    update(ref(db), { lastUpdate: Date.now() })
+    .then(() => alert("Ranking Actualizado para todos los usuarios"))
+    .catch((error) => console.error("Error al actualizar:", error));
+  };
 
   function render() {
     const container = document.getElementById("match-container");
