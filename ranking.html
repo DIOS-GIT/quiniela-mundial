@@ -3,28 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <title>Ranking Oficial</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-  body { background: #0c0f14; color: white; font-family: 'Rubik', sans-serif; padding: 20px; }
+  body { background: #0c0f14; color: #eef1f5; font-family: 'Rubik', sans-serif; padding: 20px; }
   .container { max-width: 600px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 20px; }
-  #search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #2a3242; background: #1b212c; color: white; margin-bottom: 20px; box-sizing: border-box; }
-  .rank-row { background: #1b212c; padding: 15px; margin-bottom: 10px; border-radius: 12px; border-left: 5px solid #1ed87f; cursor: pointer; }
+  h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3.5rem; margin-bottom: 10px; }
+  
+  /* Reglas */
+  .rules-box { background: #1b212c; padding: 15px; border-radius: 12px; border: 1px solid #3a4456; margin-bottom: 25px; font-size: 0.85em; color: #a0aab8; }
+  .rules-box strong { color: #1ed87f; }
+
+  #search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #2a3242; background: #1b212c; color: white; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; }
+  
+  .rank-row { background: #141922; padding: 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #2a3242; cursor: pointer; transition: 0.2s; }
+  .rank-row:hover { border-color: #1ed87f; }
+  
   .user-header { display: flex; align-items: center; justify-content: space-between; }
-  .pos { font-family: 'Bebas Neue'; font-size: 22px; color: #f5b942; width: 40px; }
-  .pts { font-family: 'Bebas Neue'; font-size: 28px; color: #1ed87f; }
-  .details { display: none; margin-top: 15px; padding: 10px; background: #141922; border-radius: 8px; font-size: 0.9em; }
-  .bet-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a3242; }
-  .hit { color: #1ed87f; }
+  .pos { font-family: 'Bebas Neue'; font-size: 24px; color: #f5b942; width: 40px; }
+  .name { flex-grow: 1; font-weight: 700; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+  .chevron { font-size: 12px; color: #576574; }
+  .pts { font-family: 'Bebas Neue'; font-size: 30px; color: #1ed87f; }
+  
+  .details { display: none; margin-top: 15px; padding: 15px; background: #0c0f14; border-radius: 8px; border: 1px solid #2a3242; }
+  .bet-entry { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a3242; font-size: 0.9em; }
+  .hit { color: #1ed87f; font-weight: bold; }
   .miss { color: #ff5f5f; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🏆 RANKING OFICIAL</h1>
-  <input type="text" id="search-bar" placeholder="🔍 Buscar por nombre..." onkeyup="filtrar()">
-  <div id="ranking-list">Cargando datos desde la base...</div>
+  <h1>🏆 CLASIFICACIÓN</h1>
+  
+  <div class="rules-box">
+    <strong>¿Cómo sumar puntos?</strong><br>
+    • 3 pts: Acertar el marcador exacto.<br>
+    • 1 pt: Acertar ganador o empate.
+  </div>
+
+  <input type="text" id="search-bar" placeholder="🔍 Buscar jugador..." onkeyup="filtrar()">
+  <div id="ranking-list">Cargando tablero...</div>
 </div>
 
 <script type="module">
@@ -34,7 +52,6 @@
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   let cachedData = [];
 
-  // Usamos escucha de Nodos Específicos para evitar errores de permisos en la raíz
   let bets = {}, scores = {};
 
   const processRanking = () => {
@@ -47,7 +64,7 @@
         const hB = Number(b.homeScore), aB = Number(b.awayScore);
         let acierto = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
         users[b.username].pts += acierto;
-        users[b.username].apuestas.push({ partido: `${b.home} vs ${b.away}`, apuesta: `${hB}-${aB}`, real: `${hR}-${aR}`, acierto });
+        users[b.username].apuestas.push({ partido: `${b.home} vs ${b.away}`, apuesta: `${hB}-${aB}`, oficial: `${hR}-${aR}`, acierto });
       });
     });
     cachedData = Object.entries(users).sort((a, b) => b[1].pts - a[1].pts);
@@ -59,17 +76,16 @@
 
   window.render = (data) => {
     const list = document.getElementById("ranking-list");
-    if(data.length === 0) { list.innerHTML = "No hay partidos publicados aún."; return; }
     list.innerHTML = data.map(([name, d], i) => `
       <div class="rank-row" onclick="toggleDetails('${name}')">
         <div class="user-header">
           <div class="pos">${i + 1}º</div>
-          <div class="name">${name.toUpperCase()}</div>
-          <div class="pts">${d.pts} PTS</div>
+          <div class="name">${name.toUpperCase()} <span class="chevron">▼</span></div>
+          <div class="pts">${d.pts}</div>
         </div>
         <div id="det-${name}" class="details">
           ${d.apuestas.map(a => `<div class="bet-entry ${a.acierto > 0 ? 'hit' : 'miss'}">
-            <span>${a.partido}</span> <span>${a.apuesta} (Real: ${a.real})</span>
+            <span>${a.partido}</span> <span>Tu apuesta: ${a.apuesta} | Oficial: ${a.oficial}</span>
           </div>`).join('')}
         </div>
       </div>
