@@ -2,47 +2,50 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ranking Oficial</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@300;400;700&display=swap" rel="stylesheet">
+<title>Ranking Pro · Quiniela</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  body { background: #0c0f14; color: #eef1f5; font-family: 'Rubik', sans-serif; padding: 20px; }
+  :root { --accent: #f5b942; --bg: #0a0c10; --card: #151921; --text: #eef1f5; }
+  body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; padding: 20px; margin: 0; }
   .container { max-width: 600px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3.5rem; margin-bottom: 10px; }
   
-  /* Reglas */
-  .rules-box { background: #1b212c; padding: 15px; border-radius: 12px; border: 1px solid #3a4456; margin-bottom: 25px; font-size: 0.85em; color: #a0aab8; }
-  .rules-box strong { color: #1ed87f; }
+  h1 { text-align: center; font-size: 3rem; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; }
+  .subtitle { text-align: center; color: #888; margin-bottom: 25px; }
 
-  #search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #2a3242; background: #1b212c; color: white; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; }
+  /* Reglas mejoradas */
+  .info-panel { background: linear-gradient(135deg, #1e2633 0%, #151921 100%); border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #2a3242; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  .info-panel h3 { margin-top: 0; color: var(--accent); }
+
+  #search-bar { width: 100%; padding: 18px; border-radius: 12px; border: none; background: #1b212c; color: white; margin-bottom: 20px; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
   
-  .rank-row { background: #141922; padding: 20px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #2a3242; cursor: pointer; transition: 0.2s; }
-  .rank-row:hover { border-color: #1ed87f; }
+  .rank-row { background: var(--card); padding: 20px; margin-bottom: 15px; border-radius: 16px; border: 1px solid #2a3242; cursor: pointer; transition: transform 0.2s; }
+  .rank-row:hover { transform: scale(1.02); border-color: var(--accent); }
   
-  .user-header { display: flex; align-items: center; justify-content: space-between; }
-  .pos { font-family: 'Bebas Neue'; font-size: 24px; color: #f5b942; width: 40px; }
-  .name { flex-grow: 1; font-weight: 700; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
-  .chevron { font-size: 12px; color: #576574; }
-  .pts { font-family: 'Bebas Neue'; font-size: 30px; color: #1ed87f; }
-  
-  .details { display: none; margin-top: 15px; padding: 15px; background: #0c0f14; border-radius: 8px; border: 1px solid #2a3242; }
-  .bet-entry { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a3242; font-size: 0.9em; }
-  .hit { color: #1ed87f; font-weight: bold; }
-  .miss { color: #ff5f5f; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .name-block { display: flex; align-items: center; gap: 15px; font-weight: 900; font-size: 1.2em; }
+  .pts-block { font-weight: 900; font-size: 1.8em; color: #1ed87f; }
+
+  .details { display: none; margin-top: 20px; padding: 15px; background: #0a0c10; border-radius: 12px; border: 1px dashed #333; }
+  .bet-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e2633; font-size: 0.9em; }
+  .pts-badge { background: #1e2633; padding: 2px 8px; border-radius: 6px; font-size: 0.8em; color: var(--accent); }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🏆 CLASIFICACIÓN</h1>
+  <h1>CLASIFICACIÓN</h1>
+  <div class="subtitle">Quiniela Oficial · Seguimiento en vivo</div>
   
-  <div class="rules-box">
-    <strong>¿Cómo sumar puntos?</strong><br>
-    • 3 pts: Acertar el marcador exacto.<br>
-    • 1 pt: Acertar ganador o empate.
+  <div class="info-panel">
+    <h3>📊 Sistema de Puntuación</h3>
+    <div style="display:flex; justify-content: space-between;">
+      <span>🎯 <b>Marcador Exacto</b>: 3 pts</span>
+      <span>⚽ <b>Ganador/Empate</b>: 1 pt</span>
+    </div>
   </div>
 
-  <input type="text" id="search-bar" placeholder="🔍 Buscar jugador..." onkeyup="filtrar()">
-  <div id="ranking-list">Cargando tablero...</div>
+  <input type="text" id="search-bar" placeholder="🔍 Buscar nombre..." onkeyup="filtrar()">
+  <div id="ranking-list">Cargando datos...</div>
 </div>
 
 <script type="module">
@@ -51,55 +54,49 @@
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   let cachedData = [];
-
   let bets = {}, scores = {};
 
-  const processRanking = () => {
+  const process = () => {
     let users = {};
     Object.keys(bets).forEach(mId => {
       if (!scores[mId] || scores[mId].status !== 'SI') return;
       Object.values(bets[mId]).forEach(b => {
-        if (!users[b.username]) users[b.username] = { pts: 0, apuestas: [] };
+        if (!users[b.username]) users[b.username] = { pts: 0, games: [] };
         const hR = Number(scores[mId].home), aR = Number(scores[mId].away);
         const hB = Number(b.homeScore), aB = Number(b.awayScore);
-        let acierto = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
-        users[b.username].pts += acierto;
-        users[b.username].apuestas.push({ partido: `${b.home} vs ${b.away}`, apuesta: `${hB}-${aB}`, oficial: `${hR}-${aR}`, acierto });
+        
+        let p = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
+        users[b.username].pts += p;
+        users[b.username].games.push({ match: `${b.home} vs ${b.away}`, bet: `${hB}-${hB}`, off: `${hR}-${aR}`, p });
       });
     });
-    cachedData = Object.entries(users).sort((a, b) => b[1].pts - a[1].pts);
+    cachedData = Object.entries(users).sort((a,b) => b[1].pts - a[1].pts);
     render(cachedData);
   };
 
-  onValue(ref(db, "bets"), (snap) => { bets = snap.val() || {}; processRanking(); });
-  onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; processRanking(); });
+  onValue(ref(db, "bets"), (s) => { bets = s.val() || {}; process(); });
+  onValue(ref(db, "scores"), (s) => { scores = s.val() || {}; process(); });
 
   window.render = (data) => {
-    const list = document.getElementById("ranking-list");
-    list.innerHTML = data.map(([name, d], i) => `
-      <div class="rank-row" onclick="toggleDetails('${name}')">
-        <div class="user-header">
-          <div class="pos">${i + 1}º</div>
-          <div class="name">${name.toUpperCase()} <span class="chevron">▼</span></div>
-          <div class="pts">${d.pts}</div>
+    document.getElementById("ranking-list").innerHTML = data.map(([n, d], i) => `
+      <div class="rank-row" onclick="this.querySelector('.details').style.display = this.querySelector('.details').style.display === 'block' ? 'none' : 'block'">
+        <div class="header-row">
+          <div class="name-block"><span style="color:#f5b942">#${i+1}</span> ${n.toUpperCase()}</div>
+          <div class="pts-block">${d.pts}</div>
         </div>
-        <div id="det-${name}" class="details">
-          ${d.apuestas.map(a => `<div class="bet-entry ${a.acierto > 0 ? 'hit' : 'miss'}">
-            <span>${a.partido}</span> <span>Tu apuesta: ${a.apuesta} | Oficial: ${a.oficial}</span>
+        <div class="details">
+          ${d.games.map(g => `<div class="bet-item">
+            <span>${g.match}</span>
+            <span>${g.bet} vs ${g.off} <span class="pts-badge">+${g.p} pts</span></span>
           </div>`).join('')}
         </div>
       </div>
     `).join("");
   };
 
-  window.toggleDetails = (name) => {
-    const el = document.getElementById(`det-${name}`);
-    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-  };
-
   window.filtrar = () => {
-    const term = document.getElementById("search-bar").value.toLowerCase();
-    render(cachedData.filter(([name]) => name.toLowerCase().includes(term)));
+    const t = document.getElementById("search-bar").value.toLowerCase();
+    render(cachedData.filter(([n]) => n.toLowerCase().includes(t)));
   };
 </script>
 </body>
