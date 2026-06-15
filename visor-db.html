@@ -2,30 +2,32 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Centro de Control Maestro</title>
+<title>Control Maestro</title>
 <style>
-  body { background: #0c0f14; color: #eef1f5; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-  .panel { background: #141922; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 12px; border-bottom: 1px solid #2a3242; text-align: left; }
-  .btn-pub { background: #1ed87f; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; }
-  .btn-no { background: #ff5d5d; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; }
-  .btn-master { background: #f5b942; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; }
-  .bet-list { background: #1b212c; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 0.9em; border-left: 4px solid #1ed87f; }
+  body { background: #0c0f14; color: #eef1f5; font-family: 'Inter', sans-serif; padding: 20px; }
+  .btn-master { background: #f5b942; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; color: #000; }
+  
+  /* Tarjeta de Partido */
+  .match-card { background: #141922; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a3242; }
+  .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #2a3242; padding-bottom: 10px; }
+  .match-title { font-size: 1.2em; font-weight: bold; color: #1ed87f; }
+  
+  /* Controles */
+  .controls { display: flex; gap: 10px; align-items: center; }
+  .btn-pub { background: #1ed87f; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; color: black; font-weight: bold; }
+  .btn-no { background: #3a4456; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; color: white; }
+  
+  /* Grid de Apuestas */
+  .bets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+  .bet-item { background: #1b212c; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.85em; border: 1px solid #2a3242; }
 </style>
 </head>
 <body>
 
-<h1>🛠️ PANEL DE CONTROL MAESTRO</h1>
+<h1>🛠️ PANEL DE CONTROL</h1>
 <button class="btn-master" onclick="publicarRanking()">🚀 PUBLICAR CAMBIOS AL RANKING</button>
 
-<div class="panel">
-  <h2>⚽ Gestión de Partidos</h2>
-  <table id="match-table">
-    <thead><tr><th>ID</th><th>Partido</th><th>Marcador</th><th>Publicar al Ranking</th></tr></thead>
-    <tbody id="match-body"></tbody>
-  </table>
-</div>
+<div id="match-container"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -37,50 +39,42 @@
   onValue(ref(db, "bets"), (snap) => { bets = snap.val() || {}; render(); });
   onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; render(); });
 
-  window.togglePublicar = (id, status) => {
-    update(ref(db, `scores/${id}`), { status: status });
-  };
-
-  window.publicarRanking = () => {
-    set(ref(db, "lastUpdate"), Date.now())
-    .then(() => alert("¡Ranking actualizado con los partidos marcados como SÍ!"));
-  };
+  window.togglePublicar = (id, status) => { update(ref(db, `scores/${id}`), { status: status }); };
+  window.publicarRanking = () => { set(ref(db, "lastUpdate"), Date.now()).then(() => alert("Ranking Actualizado!")); };
 
   function render() {
-    const body = document.getElementById("match-body");
-    body.innerHTML = "";
+    const container = document.getElementById("match-container");
+    container.innerHTML = "";
     Object.keys(bets).forEach(id => {
       const s = scores[id] || { home: 0, away: 0, status: 'NO' };
       const b = Object.values(bets[id])[0];
       
-      // Fila de Partido
-      body.innerHTML += `
-        <tr>
-          <td><strong>${id}</strong></td>
-          <td>${b.home} vs ${b.away}</td>
-          <td><input type="number" id="h-${id}" value="${s.home}" style="width:40px"> - 
-              <input type="number" id="a-${id}" value="${s.away}" style="width:40px">
-              <button onclick="guardarScore('${id}')">💾</button></td>
-          <td>
+      const card = document.createElement("div");
+      card.className = "match-card";
+      card.innerHTML = `
+        <div class="match-header">
+          <div class="match-title">${id} | ${b.home} vs ${b.away}</div>
+          <div class="controls">
+            <input type="number" id="h-${id}" value="${s.home}" style="width:30px"> - 
+            <input type="number" id="a-${id}" value="${s.away}" style="width:30px">
+            <button onclick="guardarScore('${id}')">💾</button>
             <button class="${s.status === 'SI' ? 'btn-pub' : 'btn-no'}" onclick="togglePublicar('${id}', 'SI')">SÍ</button>
             <button class="${s.status === 'SI' ? 'btn-no' : 'btn-pub'}" onclick="togglePublicar('${id}', 'NO')">NO</button>
-          </td>
-        </tr>
-        <tr><td colspan="4"><div class="bet-list" id="bets-${id}"></div></td></tr>
+          </div>
+        </div>
+        <div class="bets-grid" id="bets-${id}"></div>
       `;
+      container.appendChild(card);
       
-      // Render Apuestas abajo
       const betContainer = document.getElementById(`bets-${id}`);
       Object.values(bets[id]).forEach(bet => {
-        betContainer.innerHTML += `<span><b>${bet.username}</b>: ${bet.homeScore}-${bet.awayScore} | </span>`;
+        betContainer.innerHTML += `<div class="bet-item"><b>${bet.username}</b><br>${bet.homeScore}-${bet.awayScore}</div>`;
       });
     });
   }
 
   window.guardarScore = (id) => {
-    const h = document.getElementById(`h-${id}`).value;
-    const a = document.getElementById(`a-${id}`).value;
-    update(ref(db, `scores/${id}`), { home: Number(h), away: Number(a) });
+    update(ref(db, `scores/${id}`), { home: Number(document.getElementById(`h-${id}`).value), away: Number(document.getElementById(`a-${id}`).value) });
   };
 </script>
 </body>
