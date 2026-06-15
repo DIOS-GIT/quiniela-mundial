@@ -34,40 +34,13 @@
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
-  
-  // Definimos la función ANTES de usarla
-  window.render = () => {
-    console.log("Renderizando...");
-    const matchBody = document.getElementById("match-body");
-    const usersBody = document.getElementById("users-body");
-    if (!matchBody) return;
-    
-    matchBody.innerHTML = "";
-    usersBody.innerHTML = "";
 
-    onValue(ref(db), (snap) => {
-      const data = snap.val() || {};
-      const bets = data.bets || {};
-      const scores = data.scores || {};
+  let bets = {};
+  let scores = {};
 
-      Object.keys(bets).forEach(id => {
-        const s = scores[id] || { home: 0, away: 0 };
-        const b = Object.values(bets[id])[0];
-        
-        matchBody.innerHTML += `<tr>
-          <td>${id}</td><td>${b.home} vs ${b.away}</td>
-          <td><input type="number" id="h-${id}" value="${s.home}" style="width:30px"> - 
-              <input type="number" id="a-${id}" value="${s.away}" style="width:30px"></td>
-          <td><button class="btn-save" onclick="guardarMarcador('${id}')">✓</button></td>
-        </tr>`;
-
-        usersBody.innerHTML += `<h4 style="color:#f5b942">Partido ${id}</h4>`;
-        Object.values(bets[id]).forEach(bet => {
-          usersBody.innerHTML += `<div class="bet-card"><strong>${bet.username}</strong>: ${bet.homeScore}-${bet.awayScore}</div>`;
-        });
-      });
-    }, { onlyOnce: false });
-  };
+  // LECTURA SEPARADA (Lo que funcionaba antes)
+  onValue(ref(db, "bets"), (snap) => { bets = snap.val() || {}; render(); });
+  onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; render(); });
 
   window.guardarMarcador = (id) => {
     const h = document.getElementById(`h-${id}`).value;
@@ -75,8 +48,29 @@
     set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED' });
   };
 
-  // Ejecutamos una vez al cargar
-  window.render();
+  function render() {
+    const matchBody = document.getElementById("match-body");
+    const usersBody = document.getElementById("users-body");
+    matchBody.innerHTML = "";
+    usersBody.innerHTML = "";
+
+    Object.keys(bets).forEach(id => {
+      const s = scores[id] || { home: 0, away: 0 };
+      const b = Object.values(bets[id])[0];
+      
+      matchBody.innerHTML += `<tr>
+        <td>${id}</td><td>${b.home} vs ${b.away}</td>
+        <td><input type="number" id="h-${id}" value="${s.home}" style="width:30px"> - 
+            <input type="number" id="a-${id}" value="${s.away}" style="width:30px"></td>
+        <td><button class="btn-save" onclick="guardarMarcador('${id}')">✓</button></td>
+      </tr>`;
+
+      usersBody.innerHTML += `<h4 style="color:#f5b942">Partido ${id}</h4>`;
+      Object.values(bets[id]).forEach(bet => {
+        usersBody.innerHTML += `<div class="bet-card"><strong>${bet.username}</strong>: ${bet.homeScore}-${bet.awayScore}</div>`;
+      });
+    });
+  }
 </script>
 </body>
 </html>
