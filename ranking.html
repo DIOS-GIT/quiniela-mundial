@@ -8,17 +8,11 @@
   body { background: #0c0f14; color: white; font-family: 'Rubik', sans-serif; padding: 20px; }
   .container { max-width: 600px; margin: 0 auto; }
   h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 20px; }
-  
-  /* Buscador */
   #search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #2a3242; background: #1b212c; color: white; margin-bottom: 20px; box-sizing: border-box; }
-  
-  /* Filas */
   .rank-row { background: #1b212c; padding: 15px; margin-bottom: 10px; border-radius: 12px; border-left: 5px solid #1ed87f; cursor: pointer; }
   .user-header { display: flex; align-items: center; justify-content: space-between; }
   .pos { font-family: 'Bebas Neue'; font-size: 22px; color: #f5b942; width: 40px; }
   .pts { font-family: 'Bebas Neue'; font-size: 28px; color: #1ed87f; }
-  
-  /* Detalles */
   .details { display: none; margin-top: 15px; padding: 10px; background: #141922; border-radius: 8px; font-size: 0.9em; }
   .bet-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a3242; }
   .hit { color: #1ed87f; }
@@ -30,47 +24,42 @@
 <div class="container">
   <h1>🏆 RANKING OFICIAL</h1>
   <input type="text" id="search-bar" placeholder="🔍 Buscar por nombre..." onkeyup="filtrar()">
-  <div id="ranking-list">Cargando...</div>
+  <div id="ranking-list">Cargando datos desde la base...</div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   let cachedData = [];
 
-  // Usamos el evento que ya funcionaba
-  onValue(ref(db, "lastUpdate"), async () => {
-    const snap = await get(ref(db));
-    const data = snap.val();
-    if (!data) return;
-    
-    const { scores = {}, bets = {} } = data;
-    let users = {};
+  // Usamos escucha de Nodos Específicos para evitar errores de permisos en la raíz
+  let bets = {}, scores = {};
 
+  const processRanking = () => {
+    let users = {};
     Object.keys(bets).forEach(mId => {
       if (!scores[mId] || scores[mId].status !== 'SI') return;
-
       Object.values(bets[mId]).forEach(b => {
         if (!users[b.username]) users[b.username] = { pts: 0, apuestas: [] };
-        
         const hR = Number(scores[mId].home), aR = Number(scores[mId].away);
         const hB = Number(b.homeScore), aB = Number(b.awayScore);
-        
         let acierto = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
-        
         users[b.username].pts += acierto;
         users[b.username].apuestas.push({ partido: `${b.home} vs ${b.away}`, apuesta: `${hB}-${aB}`, real: `${hR}-${aR}`, acierto });
       });
     });
-
     cachedData = Object.entries(users).sort((a, b) => b[1].pts - a[1].pts);
     render(cachedData);
-  });
+  };
+
+  onValue(ref(db, "bets"), (snap) => { bets = snap.val() || {}; processRanking(); });
+  onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; processRanking(); });
 
   window.render = (data) => {
     const list = document.getElementById("ranking-list");
+    if(data.length === 0) { list.innerHTML = "No hay partidos publicados aún."; return; }
     list.innerHTML = data.map(([name, d], i) => `
       <div class="rank-row" onclick="toggleDetails('${name}')">
         <div class="user-header">
