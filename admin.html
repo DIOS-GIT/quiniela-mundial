@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel · Quiniela</title>
+<title>Admin Panel · Solo Staff</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -22,10 +22,9 @@
     background: var(--bg);
     color: var(--text);
     padding: 40px 20px;
-    background-image: radial-gradient(circle at 50% 0%, rgba(30,216,127,0.04), transparent 50%);
   }
   .container { max-width: 600px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue', sans-serif; color: #fff; letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
+  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
   h1 span { color: var(--grass); }
   
   .login-box {
@@ -58,41 +57,8 @@
     border-radius: 8px;
     cursor: pointer;
     width: 100%;
-    transition: filter 0.2s;
   }
-  button:hover { filter: brightness(1.1); }
   
-  .admin-tabs {
-    display: flex;
-    gap: 12px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 24px;
-    padding-bottom: 8px;
-    justify-content: center;
-  }
-  .tab-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 1px;
-    padding: 6px 16px;
-    cursor: pointer;
-    width: auto;
-    position: relative;
-  }
-  .tab-btn.active { color: var(--grass); }
-  .tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -9px; left: 0; right: 0;
-    height: 2px; background: var(--grass);
-  }
-
-  .panel-section { display: none; }
-  .panel-section.active { display: block; }
-
   .admin-card {
     background: var(--bg-card);
     border: 1px solid var(--line);
@@ -100,13 +66,13 @@
     padding: 20px;
     margin-bottom: 20px;
   }
-  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; margin-bottom: 4px; text-align: center; }
-  .card-meta { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 12px; text-transform: uppercase; }
+  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; margin-bottom: 12px; text-align: center; }
+  .card-id { font-size: 11px; color: var(--text-dim); text-transform: uppercase; text-align: center; margin-bottom: 6px; }
   
   .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
   .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; text-align: center; }
   
-  .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
+  .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
   .status-btn {
     background: var(--bg-panel);
     border: 1px solid var(--line);
@@ -114,8 +80,6 @@
     padding: 6px 12px;
     font-size: 13px;
     border-radius: 6px;
-    width: auto;
-    font-family: inherit;
     cursor: pointer;
   }
   .status-btn.active {
@@ -131,38 +95,18 @@
 <body>
 
 <div class="container">
-  <h1>⚙️ PANEL DE <span>ADMINISTRACIÓN</span></h1>
+  <h1>⚙️ PANEL <span>DIRECTO DESDE BASE DE DATOS</span></h1>
 
-  <!-- PANTALLA DE ACCESO -->
   <div class="login-box" id="login-box">
-    <p style="margin-bottom: 15px; color: var(--text-dim);">Introduce el código PIN de acceso</p>
-    <input type="password" id="pin-input" placeholder="••••">
-    <button onclick="verifyPin()">Ingresar</button>
+    <input type="password" id="pin-input" placeholder="Introduce el PIN de acceso">
+    <button onclick="verifyPin()">Ingresar al Panel</button>
     <p id="login-err" style="color: var(--red); font-size: 13px; margin-top: 10px;"></p>
   </div>
 
-  <!-- PANEL PRINCIPAL -->
   <div id="panel-box" style="display: none;">
-    
-    <div class="admin-tabs">
-      <button class="tab-btn active" onclick="switchTab('live-section', this)">🔴 Transmisión En Vivo</button>
-      <button class="tab-btn" onclick="switchTab('history-section', this)">📜 Cierre de Ranking</button>
-    </div>
-
-    <!-- PESTAÑA 1: TRANSMISIÓN EN VIVO -->
-    <div id="live-section" class="panel-section active">
-      <div id="live-match-list"></div>
-    </div>
-
-    <!-- PESTAÑA 2: CIERRE DE RANKING -->
-    <div id="history-section" class="panel-section">
-      <div id="history-match-list"></div>
-    </div>
-
+    <div id="match-list"></div>
   </div>
 </div>
-
-<script src="matches-config.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -182,186 +126,107 @@
   const db = getDatabase(app);
 
   const ADMIN_PIN = "1234";
-  const STATUSES = [
-    { value: "SCHEDULED", label: "Pendiente" },
-    { value: "IN_PLAY",   label: "🔴 En Vivo" },
-    { value: "PAUSED",    label: "⏸ Medio" },
-    { value: "FINISHED",  label: "✅ Finalizado" }
-  ];
-
-  window.selectedStatuses = {};
-  const allMatchesList = [];
-
-  if (typeof GROUPS !== 'undefined') {
-    Object.keys(GROUPS).forEach(groupKey => {
-      GROUPS[groupKey].forEach(match => {
-        allMatchesList.push({
-          id: match.id,
-          groupName: match.groupName || groupKey,
-          date: match.date || "",
-          home: match.home,
-          away: match.away
-        });
-      });
-    });
-  }
+  window.currentStatuses = {}; // Guarda los estados seleccionados temporalmente en la UI
 
   window.verifyPin = function() {
-    const entered = document.getElementById("pin-input").value;
-    if(entered === ADMIN_PIN) {
+    if(document.getElementById("pin-input").value === ADMIN_PIN) {
       document.getElementById("login-box").style.display = "none";
       document.getElementById("panel-box").style.display = "block";
-      initListeners();
+      listenFirebaseMatches();
     } else {
       document.getElementById("login-err").textContent = "PIN incorrecto.";
     }
   }
 
-  window.switchTab = function(sectionId, btn) {
-    document.querySelectorAll('.panel-section').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
-    btn.classList.add('active');
-  };
-
-  function initListeners() {
-    // Escucha el nodo scores unificado (para vivo y cierres)
+  // Leer la base de datos en tiempo real y armar la UI dinámicamente con lo que encuentre
+  function listenFirebaseMatches() {
     onValue(ref(db, "scores"), snap => {
-      const data = snap.exists() ? snap.val() : {};
-      buildLivePanel(data);
-      buildHistoryPanel(data);
-    });
-  }
+      const listEl = document.getElementById("match-list");
+      listEl.innerHTML = "";
 
-  // --- RENDEREAR TRANSMISIÓN EN VIVO ---
-  function buildLivePanel(scoresData) {
-    const listEl = document.getElementById("live-match-list");
-    if(!listEl) return;
-    listEl.innerHTML = "";
-
-    allMatchesList.forEach(match => {
-      const liveData = scoresData[match.id] || { home: 0, away: 0, status: "SCHEDULED" };
-      
-      if (!window.selectedStatuses[match.id]) {
-        window.selectedStatuses[match.id] = liveData.status || "SCHEDULED";
+      if(!snap.exists()){
+        listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim);">No hay partidos creados en el nodo 'scores' de Firebase.</p>`;
+        return;
       }
 
-      const card = document.createElement("div");
-      card.className = "admin-card";
-      card.innerHTML = `
-        <div class="card-meta">${match.groupName} · ${match.date}</div>
-        <h3>${match.home.flag || ""} ${match.home.name} vs ${match.away.name} ${match.away.flag || ""}</h3>
-        <div class="score-row">
-          <input type="number" min="0" id="live-h-${match.id}" value="${liveData.home ?? 0}">
-          <span style="color: var(--text-dim)">—</span>
-          <input type="number" min="0" id="live-a-${match.id}" value="${liveData.away ?? 0}">
-        </div>
-        <div class="status-row">
-          ${STATUSES.map(s => {
-            const isActive = window.selectedStatuses[match.id] === s.value;
-            return `<button type="button" class="status-btn live-btn-${match.id} ${isActive ? 'active' : ''}" 
-                    data-s="${s.value}" 
-                    onclick="changeLiveStatusUI('${match.id}','${s.value}')">
-              ${s.label}
-            </button>`;
-          }).join("")}
-        </div>
-        <button style="background: var(--grass); color: #000;" onclick="updateLiveFirebase('${match.id}')">Actualizar En Vivo</button>
-        <div class="msg" id="live-msg-${match.id}"></div>
-      `;
-      listEl.appendChild(card);
+      const matchesData = snap.val();
+
+      // Recorremos los partidos tal cual como se llaman en tu Firebase
+      Object.keys(matchesData).forEach(matchId => {
+        const match = matchesData[matchId];
+        
+        // Si no tiene nombres de equipos creados en el nodo, usamos el ID como referencia limpia
+        const homeName = match.homeName || match.home || "Equipo Local";
+        const awayName = match.awayName || match.away || "Equipo Visitante";
+        const homeFlag = match.homeFlag || "";
+        const awayFlag = match.awayFlag || "";
+
+        // Si la interfaz no tiene un estado modificado por ti en esta sesión, hereda el de la DB
+        if (!window.currentStatuses[matchId]) {
+          window.currentStatuses[matchId] = match.status || "SCHEDULED";
+        }
+
+        const card = document.createElement("div");
+        card.className = "admin-card";
+        card.innerHTML = `
+          <div class="card-id">ID Partido: ${matchId}</div>
+          <h3>${homeFlag} ${homeName} vs ${awayName} ${awayFlag}</h3>
+          
+          <div class="score-row">
+            <input type="number" min="0" id="score-h-${matchId}" value="${match.home ?? 0}">
+            <span style="color:var(--text-dim); font-weight:bold;">—</span>
+            <input type="number" min="0" id="score-a-${matchId}" value="${match.away ?? 0}">
+          </div>
+
+          <div class="status-row">
+            <button class="status-btn btn-${matchId}" data-s="SCHEDULED" onclick="setUIStatus('${matchId}','SCHEDULED')">Pendiente</button>
+            <button class="status-btn btn-${matchId}" data-s="IN_PLAY" onclick="setUIStatus('${matchId}','IN_PLAY')">🔴 En Vivo</button>
+            <button class="status-btn btn-${matchId}" data-s="PAUSED" onclick="setUIStatus('${matchId}','PAUSED')">⏸ Medio</button>
+            <button class="status-btn btn-${matchId}" data-s="FINISHED" onclick="setUIStatus('${matchId}','FINISHED')">✅ Finalizado</button>
+          </div>
+
+          <button onclick="saveMatch('${matchId}')">Actualizar Partido 🚀</button>
+          <div class="msg" id="msg-${matchId}"></div>
+        `;
+        listEl.appendChild(card);
+
+        // Activar visualmente el botón del estado correcto
+        updateButtonVisuals(matchId, window.currentStatuses[matchId]);
+      });
     });
   }
 
-  window.changeLiveStatusUI = function(matchId, statusValue) {
-    window.selectedStatuses[matchId] = statusValue;
-    document.querySelectorAll(`.live-btn-${matchId}`).forEach(btn => {
-      btn.classList.toggle("active", btn.getAttribute("data-s") === statusValue);
+  window.setUIStatus = function(matchId, status) {
+    window.currentStatuses[matchId] = status;
+    updateButtonVisuals(matchId, status);
+  }
+
+  function updateButtonVisuals(matchId, status) {
+    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-s") === status);
     });
   }
 
-  // --- RENDEREAR HISTORIAL / CIERRE ---
-  function buildHistoryPanel(scoresData) {
-    const listEl = document.getElementById("history-match-list");
-    if(!listEl) return;
-    listEl.innerHTML = "";
-
-    allMatchesList.forEach(match => {
-      const liveData = scoresData[match.id];
-      const isFinished = liveData && liveData.status === "FINISHED";
-
-      const card = document.createElement("div");
-      card.className = "admin-card";
-      if(isFinished) card.style.borderLeft = "4px solid var(--gold)";
-
-      card.innerHTML = `
-        <div class="card-meta">
-          ${match.groupName} 
-          ${isFinished ? '· <span style="color:var(--gold); font-weight:bold;">⚖️ ASENTADO (FINALIZADO)</span>' : '· <span style="color:var(--text-dim)">PENDIENTE DE CIERRE</span>'}
-        </div>
-        <h3>${match.home.flag || ""} ${match.home.name} vs ${match.away.name} ${match.away.flag || ""}</h3>
-        <div class="score-row">
-          <input type="number" min="0" placeholder="0" id="hist-h-${match.id}" value="${liveData ? liveData.home : 0}">
-          <span style="color: var(--text-dim)">—</span>
-          <input type="number" min="0" placeholder="0" id="hist-a-${match.id}" value="${liveData ? liveData.away : 0}">
-        </div>
-        <button style="background: var(--gold); color: #000;" onclick="updateHistoryFirebase('${match.id}')">
-          Asentar Marcador Final Oficial
-        </button>
-        <div class="msg" id="hist-msg-${match.id}"></div>
-      `;
-      listEl.appendChild(card);
-    });
-  }
-
-  // ENVIAR ACTUALIZACIÓN A REALTIME DATABASE (VIVO)
-  window.updateLiveFirebase = async function(matchId) {
-    const home = Number(document.getElementById(`live-h-${matchId}`).value);
-    const away = Number(document.getElementById(`live-a-${matchId}`).value);
-    const status = window.selectedStatuses[matchId] || "SCHEDULED";
-    const msgEl = document.getElementById(`live-msg-${matchId}`);
+  // Guardar de vuelta en Firebase respetando los campos que ya tenía el partido
+  window.saveMatch = async function(matchId) {
+    const homeScore = Number(document.getElementById(`score-h-${matchId}`).value);
+    const awayScore = Number(document.getElementById(`score-a-${matchId}`).value);
+    const status = window.currentStatuses[matchId] || "SCHEDULED";
+    const msgEl = document.getElementById(`msg-${matchId}`);
 
     try {
-      await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
-      msgEl.className = "msg ok";
-      msgEl.textContent = "¡Transmisión en vivo actualizada! 🚀";
-      setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
-    } catch(e) {
-      msgEl.className = "msg err";
-      msgEl.textContent = "Error: " + e.message;
-    }
-  }
-
-  // CONGELAR COMO RESULTADO OFICIAL DE RANKING
-  window.updateHistoryFirebase = async function(matchId) {
-    const homeScore = Number(document.getElementById(`hist-h-${matchId}`).value);
-    const awayScore = Number(document.getElementById(`hist-a-${matchId}`).value);
-    const msgEl = document.getElementById(`hist-msg-${matchId}`);
-
-    try {
-      // Forzamos el estado a FINISHED para activar el cálculo matemático del ranking
-      await set(ref(db, `scores/${matchId}`), {
-        home,
-        away,
-        status: "FINISHED",
-        updatedAt: Date.now()
-      });
-      
-      // También duplicamos el registro en un nodo "results" limpio por si tu archivo `ranking-logic.js` lo lee desde allí
-      await set(ref(db, `results/${matchId}`), {
-        matchId,
-        homeScore,
-        awayScore,
-        status: "FINISHED",
-        updatedAt: Date.now()
-      });
+      // Modificamos únicamente los goles, el estado y la fecha de actualización en su propia casilla
+      await set(ref(db, `scores/${matchId}/home`), homeScore);
+      await set(ref(db, `scores/${matchId}/away`), awayScore);
+      await set(ref(db, `scores/${matchId}/status`), status);
+      await set(ref(db, `scores/${matchId}/updatedAt`), Date.now());
 
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Partido cerrado! Puntos calculados en el ranking. 🏆";
+      msgEl.textContent = "¡Base de datos sincronizada con éxito! 🚀";
       setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
-    } catch(e) {
+    } catch (e) {
       msgEl.className = "msg err";
-      msgEl.textContent = "Error: " + e.message;
+      msgEl.textContent = "Error al guardar: " + e.message;
     }
   }
 </script>
