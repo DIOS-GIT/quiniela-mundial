@@ -2,21 +2,25 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Visor y Editor de Partidos</title>
+<title>Panel de Control y Ranking</title>
 <style>
-  body { background: #0c0f14; color: #eef1f5; font-family: sans-serif; padding: 20px; }
-  table { width: 100%; border-collapse: collapse; background: #141922; border-radius: 10px; }
-  th, td { padding: 12px; border-bottom: 1px solid #2a3242; text-align: left; }
+  body { background: #0c0f14; color: #fff; font-family: sans-serif; padding: 20px; }
+  .panel { background: #141922; padding: 20px; border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  td { padding: 10px; border-bottom: 1px solid #2a3242; }
   .score-input { width: 50px; background: #1b212c; border: 1px solid #2a3242; color: white; padding: 5px; text-align: center; }
-  .btn-save { background: #1ed87f; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; }
+  .btn-save { background: #1ed87f; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+  .btn-rank { background: #f5b942; border: none; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; margin-bottom: 20px; }
 </style>
 </head>
 <body>
-<h1>⚙️ INSPECTOR DE PARTIDOS</h1>
-<table id="db-table">
-  <thead><tr><th>ID</th><th>Partido</th><th>Marcador (L-V)</th><th>Acción</th></tr></thead>
-  <tbody id="table-body"></tbody>
-</table>
+<div class="panel">
+  <h1>⚙️ PANEL DE CONTROL</h1>
+  <button class="btn-rank" onclick="triggerRankingUpdate()">🚀 ACTUALIZAR RANKING PARA USUARIOS</button>
+  <table>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -32,8 +36,14 @@
     const h = document.getElementById(`h-${id}`).value;
     const a = document.getElementById(`a-${id}`).value;
     set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED', updatedAt: Date.now() })
-    .then(() => alert("¡Guardado!"))
-    .catch(e => alert("Error: " + e.message));
+    .then(() => alert("Marcador asentado"));
+  };
+
+  window.triggerRankingUpdate = () => {
+    // Al presionar este botón, escribimos un timestamp en la base de datos. 
+    // El ranking detectará este cambio y se refrescará solo.
+    set(ref(db, "lastUpdate"), Date.now())
+    .then(() => alert("¡Ranking actualizado para todos!"));
   };
 
   function render() {
