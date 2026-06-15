@@ -62,7 +62,6 @@
   }
   button:hover { filter: brightness(1.1); }
   
-  /* PESTAÑAS DE NAVEGACIÓN NUEVAS */
   .admin-tabs {
     display: flex;
     gap: 12px;
@@ -94,7 +93,6 @@
   .panel-section { display: none; }
   .panel-section.active { display: block; }
 
-  /* CARDS ORIGINALES MEJORADAS */
   .admin-card {
     background: var(--bg-card);
     border: 1px solid var(--line);
@@ -106,7 +104,7 @@
   .card-meta { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 12px; text-transform: uppercase; }
   
   .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
-  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; }
+  .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; text-align: center; }
   
   .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
   .status-btn {
@@ -143,7 +141,7 @@
     <p id="login-err" style="color: var(--red); font-size: 13px; margin-top: 10px;"></p>
   </div>
 
-  <!-- PANEL PRINCIPAL CON DISTRIBUCIÓN AUTOMÁTICA -->
+  <!-- PANEL PRINCIPAL -->
   <div id="panel-box" style="display: none;">
     
     <div class="admin-tabs">
@@ -151,12 +149,12 @@
       <button class="tab-btn" onclick="switchTab('history-section', this)">📜 Cierre de Ranking</button>
     </div>
 
-    <!-- PESTAÑA 1: MINUTO A MINUTO -->
+    <!-- PESTAÑA 1: TRANSMISIÓN EN VIVO -->
     <div id="live-section" class="panel-section active">
       <div id="live-match-list"></div>
     </div>
 
-    <!-- PESTAÑA 2: MARCADORES OFICIALES DEFINITIVOS -->
+    <!-- PESTAÑA 2: CIERRE DE RANKING -->
     <div id="history-section" class="panel-section">
       <div id="history-match-list"></div>
     </div>
@@ -164,7 +162,6 @@
   </div>
 </div>
 
-<!-- 📂 CONEXIÓN CON EL CONFIG CENTRALIZADO -->
 <script src="matches-config.js"></script>
 
 <script type="module">
@@ -184,7 +181,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const ADMIN_PIN = "1234"; // 🔧 Tu PIN original
+  const ADMIN_PIN = "1234";
   const STATUSES = [
     { value: "SCHEDULED", label: "Pendiente" },
     { value: "IN_PLAY",   label: "🔴 En Vivo" },
@@ -192,16 +189,25 @@
     { value: "FINISHED",  label: "✅ Finalizado" }
   ];
 
-  let firebaseScores = {};
-  let firebaseResults = {};
+  // Variables globales para guardar los estados seleccionados temporalmente en el cliente
+  window.selectedStatuses = {};
 
-  // Convertimos el mapa de grupos en un array plano para iterar más fácil
+  // Extraer todos los partidos de forma plana y limpia
   const allMatchesList = [];
-  Object.keys(GROUPS).forEach(groupKey => {
-    GROUPS[groupKey].forEach(match => {
-      allMatchesList.push(match);
+  if (typeof GROUPS !== 'undefined') {
+    Object.keys(GROUPS).forEach(groupKey => {
+      GROUPS[groupKey].forEach(match => {
+        // Guardamos una copia limpia para evitar referencias cruzadas
+        allMatchesList.push({
+          id: match.id,
+          groupName: match.groupName || groupKey,
+          date: match.date || "",
+          home: match.home,
+          away: match.away
+        });
+      });
     });
-  });
+  }
 
   window.verifyPin = function() {
     const entered = document.getElementById("pin-input").value;
@@ -222,30 +228,37 @@
   };
 
   function initListeners() {
-    // Escuchar el nodo clásico de transmisión en vivo
+    // Escucha unificada para marcadores en vivo
     onValue(ref(db, "scores"), snap => {
-      firebaseScores = snap.exists() ? snap.val() : {};
-      buildLivePanel();
+      const data = snap.exists() ? snap.val() : {};
+      buildLivePanel(data);
     });
 
-    // Escuchar el nuevo nodo de resultados definitivos del ranking
+    // Escucha unificada para resultados de ranking asentados
     onValue(ref(db, "results"), snap => {
-      firebaseResults = snap.exists() ? snap.val() : {};
-      buildHistoryPanel();
+      const data = snap.exists() ? snap.val() : {};
+      buildHistoryPanel(data);
     });
   }
 
-  // --- SECCIÓN 1: VIVO ---
-  function buildLivePanel() {
+  // --- RENDER TRANSMISIÓN EN VIVO ---
+  function buildLivePanel(scoresData) {
     const listEl = document.getElementById("live-match-list");
+    if(!listEl) return;
     listEl.innerHTML = "";
 
     allMatchesList.forEach(match => {
-      const liveData = firebaseScores[match.id] || { home: 0, away: 0, status: "SCHEDULED" };
+      const liveData = scoresData[match.id] || { home: 0, away: 0, status: "SCHEDULED" };
+      
+      // Si el cliente no tiene un estado temporal guardado para este partido, usamos el de Firebase
+      if (!window.selectedStatuses[match.id]) {
+        window.selectedStatuses[match.id] = liveData.status || "SCHEDULED";
+      }
+
       const card = document.createElement("div");
       card.className = "admin-card";
       card.innerHTML = `
-        <div class="card-meta">${match.groupName} · ${match.date || ""}</div>
+        <div class="card-meta">${match.groupName} · ${match.date}</div>
         <h3>${match.home.flag} ${match.home.name} vs ${match.away.name} ${match.away.flag}</h3>
         <div class="score-row">
           <input type="number" min="0" id="live-h-${match.id}" value="${liveData.home ?? 0}">
@@ -253,13 +266,14 @@
           <input type="number" min="0" id="live-a-${match.id}" value="${liveData.away ?? 0}">
         </div>
         <div class="status-row">
-          ${STATUSES.map(s => `
-            <button class="status-btn live-btn-${match.id} ${liveData.status === s.value ? 'active' : ''}" 
-                    data-m="${match.id}" data-s="${s.value}" 
-                    onclick="setUIStatus('live', '${match.id}','${s.value}')">
+          ${STATUSES.map(s => {
+            const isActive = window.selectedStatuses[match.id] === s.value;
+            return `<button type="button" class="status-btn live-btn-${match.id} ${isActive ? 'active' : ''}" 
+                    data-s="${s.value}" 
+                    onclick="changeLiveStatusUI('${match.id}','${s.value}')">
               ${s.label}
-            </button>
-          `).join("")}
+            </button>`;
+          }).join("")}
         </div>
         <button style="background: var(--grass); color: #000;" onclick="updateLiveFirebase('${match.id}')">Actualizar En Vivo</button>
         <div class="msg" id="live-msg-${match.id}"></div>
@@ -268,13 +282,22 @@
     });
   }
 
-  // --- SECCIÓN 2: HISTORIAL RANKING ---
-  function buildHistoryPanel() {
+  // Cambiar visualmente el botón seleccionado en la pestaña En Vivo
+  window.changeLiveStatusUI = function(matchId, statusValue) {
+    window.selectedStatuses[matchId] = statusValue;
+    document.querySelectorAll(`.live-btn-${matchId}`).forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-s") === statusValue);
+    });
+  }
+
+  // --- RENDER CIERRE DE RANKING ---
+  function buildHistoryPanel(resultsData) {
     const listEl = document.getElementById("history-match-list");
+    if(!listEl) return;
     listEl.innerHTML = "";
 
     allMatchesList.forEach(match => {
-      const official = firebaseResults[match.id];
+      const official = resultsData[match.id];
       const isSaved = !!official;
 
       const card = document.createElement("div");
@@ -301,32 +324,25 @@
     });
   }
 
-  window.setUIStatus = function(prefix, matchId, status) {
-    document.querySelectorAll(`.${prefix}-btn-${matchId}`).forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.s === status);
-    });
-  }
-
-  // Guardar en el nodo clássico de scores
+  // GUARDAR EN TRANSMISIÓN EN VIVO (MANDA AL INDEX)
   window.updateLiveFirebase = async function(matchId) {
     const home = Number(document.getElementById(`live-h-${matchId}`).value);
     const away = Number(document.getElementById(`live-a-${matchId}`).value);
-    const activeBtn = document.querySelector(`.live-btn-${matchId}.active`);
-    const status = activeBtn ? activeBtn.dataset.s : "SCHEDULED";
+    const status = window.selectedStatuses[matchId] || "SCHEDULED";
     const msgEl = document.getElementById(`live-msg-${matchId}`);
 
     try {
       await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
       msgEl.className = "msg ok";
       msgEl.textContent = "¡Transmisión en vivo actualizada! 🚀";
-      setTimeout(() => msgEl.textContent = "", 3000);
+      setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
     } catch(e) {
       msgEl.className = "msg err";
       msgEl.textContent = "Error: " + e.message;
     }
   }
 
-  // Guardar en el nodo nuevo de results para el ranking matemático
+  // ASENTAR EN HISTORIAL (MANDA AL RANKING)
   window.updateHistoryFirebase = async function(matchId) {
     const homeScoreStr = document.getElementById(`hist-h-${matchId}`).value;
     const awayScoreStr = document.getElementById(`hist-a-${matchId}`).value;
@@ -348,7 +364,7 @@
       });
       msgEl.className = "msg ok";
       msgEl.textContent = "¡Resultado oficial guardado! Ranking recalculado. 🏆";
-      setTimeout(() => msgEl.textContent = "", 3000);
+      setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
     } catch(e) {
       msgEl.className = "msg err";
       msgEl.textContent = "Error: " + e.message;
