@@ -189,15 +189,12 @@
     { value: "FINISHED",  label: "✅ Finalizado" }
   ];
 
-  // Variables globales para guardar los estados seleccionados temporalmente en el cliente
   window.selectedStatuses = {};
-
-  // Extraer todos los partidos de forma plana y limpia
   const allMatchesList = [];
+
   if (typeof GROUPS !== 'undefined') {
     Object.keys(GROUPS).forEach(groupKey => {
       GROUPS[groupKey].forEach(match => {
-        // Guardamos una copia limpia para evitar referencias cruzadas
         allMatchesList.push({
           id: match.id,
           groupName: match.groupName || groupKey,
@@ -228,20 +225,15 @@
   };
 
   function initListeners() {
-    // Escucha unificada para marcadores en vivo
+    // Escucha el nodo scores unificado (para vivo y cierres)
     onValue(ref(db, "scores"), snap => {
       const data = snap.exists() ? snap.val() : {};
       buildLivePanel(data);
-    });
-
-    // Escucha unificada para resultados de ranking asentados
-    onValue(ref(db, "results"), snap => {
-      const data = snap.exists() ? snap.val() : {};
       buildHistoryPanel(data);
     });
   }
 
-  // --- RENDER TRANSMISIÓN EN VIVO ---
+  // --- RENDEREAR TRANSMISIÓN EN VIVO ---
   function buildLivePanel(scoresData) {
     const listEl = document.getElementById("live-match-list");
     if(!listEl) return;
@@ -250,7 +242,6 @@
     allMatchesList.forEach(match => {
       const liveData = scoresData[match.id] || { home: 0, away: 0, status: "SCHEDULED" };
       
-      // Si el cliente no tiene un estado temporal guardado para este partido, usamos el de Firebase
       if (!window.selectedStatuses[match.id]) {
         window.selectedStatuses[match.id] = liveData.status || "SCHEDULED";
       }
@@ -259,7 +250,7 @@
       card.className = "admin-card";
       card.innerHTML = `
         <div class="card-meta">${match.groupName} · ${match.date}</div>
-        <h3>${match.home.flag} ${match.home.name} vs ${match.away.name} ${match.away.flag}</h3>
+        <h3>${match.home.flag || ""} ${match.home.name} vs ${match.away.name} ${match.away.flag || ""}</h3>
         <div class="score-row">
           <input type="number" min="0" id="live-h-${match.id}" value="${liveData.home ?? 0}">
           <span style="color: var(--text-dim)">—</span>
@@ -282,7 +273,6 @@
     });
   }
 
-  // Cambiar visualmente el botón seleccionado en la pestaña En Vivo
   window.changeLiveStatusUI = function(matchId, statusValue) {
     window.selectedStatuses[matchId] = statusValue;
     document.querySelectorAll(`.live-btn-${matchId}`).forEach(btn => {
@@ -290,33 +280,33 @@
     });
   }
 
-  // --- RENDER CIERRE DE RANKING ---
-  function buildHistoryPanel(resultsData) {
+  // --- RENDEREAR HISTORIAL / CIERRE ---
+  function buildHistoryPanel(scoresData) {
     const listEl = document.getElementById("history-match-list");
     if(!listEl) return;
     listEl.innerHTML = "";
 
     allMatchesList.forEach(match => {
-      const official = resultsData[match.id];
-      const isSaved = !!official;
+      const liveData = scoresData[match.id];
+      const isFinished = liveData && liveData.status === "FINISHED";
 
       const card = document.createElement("div");
       card.className = "admin-card";
-      if(isSaved) card.style.borderLeft = "4px solid var(--gold)";
+      if(isFinished) card.style.borderLeft = "4px solid var(--gold)";
 
       card.innerHTML = `
         <div class="card-meta">
           ${match.groupName} 
-          ${isSaved ? '· <span style="color:var(--gold); font-weight:bold;">⚖️ ASENTADO EN RANKING</span>' : ''}
+          ${isFinished ? '· <span style="color:var(--gold); font-weight:bold;">⚖️ ASENTADO (FINALIZADO)</span>' : '· <span style="color:var(--text-dim)">PENDIENTE DE CIERRE</span>'}
         </div>
-        <h3>${match.home.flag} ${match.home.name} vs ${match.away.name} ${match.away.flag}</h3>
+        <h3>${match.home.flag || ""} ${match.home.name} vs ${match.away.name} ${match.away.flag || ""}</h3>
         <div class="score-row">
-          <input type="number" min="0" placeholder="0" id="hist-h-${match.id}" value="${isSaved ? official.homeScore : ''}">
+          <input type="number" min="0" placeholder="0" id="hist-h-${match.id}" value="${liveData ? liveData.home : 0}">
           <span style="color: var(--text-dim)">—</span>
-          <input type="number" min="0" placeholder="0" id="hist-a-${match.id}" value="${isSaved ? official.awayScore : ''}">
+          <input type="number" min="0" placeholder="0" id="hist-a-${match.id}" value="${liveData ? liveData.away : 0}">
         </div>
         <button style="background: var(--gold); color: #000;" onclick="updateHistoryFirebase('${match.id}')">
-          ${isSaved ? "Modificar Cierre" : "Asentar Marcador Oficial"}
+          Asentar Marcador Final Oficial
         </button>
         <div class="msg" id="hist-msg-${match.id}"></div>
       `;
@@ -324,7 +314,7 @@
     });
   }
 
-  // GUARDAR EN TRANSMISIÓN EN VIVO (MANDA AL INDEX)
+  // ENVIAR ACTUALIZACIÓN A REALTIME DATABASE (VIVO)
   window.updateLiveFirebase = async function(matchId) {
     const home = Number(document.getElementById(`live-h-${matchId}`).value);
     const away = Number(document.getElementById(`live-a-${matchId}`).value);
@@ -342,28 +332,32 @@
     }
   }
 
-  // ASENTAR EN HISTORIAL (MANDA AL RANKING)
+  // CONGELAR COMO RESULTADO OFICIAL DE RANKING
   window.updateHistoryFirebase = async function(matchId) {
-    const homeScoreStr = document.getElementById(`hist-h-${matchId}`).value;
-    const awayScoreStr = document.getElementById(`hist-a-${matchId}`).value;
+    const homeScore = Number(document.getElementById(`hist-h-${matchId}`).value);
+    const awayScore = Number(document.getElementById(`hist-a-${matchId}`).value);
     const msgEl = document.getElementById(`hist-msg-${matchId}`);
 
-    if (homeScoreStr === "" || awayScoreStr === "") {
-      msgEl.className = "msg err";
-      msgEl.textContent = "Coloca goles válidos para cerrar el partido.";
-      return;
-    }
-
     try {
-      await set(ref(db, `results/${matchId}`), {
-        matchId,
-        homeScore: Number(homeScoreStr),
-        awayScore: Number(awayScoreStr),
+      // Forzamos el estado a FINISHED para activar el cálculo matemático del ranking
+      await set(ref(db, `scores/${matchId}`), {
+        home,
+        away,
         status: "FINISHED",
         updatedAt: Date.now()
       });
+      
+      // También duplicamos el registro en un nodo "results" limpio por si tu archivo `ranking-logic.js` lo lee desde allí
+      await set(ref(db, `results/${matchId}`), {
+        matchId,
+        homeScore,
+        awayScore,
+        status: "FINISHED",
+        updatedAt: Date.now()
+      });
+
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Resultado oficial guardado! Ranking recalculado. 🏆";
+      msgEl.textContent = "¡Partido cerrado! Puntos calculados en el ranking. 🏆";
       setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
     } catch(e) {
       msgEl.className = "msg err";
