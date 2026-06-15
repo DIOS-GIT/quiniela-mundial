@@ -2,58 +2,27 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visor y Editor de Datos</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Visor y Editor de Partidos</title>
 <style>
-  :root {
-    --bg: #0c0f14; --bg-panel: #141922; --bg-card: #1b212c; --line: #2a3242;
-    --grass: #1ed87f; --gold: #f5b942; --red: #ff5d5d; --text: #eef1f5;
-  }
-  body { font-family: 'Rubik', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-  .container { max-width: 950px; margin: 0 auto; }
-  table { width: 100%; border-collapse: collapse; background: var(--bg-panel); border-radius: 10px; overflow: hidden; }
-  th { background: var(--bg-card); color: var(--gold); padding: 12px; text-align: left; }
-  td { padding: 10px; border-bottom: 1px solid var(--line); }
-  .score-input { width: 40px; background: var(--bg-card); border: 1px solid var(--line); color: white; text-align: center; border-radius: 4px; padding: 5px; }
-  .btn-save { background: var(--grass); color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-  .status-pill { font-size: 11px; padding: 4px 8px; border-radius: 10px; background: var(--bg-card); }
+  body { background: #0c0f14; color: #eef1f5; font-family: sans-serif; padding: 20px; }
+  table { width: 100%; border-collapse: collapse; background: #141922; border-radius: 10px; }
+  th, td { padding: 12px; border-bottom: 1px solid #2a3242; text-align: left; }
+  .score-input { width: 50px; background: #1b212c; border: 1px solid #2a3242; color: white; padding: 5px; text-align: center; }
+  .btn-save { background: #1ed87f; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>⚙️ INSPECTOR Y EDITOR DE PARTIDOS</h1>
-  <div id="loading-msg">Cargando datos...</div>
-  <table id="db-table" style="display: none;">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Partido</th>
-        <th>Marcador (Local - Visita)</th>
-        <th>Acción</th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
-</div>
+<h1>⚙️ INSPECTOR DE PARTIDOS</h1>
+<table id="db-table">
+  <thead><tr><th>ID</th><th>Partido</th><th>Marcador (L-V)</th><th>Acción</th></tr></thead>
+  <tbody id="table-body"></tbody>
+</table>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
-    authDomain: "submanhwa-apuestas.firebaseapp.com",
-    projectId: "submanhwa-apuestas",
-    storageBucket: "submanhwa-apuestas.firebasestorage.app",
-    messagingSenderId: "197537057888",
-    appId: "1:197537057888:web:48cd6427bd9184ba5e0705",
-    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
+  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   let cache = { bets: {}, scores: {} };
 
   onValue(ref(db, "bets"), (snap) => { cache.bets = snap.val() || {}; render(); });
@@ -63,40 +32,23 @@
     const h = document.getElementById(`h-${id}`).value;
     const a = document.getElementById(`a-${id}`).value;
     set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED', updatedAt: Date.now() })
-    .then(() => alert("¡Marcador actualizado!"))
+    .then(() => alert("¡Guardado!"))
     .catch(e => alert("Error: " + e.message));
   };
 
   function render() {
-    const tableBody = document.getElementById("table-body");
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = "";
-    document.getElementById("loading-msg").style.display = "none";
-    document.getElementById("db-table").style.display = "table";
-
-    // Validar que cache.bets sea un objeto
-    if (!cache.bets || typeof cache.bets !== 'object') return;
-
+    const body = document.getElementById("table-body");
+    body.innerHTML = "";
     Object.keys(cache.bets).forEach(id => {
-      // Si el partido no tiene apuestas o scores, ponemos valores por defecto
-      const score = cache.scores[id] || { home: 0, away: 0 };
-      const betsInfo = cache.bets[id];
-      const firstBet = betsInfo ? Object.values(betsInfo)[0] : { home: "Local", away: "Visitante" };
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${id}</td>
-        <td>${firstBet.home} vs ${firstBet.away}</td>
-        <td>
-          <input type="number" id="h-${id}" class="score-input" value="${Number(score.home) || 0}">
-          <input type="number" id="a-${id}" class="score-input" value="${Number(score.away) || 0}">
-        </td>
+      const s = cache.scores[id] || { home: 0, away: 0 };
+      const b = Object.values(cache.bets[id])[0];
+      body.innerHTML += `<tr>
+        <td>${id}</td><td>${b.home} vs ${b.away}</td>
+        <td><input type="number" id="h-${id}" class="score-input" value="${s.home}"> 
+            <input type="number" id="a-${id}" class="score-input" value="${s.away}"></td>
         <td><button class="btn-save" onclick="guardarMarcador('${id}')">Guardar</button></td>
-      `;
-      tableBody.appendChild(row);
+      </tr>`;
     });
-  }
   }
 </script>
 </body>
