@@ -2,75 +2,86 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Centro de Control Total</title>
+<title>Centro de Control Maestro</title>
 <style>
-  body { background: #0c0f14; color: #fff; font-family: sans-serif; padding: 20px; }
-  .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
-  .panel { background: #141922; padding: 20px; border-radius: 10px; }
+  body { background: #0c0f14; color: #eef1f5; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+  .panel { background: #141922; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
   table { width: 100%; border-collapse: collapse; }
   th, td { padding: 12px; border-bottom: 1px solid #2a3242; text-align: left; }
-  .btn-save { background: #1ed87f; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-  .bet-card { background: #1b212c; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid #f5b942; }
+  .btn-pub { background: #1ed87f; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; }
+  .btn-no { background: #ff5d5d; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; }
+  .btn-master { background: #f5b942; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; }
+  .bet-list { background: #1b212c; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 0.9em; border-left: 4px solid #1ed87f; }
 </style>
 </head>
 <body>
-<h1>🚀 CENTRO DE CONTROL</h1>
-<div class="grid">
-  <div class="panel">
-    <h2>⚽ Partidos</h2>
-    <table>
-      <thead><tr><th>ID</th><th>Partido</th><th>Score</th><th>Acción</th></tr></thead>
-      <tbody id="match-body"></tbody>
-    </table>
-  </div>
-  <div class="panel">
-    <h2>👥 Apuestas</h2>
-    <div id="users-body"></div>
-  </div>
+
+<h1>🛠️ PANEL DE CONTROL MAESTRO</h1>
+<button class="btn-master" onclick="publicarRanking()">🚀 PUBLICAR CAMBIOS AL RANKING</button>
+
+<div class="panel">
+  <h2>⚽ Gestión de Partidos</h2>
+  <table id="match-table">
+    <thead><tr><th>ID</th><th>Partido</th><th>Marcador</th><th>Publicar al Ranking</th></tr></thead>
+    <tbody id="match-body"></tbody>
+  </table>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+  let bets = {}; let scores = {};
 
-  let bets = {};
-  let scores = {};
-
-  // LECTURA SEPARADA (Lo que funcionaba antes)
   onValue(ref(db, "bets"), (snap) => { bets = snap.val() || {}; render(); });
   onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; render(); });
 
-  window.guardarMarcador = (id) => {
-    const h = document.getElementById(`h-${id}`).value;
-    const a = document.getElementById(`a-${id}`).value;
-    set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED' });
+  window.togglePublicar = (id, status) => {
+    update(ref(db, `scores/${id}`), { status: status });
+  };
+
+  window.publicarRanking = () => {
+    set(ref(db, "lastUpdate"), Date.now())
+    .then(() => alert("¡Ranking actualizado con los partidos marcados como SÍ!"));
   };
 
   function render() {
-    const matchBody = document.getElementById("match-body");
-    const usersBody = document.getElementById("users-body");
-    matchBody.innerHTML = "";
-    usersBody.innerHTML = "";
-
+    const body = document.getElementById("match-body");
+    body.innerHTML = "";
     Object.keys(bets).forEach(id => {
-      const s = scores[id] || { home: 0, away: 0 };
+      const s = scores[id] || { home: 0, away: 0, status: 'NO' };
       const b = Object.values(bets[id])[0];
       
-      matchBody.innerHTML += `<tr>
-        <td>${id}</td><td>${b.home} vs ${b.away}</td>
-        <td><input type="number" id="h-${id}" value="${s.home}" style="width:30px"> - 
-            <input type="number" id="a-${id}" value="${s.away}" style="width:30px"></td>
-        <td><button class="btn-save" onclick="guardarMarcador('${id}')">✓</button></td>
-      </tr>`;
-
-      usersBody.innerHTML += `<h4 style="color:#f5b942">Partido ${id}</h4>`;
+      // Fila de Partido
+      body.innerHTML += `
+        <tr>
+          <td><strong>${id}</strong></td>
+          <td>${b.home} vs ${b.away}</td>
+          <td><input type="number" id="h-${id}" value="${s.home}" style="width:40px"> - 
+              <input type="number" id="a-${id}" value="${s.away}" style="width:40px">
+              <button onclick="guardarScore('${id}')">💾</button></td>
+          <td>
+            <button class="${s.status === 'SI' ? 'btn-pub' : 'btn-no'}" onclick="togglePublicar('${id}', 'SI')">SÍ</button>
+            <button class="${s.status === 'SI' ? 'btn-no' : 'btn-pub'}" onclick="togglePublicar('${id}', 'NO')">NO</button>
+          </td>
+        </tr>
+        <tr><td colspan="4"><div class="bet-list" id="bets-${id}"></div></td></tr>
+      `;
+      
+      // Render Apuestas abajo
+      const betContainer = document.getElementById(`bets-${id}`);
       Object.values(bets[id]).forEach(bet => {
-        usersBody.innerHTML += `<div class="bet-card"><strong>${bet.username}</strong>: ${bet.homeScore}-${bet.awayScore}</div>`;
+        betContainer.innerHTML += `<span><b>${bet.username}</b>: ${bet.homeScore}-${bet.awayScore} | </span>`;
       });
     });
   }
+
+  window.guardarScore = (id) => {
+    const h = document.getElementById(`h-${id}`).value;
+    const a = document.getElementById(`a-${id}`).value;
+    update(ref(db, `scores/${id}`), { home: Number(h), away: Number(a) });
+  };
 </script>
 </body>
 </html>
