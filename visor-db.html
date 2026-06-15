@@ -1,6 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visor y Editor de Datos</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0f14; --bg-panel: #141922; --bg-card: #1b212c; --line: #2a3242;
+    --grass: #1ed87f; --gold: #f5b942; --red: #ff5d5d; --text: #eef1f5;
+  }
+  body { font-family: 'Rubik', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+  .container { max-width: 950px; margin: 0 auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--bg-panel); border-radius: 10px; overflow: hidden; }
+  th { background: var(--bg-card); color: var(--gold); padding: 12px; text-align: left; }
+  td { padding: 10px; border-bottom: 1px solid var(--line); }
+  .score-input { width: 40px; background: var(--bg-card); border: 1px solid var(--line); color: white; text-align: center; border-radius: 4px; padding: 5px; }
+  .btn-save { background: var(--grass); color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  .status-pill { font-size: 11px; padding: 4px 8px; border-radius: 10px; background: var(--bg-card); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚙️ INSPECTOR Y EDITOR DE PARTIDOS</h1>
+  <div id="loading-msg">Cargando datos...</div>
+  <table id="db-table" style="display: none;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Partido</th>
+        <th>Marcador (Local - Visita)</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
@@ -14,41 +53,41 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const loadingEl = document.getElementById("loading-msg");
 
-  // Estado local para combinar datos
   let cache = { bets: {}, scores: {} };
 
-  function procesarDatos() {
-    console.log("Procesando datos combinados...", cache);
-    const matchIds = Object.keys(cache.bets);
+  onValue(ref(db, "bets"), (snap) => { cache.bets = snap.val() || {}; render(); });
+  onValue(ref(db, "scores"), (snap) => { cache.scores = snap.val() || {}; render(); });
+
+  window.guardarMarcador = (id) => {
+    const h = document.getElementById(`h-${id}`).value;
+    const a = document.getElementById(`a-${id}`).value;
+    set(ref(db, `scores/${id}`), { home: Number(h), away: Number(a), status: 'FINISHED', updatedAt: Date.now() })
+    .then(() => alert("¡Marcador actualizado!"))
+    .catch(e => alert("Error: " + e.message));
+  };
+
+  function render() {
     const tableBody = document.getElementById("table-body");
     tableBody.innerHTML = "";
+    document.getElementById("loading-msg").style.display = "none";
+    document.getElementById("db-table").style.display = "table";
 
-    matchIds.forEach(id => {
-      const score = cache.scores[id] || { home: 0, away: 0, status: 'PENDING' };
+    Object.keys(cache.bets).forEach(id => {
+      const score = cache.scores[id] || { home: 0, away: 0 };
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td style="color:var(--gold)">${id}</td>
-        <td>${score.home} - ${score.away}</td>
-        <td>${score.status}</td>
+        <td>${id}</td>
+        <td>${Object.values(cache.bets[id])[0].home} vs ${Object.values(cache.bets[id])[0].away}</td>
+        <td>
+          <input type="number" id="h-${id}" class="score-input" value="${score.home}">
+          <input type="number" id="a-${id}" class="score-input" value="${score.away}">
+        </td>
+        <td><button class="btn-save" onclick="guardarMarcador('${id}')">Guardar</button></td>
       `;
       tableBody.appendChild(row);
     });
-    
-    document.getElementById("db-table").style.display = "table";
-    loadingEl.style.display = "none";
   }
-
-  // Escuchar Bets
-  onValue(ref(db, "bets"), (snap) => {
-    cache.bets = snap.val() || {};
-    procesarDatos();
-  });
-
-  // Escuchar Scores
-  onValue(ref(db, "scores"), (snap) => {
-    cache.scores = snap.val() || {};
-    procesarDatos();
-  });
 </script>
+</body>
+</html>
