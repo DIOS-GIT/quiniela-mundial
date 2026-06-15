@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ranking</title>
+<style>
+  body { background: #0c0f14; color: white; font-family: sans-serif; padding: 20px; }
+  .rank-row { background: #1b212c; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #1ed87f; }
+</style>
+</head>
+<body>
+<h1>🏆 RANKING</h1>
+<div id="ranking-list">Cargando...</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+
+  // Escuchamos la raíz completa, es lo más directo
+  onValue(ref(db), (snapshot) => {
+    const data = snapshot.val();
+    if (!data || !data.bets || !data.scores) {
+        document.getElementById("ranking-list").innerHTML = "No hay datos.";
+        return;
+    }
+    
+    let users = {};
+    Object.keys(data.bets).forEach(mId => {
+      if (!data.scores[mId] || data.scores[mId].status !== 'SI') return;
+      
+      Object.values(data.bets[mId]).forEach(b => {
+        if (!users[b.username]) users[b.username] = 0;
+        
+        const hR = Number(data.scores[mId].home), aR = Number(data.scores[mId].away);
+        const hB = Number(b.homeScore), aB = Number(b.awayScore);
+        
+        if (hB === hR && aB === aR) users[b.username] += 3;
+        else if ((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) users[b.username] += 1;
+      });
+    });
+
+    const html = Object.entries(users)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, pts]) => `<div class="rank-row">${name.toUpperCase()} - ${pts} pts</div>`)
+      .join("");
+    
+    document.getElementById("ranking-list").innerHTML = html || "Ningún partido publicado.";
+  });
+</script>
+</body>
+</html>
