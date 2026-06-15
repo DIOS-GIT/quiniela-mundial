@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel · Quiniela</title>
+<title>Admin Panel · Solo En Vivo</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -26,10 +26,6 @@
   .container { max-width: 600px; margin: 0 auto; }
   h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px;}
   
-  .tabs { display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid var(--line); margin-bottom: 25px; padding-bottom: 10px; }
-  .tab-btn { background: none; border: none; color: var(--text-dim); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; cursor: pointer; padding: 5px 10px; width: auto; }
-  .tab-btn.active { color: var(--grass); border-bottom: 2px solid var(--grass); }
-
   .login-box {
     background: var(--bg-card);
     border: 1px solid var(--line);
@@ -68,25 +64,10 @@
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
-    position: relative;
   }
-  .match-badge {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 10px;
-    text-transform: uppercase;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-  }
-  .badge-current { background: rgba(30,216,127,0.15); color: var(--grass); }
-  .badge-history { background: rgba(245,185,66,0.15); color: var(--gold); }
-
-  .group-lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; text-align: center; display: block; margin-bottom: 4px; }
-  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #fff; margin-bottom: 15px; text-align: center; letter-spacing: 0.5px; }
-  .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 18px; }
+  .group-tag { font-size: 11px; color: var(--text-dim); text-transform: uppercase; text-align: center; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+  .admin-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #fff; margin-bottom: 15px; text-align: center; }
+  .score-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
   .score-row input { width: 70px; font-size: 24px; font-family: 'Bebas Neue', sans-serif; margin: 0; text-align: center; background: var(--bg-panel); border: 1px solid var(--line); color: #fff; border-radius: 6px; padding: 4px; }
   
   .status-row { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
@@ -94,13 +75,12 @@
     background: var(--bg-panel);
     border: 1px solid var(--line);
     color: var(--text-dim);
-    padding: 6px 14px;
+    padding: 6px 12px;
     font-size: 13px;
     border-radius: 6px;
     width: auto;
     font-family: inherit;
     cursor: pointer;
-    transition: all 0.2s ease;
   }
   .status-btn.active {
     border-color: var(--grass);
@@ -114,7 +94,7 @@
 <body>
 
 <div class="container">
-  <h1>⚙️ PANEL DE ADMINISTRACIÓN</h1>
+  <h1>⚙️ CONTROL DE PARTIDOS EN VIVO</h1>
 
   <div class="login-box" id="login-box">
     <p style="margin-bottom: 15px; color: var(--text-dim);">Introduce el código PIN de acceso</p>
@@ -124,11 +104,6 @@
   </div>
 
   <div id="panel-box" style="display: none;">
-    <div class="tabs">
-      <button class="tab-btn active" id="tab-live" onclick="switchTab('live')">🔴 Transmisión en Vivo</button>
-      <button class="tab-btn" id="tab-close" onclick="switchTab('close')">📜 Cierre de Ranking</button>
-    </div>
-    
     <div id="match-list"></div>
   </div>
 </div>
@@ -137,7 +112,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, onValue, query, limitToFirst, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAuozPCi4zVFT0t65eqawTnoiBvaCSInCQ",
@@ -153,8 +128,7 @@
   const db = getDatabase(app);
 
   const ADMIN_PIN = "1234";
-  let currentTab = "live";
-  let firebaseScores = {}; 
+  window.uiStatuses = {}; 
 
   const STATUSES = [
     { value: "SCHEDULED", label: "Pendiente" },
@@ -164,157 +138,101 @@
   ];
 
   window.verifyPin = function() {
-    const entered = document.getElementById("pin-input").value;
-    if(entered === ADMIN_PIN) {
+    if(document.getElementById("pin-input").value === ADMIN_PIN) {
       document.getElementById("login-box").style.display = "none";
       document.getElementById("panel-box").style.display = "block";
-      
-      // 1. Escucha global e inmediata a 'scores' (La Verdad Absoluta)
-      onValue(ref(db, "scores"), snap => {
-        firebaseScores = snap.exists() ? snap.val() : {};
-        buildAdminPanel();
-      });
+      initLivePanel();
     } else {
       document.getElementById("login-err").textContent = "PIN incorrecto.";
     }
   }
 
-  window.switchTab = function(tab) {
-    currentTab = tab;
-    document.getElementById("tab-live").classList.toggle("active", tab === "live");
-    document.getElementById("tab-close").classList.toggle("active", tab === "close");
-    buildAdminPanel();
-  }
-
-  async function buildAdminPanel() {
+  function initLivePanel() {
     const listEl = document.getElementById("match-list");
     listEl.innerHTML = "";
 
-    // Mapeamos los partidos vigentes del archivo matches-config.js
-    const knownMatches = {};
-    if (typeof GROUPS !== 'undefined') {
-      Object.keys(GROUPS).forEach(groupKey => {
-        GROUPS[groupKey].forEach(m => {
-          knownMatches[m.id] = {
-            id: m.id,
-            group: m.groupName || `Grupo ${groupKey}`,
-            title: `${m.home.flag || ''} ${m.home.name} VS ${m.away.name} ${m.away.flag || ''}`,
-            isLegacy: false
-          };
+    // Renderizamos de forma fija única y exclusivamente los partidos que estén dentro del JS actual
+    if (typeof GROUPS === 'undefined' || Object.keys(GROUPS).length === 0) {
+      listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim);">No hay partidos configurados en matches-config.js</p>`;
+      return;
+    }
+
+    Object.keys(GROUPS).forEach(groupKey => {
+      GROUPS[groupKey].forEach(match => {
+        
+        const card = document.createElement("div");
+        card.className = "admin-card";
+        card.innerHTML = `
+          <span class="group-tag">Grupo ${groupKey} · ID: ${match.id}</span>
+          <h3>${match.home.flag || ''} ${match.home.name} vs ${match.away.name} ${match.away.flag || ''}</h3>
+          
+          <div class="score-row">
+            <input type="number" min="0" id="score-h-${match.id}" value="0">
+            <span style="color: var(--text-dim)">—</span>
+            <input type="number" min="0" id="score-a-${match.id}" value="0">
+          </div>
+
+          <div class="status-row">
+            ${STATUSES.map(s => `
+              <button class="status-btn btn-${match.id}" data-s="${s.value}" onclick="setUIStatus('${match.id}','${s.value}')">
+                ${s.label}
+              </button>
+            `).join("")}
+          </div>
+
+          <button style="background: var(--gold)" onclick="saveToFirebase('${match.id}')">Actualizar Estado / Marcador 🚀</button>
+          <div class="msg" id="msg-${match.id}"></div>
+        `;
+        listEl.appendChild(card);
+
+        // Escuchamos Firebase en tiempo real individualmente para rellenar los marcadores activos
+        onValue(ref(db, `scores/${match.id}`), snap => {
+          if(!snap.exists()) return;
+          const data = snap.val();
+          
+          const hInput = document.getElementById(`score-h-${match.id}`);
+          const aInput = document.getElementById(`score-a-${match.id}`);
+          
+          if(data.home !== undefined && hInput) hInput.value = data.home;
+          if(data.away !== undefined && aInput) aInput.value = data.away;
+          
+          if(data.status) {
+            window.uiStatuses[match.id] = data.status;
+            updateButtonVisuals(match.id, data.status);
+          }
         });
       });
-    }
-
-    // Unimos los IDs de Firebase con los locales para asegurar cobertura total sin omisiones
-    const allUniqueIds = Array.from(new Set([...Object.keys(knownMatches), ...Object.keys(firebaseScores)]));
-    
-    // Convertimos a array y ordenamos cronológicamente por updatedAt de Firebase
-    const sortedMatches = allUniqueIds.map(id => {
-      return { id, data: firebaseScores[id] || { status: "SCHEDULED", updatedAt: 0 } };
-    }).sort((a, b) => (b.data.updatedAt || 0) - (a.data.updatedAt || 0));
-
-    let visibleCount = 0;
-
-    for (const item of sortedMatches) {
-      const matchId = item.id;
-      const currentStatus = item.data.status || "SCHEDULED";
-
-      // Filtro estricto de separación por pestañas
-      if (currentTab === "live" && currentStatus === "FINISHED") continue;
-      if (currentTab === "close" && currentStatus !== "FINISHED") continue;
-
-      visibleCount++;
-
-      // Contenedor temporal (Placeholder) para evitar parpadeos en renderizado
-      const card = document.createElement("div");
-      card.className = "admin-card";
-      card.id = `card-${matchId}`;
-      listEl.appendChild(card);
-
-      // Si el partido está activo en el config JS, lo pintamos de inmediato de forma síncrona
-      if (knownMatches[matchId]) {
-        renderCardContents(matchId, knownMatches[matchId], item.data, currentStatus);
-      } else {
-        // Caso Historial: Recuperación inteligente usando limitToFirst(1) del nodo 'bets'
-        try {
-          const betsRef = query(ref(db, `bets/${matchId}`), limitToFirst(1));
-          const betsSnap = await get(betsRef);
-          
-          let legacyData = {
-            id: matchId,
-            group: "Historial",
-            title: `Partido Rescatado (ID: ${matchId})`,
-            isLegacy: true
-          };
-
-          if (betsSnap.exists()) {
-            const firstBetKey = Object.keys(betsSnap.val())[0];
-            const sampleBet = betsSnap.val()[firstBetKey];
-            legacyData.group = sampleBet.group ? `Fase Grupo ${sampleBet.group}` : "Fase Anterior";
-            legacyData.title = `⚽ ${sampleBet.home} VS ${sampleBet.away}`;
-          }
-
-          renderCardContents(matchId, legacyData, item.data, currentStatus);
-        } catch (err) {
-          console.error("Error recuperando partido del historial:", err);
-          renderCardContents(matchId, { id: matchId, group: "Error", title: `ID Partido: ${matchId}`, isLegacy: true }, item.data, currentStatus);
-        }
-      }
-    }
-
-    if (visibleCount === 0) {
-      listEl.innerHTML = `<p style="text-align:center; color:var(--text-dim); padding: 40px;">No hay partidos en esta categoría por ahora.</p>`;
-    }
-  }
-
-  function renderCardContents(matchId, info, fbData, currentStatus) {
-    const card = document.getElementById(`card-${matchId}`);
-    if (!card) return;
-
-    const badgeClass = info.isLegacy ? "badge-history" : "badge-current";
-    const badgeText = info.isLegacy ? "📜 Historial" : "⚡ Activo";
-
-    card.innerHTML = `
-      <span class="match-badge ${badgeClass}">${badgeText}</span>
-      <span class="group-lbl">${info.group} · ID: ${matchId}</span>
-      <h3>${info.title}</h3>
-      <div class="score-row">
-        <input type="number" min="0" id="score-h-${matchId}" value="${fbData?.home ?? 0}">
-        <span style="color: var(--text-dim); font-weight: bold;">—</span>
-        <input type="number" min="0" id="score-a-${matchId}" value="${fbData?.away ?? 0}">
-      </div>
-      <div class="status-row">
-        ${STATUSES.map(s => `
-          <button class="status-btn btn-${matchId}" data-m="${matchId}" data-s="${s.value}" onclick="setUIStatus('${matchId}','${s.value}')">
-            ${s.label}
-          </button>
-        `).join("")}
-      </div>
-      <button style="background: var(--gold); font-weight: bold;" onclick="updateMatchFirebase('${matchId}')">Asentar Marcador Oficial 🚀</button>
-      <div class="msg" id="msg-${matchId}"></div>
-    `;
-
-    setUIStatus(matchId, currentStatus);
-  }
-
-  window.setUIStatus = function(matchId, status) {
-    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.s === status);
     });
   }
 
-  window.updateMatchFirebase = async function(matchId) {
+  window.setUIStatus = function(matchId, status) {
+    window.uiStatuses[matchId] = status;
+    updateButtonVisuals(matchId, status);
+  }
+
+  function updateButtonVisuals(matchId, status) {
+    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-s") === status);
+    });
+  }
+
+  window.saveToFirebase = async function(matchId) {
     const home = Number(document.getElementById(`score-h-${matchId}`).value);
     const away = Number(document.getElementById(`score-a-${matchId}`).value);
-    const activeBtn = document.querySelector(`.btn-${matchId}.active`);
-    const status = activeBtn ? activeBtn.dataset.s : "SCHEDULED";
+    const status = window.uiStatuses[matchId] || "SCHEDULED";
     const msgEl = document.getElementById("msg-" + matchId);
 
     try {
-      await set(ref(db, `scores/${matchId}`), { home, away, status, updatedAt: Date.now() });
+      await set(ref(db, `scores/${matchId}`), {
+        home,
+        away,
+        status,
+        updatedAt: Date.now()
+      });
+      
       msgEl.className = "msg ok";
-      msgEl.textContent = "¡Marcador oficial asentado con éxito! 🚀";
-      setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 3000);
+      msgEl.textContent = "Sincronizado con Firebase con éxito! ✨";
+      setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 2500);
     } catch(e) {
       msgEl.className = "msg";
       msgEl.style.color = "var(--red)";
