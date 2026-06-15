@@ -2,77 +2,100 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ranking Oficial · Posiciones</title>
+<title>Ranking Oficial</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
 <style>
   body { background: #0c0f14; color: white; font-family: 'Rubik', sans-serif; padding: 20px; }
-  .container { max-width: 500px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 30px; }
-  .rank-row { background: #1b212c; padding: 20px; margin-bottom: 12px; border-radius: 12px; display: flex; align-items: center; border-left: 5px solid #1ed87f; }
-  .pos { font-family: 'Bebas Neue'; font-size: 24px; color: #f5b942; width: 40px; }
-  .name { flex-grow: 1; font-weight: bold; }
+  .container { max-width: 600px; margin: 0 auto; }
+  h1 { font-family: 'Bebas Neue'; color: #f5b942; text-align: center; font-size: 3rem; margin-bottom: 20px; }
+  
+  /* Buscador */
+  #search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #2a3242; background: #1b212c; color: white; margin-bottom: 20px; box-sizing: border-box; }
+  
+  /* Filas */
+  .rank-row { background: #1b212c; padding: 15px; margin-bottom: 10px; border-radius: 12px; border-left: 5px solid #1ed87f; cursor: pointer; }
+  .user-header { display: flex; align-items: center; justify-content: space-between; }
+  .pos { font-family: 'Bebas Neue'; font-size: 22px; color: #f5b942; width: 40px; }
   .pts { font-family: 'Bebas Neue'; font-size: 28px; color: #1ed87f; }
+  
+  /* Detalles */
+  .details { display: none; margin-top: 15px; padding: 10px; background: #141922; border-radius: 8px; font-size: 0.9em; }
+  .bet-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a3242; }
+  .hit { color: #1ed87f; }
+  .miss { color: #ff5f5f; }
 </style>
 </head>
 <body>
 
 <div class="container">
   <h1>🏆 RANKING OFICIAL</h1>
+  <input type="text" id="search-bar" placeholder="🔍 Buscar por nombre..." onkeyup="filtrar()">
   <div id="ranking-list">Cargando...</div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+  let cachedData = [];
 
-  // Escuchamos toda la base de datos para no depender de eventos intermedios
-  onValue(ref(db), (snapshot) => {
-    const data = snapshot.val();
-    if (!data || !data.bets) {
-        document.getElementById("ranking-list").innerHTML = "Esperando datos...";
-        return;
-    }
-
-    const scores = data.scores || {};
-    const bets = data.bets || {};
+  // Usamos el evento que ya funcionaba
+  onValue(ref(db, "lastUpdate"), async () => {
+    const snap = await get(ref(db));
+    const data = snap.val();
+    if (!data) return;
+    
+    const { scores = {}, bets = {} } = data;
     let users = {};
 
     Object.keys(bets).forEach(mId => {
-      // Solo sumamos puntos si el status es 'SI'
       if (!scores[mId] || scores[mId].status !== 'SI') return;
 
       Object.values(bets[mId]).forEach(b => {
-        if (!users[b.username]) users[b.username] = { pts: 0, exactos: 0 };
+        if (!users[b.username]) users[b.username] = { pts: 0, apuestas: [] };
         
-        const hR = Number(scores[mId].home);
-        const aR = Number(scores[mId].away);
-        const hB = Number(b.homeScore);
-        const aB = Number(b.awayScore);
-
-        if (hB === hR && aB === aR) {
-          users[b.username].pts += 3;
-          users[b.username].exactos += 1;
-        } else if ((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) {
-          users[b.username].pts += 1;
-        }
+        const hR = Number(scores[mId].home), aR = Number(scores[mId].away);
+        const hB = Number(b.homeScore), aB = Number(b.awayScore);
+        
+        let acierto = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
+        
+        users[b.username].pts += acierto;
+        users[b.username].apuestas.push({ partido: `${b.home} vs ${b.away}`, apuesta: `${hB}-${aB}`, real: `${hR}-${aR}`, acierto });
       });
     });
 
-    const sortedUsers = Object.entries(users).sort((a, b) => {
-      if (b[1].pts !== a[1].pts) return b[1].pts - a[1].pts;
-      return b[1].exactos - a[1].exactos;
-    });
+    cachedData = Object.entries(users).sort((a, b) => b[1].pts - a[1].pts);
+    render(cachedData);
+  });
 
-    document.getElementById("ranking-list").innerHTML = sortedUsers.map(([name, data], i) => `
-      <div class="rank-row">
-        <div class="pos">${i + 1}º</div>
-        <div class="name">${name.toUpperCase()}</div>
-        <div class="pts">${data.pts} pts</div>
+  window.render = (data) => {
+    const list = document.getElementById("ranking-list");
+    list.innerHTML = data.map(([name, d], i) => `
+      <div class="rank-row" onclick="toggleDetails('${name}')">
+        <div class="user-header">
+          <div class="pos">${i + 1}º</div>
+          <div class="name">${name.toUpperCase()}</div>
+          <div class="pts">${d.pts} PTS</div>
+        </div>
+        <div id="det-${name}" class="details">
+          ${d.apuestas.map(a => `<div class="bet-entry ${a.acierto > 0 ? 'hit' : 'miss'}">
+            <span>${a.partido}</span> <span>${a.apuesta} (Real: ${a.real})</span>
+          </div>`).join('')}
+        </div>
       </div>
     `).join("");
-  });
+  };
+
+  window.toggleDetails = (name) => {
+    const el = document.getElementById(`det-${name}`);
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+  };
+
+  window.filtrar = () => {
+    const term = document.getElementById("search-bar").value.toLowerCase();
+    render(cachedData.filter(([name]) => name.toLowerCase().includes(term)));
+  };
 </script>
 </body>
 </html>
