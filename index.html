@@ -914,10 +914,10 @@
         let isPerfect = false;
         let tagHtml = "";
 
-        if (liveInfo && (liveInfo.status === "IN_PLAY" || liveInfo.status === "PAUSED" || liveInfo.status === "FINISHED")) {
+        if (liveInfo && (liveInfo.status === "IN_PLAY" || liveInfo.status === "PAUSED" || liveInfo.status === "FINISHED" || liveInfo.status === "SI")) {
           if (Number(d.homeScore) === Number(liveInfo.home) && Number(d.awayScore) === Number(liveInfo.away)) {
             isPerfect = true;
-            if (liveInfo.status === "FINISHED") {
+            if (liveInfo.status === "FINISHED" || liveInfo.status === "SI") {
               tagHtml = `<span class="winner-tag">🏆 ¡GANADOR! (2 Cartas)</span>`;
             } else {
               tagHtml = `<span class="winner-tag">🔥 Atinando</span>`;
@@ -960,7 +960,30 @@
         return;
       }
 
-const d = snap.val();
+      const d = snap.val();
+      liveScoresState[match.id] = d;
+
+      const { home, away, status } = d;
+
+      if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED" || status === "SI"){
+        if(vsEl) vsEl.style.opacity = "0";
+
+        const isFinished = status === "FINISHED" || status === "SI";
+        const statusText = isFinished ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
+        const statusClass = isFinished ? "finished" : "in-play";
+
+        liveEl.innerHTML = `
+          <div class="live-score-status ${statusClass}">${statusText}</div>        
+          <div class="live-score">
+            <div class="score-box">${home ?? 0}</div>
+            <div class="score-sep">—</div>
+            <div class="score-box">${away ?? 0}</div>
+          </div>
+        `;
+      } else {
+        liveEl.innerHTML = "";
+        if(vsEl) vsEl.style.opacity = "1";
+      }
 
       const safeId = matchIdToSelector(match.id);
       const betsEl = document.getElementById(`bets-${safeId}`);
