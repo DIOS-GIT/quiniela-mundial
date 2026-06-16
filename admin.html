@@ -35,9 +35,23 @@
 <script src="matches-config.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   window.uiStatuses = {};
+
+  // 1. FUNCIÓN PARA CARGAR LO QUE YA EXISTE EN FIREBASE
+  onValue(ref(db, 'scores'), (snapshot) => {
+    const data = snapshot.val() || {};
+    Object.keys(data).forEach(matchId => {
+      const matchData = data[matchId];
+      const hInput = document.getElementById(`score-h-${matchId}`);
+      const aInput = document.getElementById(`score-a-${matchId}`);
+      if(hInput) hInput.value = matchData.home;
+      if(aInput) aInput.value = matchData.away;
+      if(matchData.status) setUIStatus(matchId, matchData.status);
+    });
+  });
 
   window.setUIStatus = function(matchId, status) {
     window.uiStatuses[matchId] = status;
@@ -51,10 +65,11 @@
     const msgEl = document.getElementById("msg-" + matchId);
     
     await set(ref(db, `scores/${matchId}`), { home, away, status: finalStatus, updatedAt: Date.now() });
-    msgEl.className = "msg ok"; msgEl.textContent = "¡Actualizado correctamente! ✨";
+    msgEl.className = "msg ok"; msgEl.textContent = "¡Actualizado! ✨";
     setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 2500);
   }
 
+  // RENDERIZADO
   const listEl = document.getElementById("match-list");
   listEl.innerHTML = "";
   Object.keys(GROUPS).forEach(g => {
