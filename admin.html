@@ -10,8 +10,11 @@
   .container { max-width: 600px; margin: 0 auto; }
   .admin-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
   .score-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+  .status-btns { display: flex; gap: 5px; margin-bottom: 15px; }
   input { width: 60px; padding: 10px; text-align: center; background: #0c0f14; border: 1px solid #333; color: white; border-radius: 5px; }
-  button { background: var(--grass); border: none; padding: 10px; width: 100%; cursor: pointer; border-radius: 5px; font-weight: bold; }
+  button { background: #2a3242; border: none; padding: 8px; flex: 1; cursor: pointer; color: white; border-radius: 5px; font-size: 11px; }
+  button.active { background: var(--gold); color: black; font-weight: bold; }
+  .btn-save { background: var(--grass); margin-top: 10px; width: 100%; font-size: 14px; }
   .msg { font-size: 12px; margin-top: 10px; text-align: center; }
   .msg.ok { color: var(--grass); }
 </style>
@@ -31,7 +34,15 @@
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   window.uiStatuses = {};
 
-  // Función de guardado con la corrección
+  // Función lógica de botones
+  window.setUIStatus = function(matchId, status) {
+    window.uiStatuses[matchId] = status;
+    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-s") === status);
+    });
+  }
+
+  // Función de guardado con la corrección FINISHED -> SI
   window.saveToFirebase = async function(matchId) {
     const home = Number(document.getElementById(`score-h-${matchId}`).value);
     const away = Number(document.getElementById(`score-a-${matchId}`).value);
@@ -47,20 +58,25 @@
     } catch(e) { alert("Error: " + e.message); }
   }
 
-  // Inicialización original de partidos
+  // Renderizado inicial
   const listEl = document.getElementById("match-list");
   listEl.innerHTML = "";
-  Object.keys(GROUPS).forEach(groupKey => {
-    GROUPS[groupKey].forEach(match => {
+  Object.keys(GROUPS).forEach(g => {
+    GROUPS[g].forEach(m => {
       const card = document.createElement("div");
       card.className = "admin-card";
-      card.innerHTML = `<h3>${match.home.name} vs ${match.away.name}</h3>
-        <div class="score-row">
-          <input type="number" id="score-h-${match.id}" value="0">
-          <input type="number" id="score-a-${match.id}" value="0">
+      card.innerHTML = `<h3>${m.home.name} vs ${m.away.name}</h3>
+        <div class="status-btns">
+          <button class="btn-${m.id}" data-s="SCHEDULED" onclick="setUIStatus('${m.id}', 'SCHEDULED')">PENDIENTE</button>
+          <button class="btn-${m.id}" data-s="IN_PLAY" onclick="setUIStatus('${m.id}', 'IN_PLAY')">EN VIVO</button>
+          <button class="btn-${m.id}" data-s="FINISHED" onclick="setUIStatus('${m.id}', 'FINISHED')">FINALIZADO</button>
         </div>
-        <button onclick="saveToFirebase('${match.id}')">Actualizar 🚀</button>
-        <div class="msg" id="msg-${match.id}"></div>`;
+        <div class="score-row">
+          <input type="number" id="score-h-${m.id}" value="0">
+          <input type="number" id="score-a-${m.id}" value="0">
+        </div>
+        <button class="btn-save" onclick="saveToFirebase('${m.id}')">Guardar Resultado 🚀</button>
+        <div class="msg" id="msg-${m.id}"></div>`;
       listEl.appendChild(card);
     });
   });
