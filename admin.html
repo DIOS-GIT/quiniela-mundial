@@ -3,19 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin Panel · Quiniela</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg: #0c0f14; --bg-card: #1b212c; --line: #2a3242; --grass: #1ed87f; --gold: #f5b942; --text: #eef1f5; }
-  body { font-family: 'Rubik', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; }
-  .container { max-width: 600px; margin: 0 auto; }
-  .admin-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-  .score-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
-  .status-btns { display: flex; gap: 5px; margin-bottom: 15px; }
-  input { width: 60px; padding: 10px; text-align: center; background: #0c0f14; border: 1px solid #333; color: white; border-radius: 5px; }
-  button { background: #2a3242; border: none; padding: 8px; flex: 1; cursor: pointer; color: white; border-radius: 5px; font-size: 11px; }
-  button.active { background: var(--gold); color: black; font-weight: bold; }
-  .btn-save { background: var(--grass); margin-top: 10px; width: 100%; font-size: 14px; }
-  .msg { font-size: 12px; margin-top: 10px; text-align: center; }
+  :root { --bg: #0b0e14; --card: #151921; --line: #2a3242; --grass: #1ed87f; --gold: #f5b942; --text: #eef1f5; --text-dim: #94a3b8; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; line-height: 1.6; }
+  .container { max-width: 500px; margin: 0 auto; }
+  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px; font-size: 2rem; }
+  
+  .admin-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 24px; transition: transform 0.2s; }
+  h3 { margin: 0 0 20px 0; font-size: 1.2rem; text-align: center; color: #fff; }
+  
+  .status-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .status-btns button { background: #1c222d; border: 1px solid var(--line); color: var(--text-dim); padding: 10px; font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s; }
+  .status-btns button.active { background: var(--gold); color: #000; border-color: var(--gold); }
+  
+  .score-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+  input { width: 70px; height: 50px; text-align: center; background: #0c0f14; border: 2px solid var(--line); color: #fff; border-radius: 12px; font-size: 1.5rem; font-weight: bold; }
+  
+  .btn-save { background: var(--grass); color: #000; border: none; padding: 14px; width: 100%; font-weight: 700; border-radius: 10px; cursor: pointer; font-size: 1rem; }
+  .msg { font-size: 12px; margin-top: 12px; text-align: center; font-weight: 600; }
   .msg.ok { color: var(--grass); }
 </style>
 </head>
@@ -29,36 +35,26 @@
 <script src="matches-config.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   window.uiStatuses = {};
 
-  // Función lógica de botones
   window.setUIStatus = function(matchId, status) {
     window.uiStatuses[matchId] = status;
-    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => {
-      btn.classList.toggle("active", btn.getAttribute("data-s") === status);
-    });
+    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-s") === status));
   }
 
-  // Función de guardado con la corrección FINISHED -> SI
   window.saveToFirebase = async function(matchId) {
     const home = Number(document.getElementById(`score-h-${matchId}`).value);
     const away = Number(document.getElementById(`score-a-${matchId}`).value);
-    let status = window.uiStatuses[matchId] || "SCHEDULED";
-    const finalStatus = (status === "FINISHED") ? "SI" : status;
+    const finalStatus = (window.uiStatuses[matchId] === "FINISHED") ? "SI" : (window.uiStatuses[matchId] || "SCHEDULED");
     const msgEl = document.getElementById("msg-" + matchId);
-
-    try {
-      await set(ref(db, `scores/${matchId}`), { home, away, status: finalStatus, updatedAt: Date.now() });
-      msgEl.className = "msg ok";
-      msgEl.textContent = "¡Sincronizado! ✨";
-      setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 2500);
-    } catch(e) { alert("Error: " + e.message); }
+    
+    await set(ref(db, `scores/${matchId}`), { home, away, status: finalStatus, updatedAt: Date.now() });
+    msgEl.className = "msg ok"; msgEl.textContent = "¡Actualizado correctamente! ✨";
+    setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 2500);
   }
 
-  // Renderizado inicial
   const listEl = document.getElementById("match-list");
   listEl.innerHTML = "";
   Object.keys(GROUPS).forEach(g => {
@@ -75,7 +71,7 @@
           <input type="number" id="score-h-${m.id}" value="0">
           <input type="number" id="score-a-${m.id}" value="0">
         </div>
-        <button class="btn-save" onclick="saveToFirebase('${m.id}')">Guardar Resultado 🚀</button>
+        <button class="btn-save" onclick="saveToFirebase('${m.id}')">GUARDAR RESULTADO 🚀</button>
         <div class="msg" id="msg-${m.id}"></div>`;
       listEl.appendChild(card);
     });
