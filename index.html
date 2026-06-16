@@ -960,34 +960,7 @@
         return;
       }
 
-      const d = snap.val();
-      liveScoresState[match.id] = d;
-
-      const { home, away, status } = d;
-
-      if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED"){
-      const { home, away, status } = d;
-
-      // Aceptamos "FINISHED" o "SI" (que es lo que viene del nuevo Admin)
-      if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED" || status === "SI"){
-        if(vsEl) vsEl.style.opacity = "0";
-
-        const esFinal = (status === "FINISHED" || status === "SI");
-        const statusText = esFinal ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
-        const statusClass = esFinal ? "finished" : "in-play";
-
-        liveEl.innerHTML = `
-          <div class="live-score-status ${statusClass}">${statusText}</div>        
-          <div class="live-score">
-            <div class="score-box">${home ?? 0}</div>
-            <div class="score-sep">—</div>
-            <div class="score-box">${away ?? 0}</div>
-          </div>
-        `;
-      } else {
-        liveEl.innerHTML = "";
-        if(vsEl) vsEl.style.opacity = "1";
-      }
+const d = snap.val();
 
       const safeId = matchIdToSelector(match.id);
       const betsEl = document.getElementById(`bets-${safeId}`);
