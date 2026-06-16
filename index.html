@@ -618,7 +618,7 @@
   Hecho para <a href="https://submanhwa.com/" target="_blank">submanhwa.com</a> · Apuestas amistosas, sin dinero real ⚽
 </footer>
 
-<script src="matches-config.js?v=1.8"></script>
+<script src="matches-config.js?v=1.9"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -966,10 +966,15 @@
       const { home, away, status } = d;
 
       if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED"){
+      const { home, away, status } = d;
+
+      // Aceptamos "FINISHED" o "SI" (que es lo que viene del nuevo Admin)
+      if(status === "IN_PLAY" || status === "PAUSED" || status === "FINISHED" || status === "SI"){
         if(vsEl) vsEl.style.opacity = "0";
 
-        const statusText = status === "FINISHED" ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
-        const statusClass = status === "FINISHED" ? "finished" : "in-play";
+        const esFinal = (status === "FINISHED" || status === "SI");
+        const statusText = esFinal ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
+        const statusClass = esFinal ? "finished" : "in-play";
 
         liveEl.innerHTML = `
           <div class="live-score-status ${statusClass}">${statusText}</div>        
