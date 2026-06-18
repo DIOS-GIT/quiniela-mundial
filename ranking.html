@@ -35,7 +35,7 @@
 </head>
 <body>
 
-<!-- Menú añadido aquí -->
+<!-- Menú de navegación -->
 <nav class="nav-menu">
   <a href="index.html" style="color: #555;">APUESTAS</a>
   <a href="ranking.html" style="color: #f5b942;">RANKING</a>
@@ -70,15 +70,27 @@
     Object.keys(bets).forEach(mId => {
       if (!scores[mId] || scores[mId].status !== 'SI') return;
       Object.values(bets[mId]).forEach(b => {
-        if (!users[b.username]) users[b.username] = { pts: 0, games: [] };
+        // CORRECCIÓN: Generar una clave única ignorando espacios y mayúsculas/minúsculas
+        const userKey = b.username.trim().toLowerCase();
+        if (!userKey) return; 
+
+        // Si el usuario no existe en nuestro acumulador, se inicializa con su nombre original visible
+        if (!users[userKey]) {
+          users[userKey] = { displayName: b.username.trim(), pts: 0, games: [] };
+        }
+        
         const hR = Number(scores[mId].home), aR = Number(scores[mId].away);
         const hB = Number(b.homeScore), aB = Number(b.awayScore);
         
         let p = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
-        users[b.username].pts += p;
-        users[b.username].games.push({ match: `${b.home} vs ${b.away}`, bet: `${hB}-${aB}`, off: `${hR}-${aR}`, p });
+        
+        // Sumamos los puntos y añadimos los partidos al mismo usuario unificado
+        users[userKey].pts += p;
+        users[userKey].games.push({ match: `${b.home} vs ${b.away}`, bet: `${hB}-${aB}`, off: `${hR}-${aR}`, p });
       });
     });
+
+    // Ordenar de mayor a menor puntaje consolidado
     cachedData = Object.entries(users).sort((a,b) => b[1].pts - a[1].pts);
     render(cachedData);
   };
@@ -87,10 +99,11 @@
   onValue(ref(db, "scores"), (s) => { scores = s.val() || {}; process(); });
 
   window.render = (data) => {
-    document.getElementById("ranking-list").innerHTML = data.map(([n, d], i) => `
+    document.getElementById("ranking-list").innerHTML = data.map(([key, d], i) => `
       <div class="rank-row" onclick="this.querySelector('.details').style.display = this.querySelector('.details').style.display === 'block' ? 'none' : 'block'">
         <div class="header-row">
-          <div class="name-block"><span style="color:#f5b942">#${i+1}</span> ${n.toUpperCase()}</div>
+          <!-- Renderiza el nombre unificado respetando su formato original -->
+          <div class="name-block"><span style="color:#f5b942">#${i+1}</span> ${d.displayName.toUpperCase()}</div>
           <div class="pts-block">${d.pts}</div>
         </div>
         <div class="details">
@@ -104,8 +117,9 @@
   };
 
   window.filtrar = () => {
-    const t = document.getElementById("search-bar").value.toLowerCase();
-    render(cachedData.filter(([n]) => n.toLowerCase().includes(t)));
+    const t = document.getElementById("search-bar").value.toLowerCase().trim();
+    // Filtra buscando coincidencias en la clave limpia o en el nombre original
+    render(cachedData.filter(([key, d]) => key.includes(t) || d.displayName.toLowerCase().includes(t)));
   };
 </script>
 </body>
