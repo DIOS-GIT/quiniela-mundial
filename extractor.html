@@ -5,128 +5,6 @@
 <title>Extractor Oficial · Quiniela</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root { --accent: #1ed87f; --bg: #0a0c10; --card: #151921; --text: #eef1f5; --yellow: #f5b942; --red: #ff4a4a; }
-  body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding-bottom: 40px; }
-  
-  .nav-menu { display: flex; justify-content: center; gap: 30px; padding: 20px; background: #0c0f14; border-bottom: 1px solid #2a3242; }
-  .nav-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none; color: #555; }
-  
-  .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-  h1 { text-align: center; font-size: 2.8rem; color: var(--yellow); text-transform: uppercase; margin-bottom: 5px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
-  .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 0.95rem; }
-
-  .selector-box { background: var(--card); border: 1px solid #2a3242; border-radius: 16px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-  .selector-box label { display: block; font-weight: 700; margin-bottom: 10px; color: var(--yellow); font-size: 1.1rem; }
-  select { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #3d495e; background: #1b212c; color: white; font-size: 16px; font-weight: 700; cursor: pointer; }
-
-  .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .column-card { background: var(--card); border: 1px solid #2a3242; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-  
-  .column-card.exact { border-top: 4px solid var(--accent); }
-  .column-card.winner { border-top: 4px solid var(--yellow); }
-  .column-card.loser { border-top: 4px solid var(--red); }
-
-  .column-card h3 { margin-top: 0; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-  .badge-count { background: #0a0c10; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 900; border: 1px solid #2a3242; }
-  
-  .exact h3 { color: var(--accent); }
-  .winner h3 { color: var(--yellow); }
-  .loser h3 { color: var(--red); }
-
-  textarea { width: 100%; height: 250px; background: #0a0c10; border: 1px solid #2a3242; border-radius: 10px; color: #fff; padding: 12px; font-family: monospace; font-size: 15px; box-sizing: border-box; resize: none; margin-bottom: 15px; }
-  
-  .btn-copy { width: 100%; border: none; padding: 14px; font-weight: 900; border-radius: 10px; font-size: 15px; cursor: pointer; transition: background 0.2s; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 8px; }
-  
-  .exact .btn-copy { background: var(--accent); color: #0a0c10; }
-  .exact .btn-copy:hover { background: #16be62; }
-  .winner .btn-copy { background: var(--yellow); color: #0a0c10; }
-  .winner .btn-copy:hover { background: #deb22c; }
-  .loser .btn-copy { background: var(--red); color: white; }
-  .loser .btn-copy:hover { background: #df3b3b; }
-</style>
-</head>
-<body>
-
-<nav class="nav-menu">
-  <a href="index.html">APUESTAS</a>
-  <a href="ranking.html">RANKING</a>
-  <a href="extractor.html" style="color: var(--accent);">EXTRACTOR</a>
-</nav>
-
-<div class="container">
-  <h1>🚀 EXTRACTOR DE GANADORES</h1>
-  <div class="subtitle">Segmentación automática de nicks en líneas verticales para el Lanzador Manual</div>
-  
-  <div class="selector-box">
-    <label for="match-picker">⚽ Selecciona un partido de la cartelera de hoy:</label>
-    <select id="match-picker" onchange="procesarPartidoActual()">
-      <option value="">Cargando partidos activos de la jornada...</option>
-    </select>
-  </div>
-
-  <div class="grid-layout">
-    <!-- COLUMNA 1: MARCADOR EXACTO -->
-    <div class="column-card exact">
-      <h3>🎯 EXACTO (3 PTS) <span id="count-exact" class="badge-count">0</span></h3>
-      <textarea id="list-exact" readonly placeholder="Nicks ordenados uno por línea..."></textarea>
-      <button class="btn-copy" onclick="copiarAlPortapapeles('list-exact', this)">📋 Copiar Exactos</button>
-    </div>
-
-    <!-- COLUMNA 2: TENDENCIA GANADORA -->
-    <div class="column-card winner">
-      <h3>⚽ TENDENCIA (1 PT) <span id="count-winner" class="badge-count">0</span></h3>
-      <textarea id="list-winner" readonly placeholder="Nicks ordenados uno por línea..."></textarea>
-      <button class="btn-copy" onclick="copiarAlPortapapeles('list-winner', this)">📋 Copiar Tendencia</button>
-    </div>
-
-    <!-- COLUMNA 3: PERDEDORES -->
-    <div class="column-card loser">
-      <h3>❌ PERDEDORES (0 PTS) <span id="count-loser" class="badge-count">0</span></h3>
-      <textarea id="list-loser" readonly placeholder="Nicks ordenados uno por línea..."></textarea>
-      <button class="btn-copy" onclick="copiarAlPortapapeles('list-loser', this)">📋 Copiar Perdedores</button>
-    </div>
-  </div>
-</div>
-
-<!-- Enlace directo a tu configuración para que herede tus variables e IDs sin repetir código -->
-<script src="matches-config.js?v=2.5"></script>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
-  let bets = {}, scores = {};
-
-  // Esperar a que carguen las bases de datos externas
-  onValue(ref(db, "bets"), (s) => { bets = s.val() || {}; });
-  onValue(ref(db, "scores"), (s) => { 
-    scores = s.val() || {}; 
-    inicializarSelectorDinamico();
-  });
-
-  function inicializarSelectorDinamico() {
-    const select = document.getElementById("match-picker");
-    let html = '<option value="">-- Elige un partido para segmentar sus nicks --</option>';
-    
-    // Recorremos los grupos (A y B) configurados únicamente en tu archivo local matches-config.js
-    if (typeof GROUPS !== 'undefined') {
-      Object.keys(GROUPS).forEach(groupKey => {
-        GROUPS[groupKey].forEach(m => {
-          const mId = m.id;
-          const statusDB = scores[mId] ? scores[mId].status : 'NO';
-          const indicator = (statusDB === 'SI') ? '✅ Evaluado' : '⏳Aquí tienes el archivo completo listo para crear. Lo llamaremos **`extractor.html`** para mantener tu repositorio de GitHub impecable y bien organizado[cite: 1].
-
-Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
-
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Extractor Oficial · Quiniela</title>
-<link href="[https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap](https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap)" rel="stylesheet">
-<style>
   :root { --bg: #0a0c10; --card: #151921; --text: #eef1f5; --accent: #1ed87f; --exact: #f5b942; --fail: #ff4a4a; }
   body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; }
   
@@ -181,7 +59,6 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
   </div>
   
   <div class="grid-outputs">
-    <!-- MARCADOR EXACTO -->
     <div class="col-box exact-box">
       <div class="col-title">🎯 Exacto <span id="count-exact" class="count-badge">0</span></div>
       <div class="col-desc">Acertaron los goles exactos del partido (Ganaron 3 pts).</div>
@@ -189,7 +66,6 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-exact', this)">📋 Copiar Exactos</button>
     </div>
     
-    <!-- SOLO GANADOR / EMPATE -->
     <div class="col-box winner-box">
       <div class="col-title">⚽ Solo Tendencia <span id="count-winner" class="count-badge">0</span></div>
       <div class="col-desc">Acertaron ganador o empate, pero fallaron marcador (Ganaron 1 pt).</div>
@@ -197,7 +73,6 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-winner', this)">📋 Copiar Tendencias</button>
     </div>
     
-    <!-- PERDEDORES -->
     <div class="col-box fail-box">
       <div class="col-title">❌ Perdedores <span id="count-fail" class="count-badge">0</span></div>
       <div class="col-desc">Enviaron su apuesta pero no sumaron ningún punto (0 pts).</div>
@@ -207,34 +82,30 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
   </div>
 </div>
 
-<!-- Enlace dinámico e inyección automática de la cartelera actual del día -->
 <script src="matches-config.js?v=2.5"></script>
 
 <script type="module">
-  import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js)";
-  import { getDatabase, ref, onValue } from "[https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js](https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js)";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  const db = getDatabase(initializeApp({ databaseURL: "[https://submanhwa-apuestas-default-rtdb.firebaseio.com](https://submanhwa-apuestas-default-rtdb.firebaseio.com)" }));
+  const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
   let bets = {}, scores = {};
 
   // Escuchar base de datos en tiempo real
   onValue(ref(db, "scores"), (s) => { scores = s.val() || {}; cargarPartidosDelDia(); });
   onValue(ref(db, "bets"), (s) => { bets = s.val() || {}; cargarPartidosDelDia(); });
 
-  // Carga únicamente los partidos configurados para hoy en matches-config.js
   function cargarPartidosDelDia() {
     const selector = document.getElementById("match-select");
     let opciones = '<option value="">-- Selecciona un Partido Abierto/Cerrado --</option>';
     
     if (typeof GROUPS === 'undefined') return;
 
-    // Recorremos los grupos de la jornada actual mapeados en tu config
     Object.keys(GROUPS).forEach(groupKey => {
       GROUPS[groupKey].forEach(m => {
         const scoreMatch = scores[m.id] || {};
         const totalApuestas = bets[m.id] ? Object.keys(bets[m.id]).length : 0;
         
-        // Se coloca marcador visual si ya está evaluado en Firebase
         const statusLabel = scoreMatch.status === 'SI' ? `[EVALUADO: ${scoreMatch.home}-${scoreMatch.away}]` : '[SIN EVALUAR]';
         opciones += `<option value="${m.id}">${m.groupName} | ${m.home.name} vs ${m.away.name} ${statusLabel} (${totalApuestas} apuestas)</option>`;
       });
@@ -246,7 +117,6 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
   window.procesarPartido = () => {
     const mId = document.getElementById("match-select").value;
     
-    // Limpieza de campos si no hay selección
     if (!mId) {
       limpiarCampos();
       return;
@@ -274,7 +144,6 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
       const hB = Number(b.homeScore);
       const aB = Number(b.awayScore);
       
-      // Regla de cálculo estricto
       if (hB === hR && aB === aR) {
         exactos.push(nick);
       } else if ((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) {
@@ -284,7 +153,6 @@ Crea un archivo nuevo con ese nombre, pega este código completo y guárdalo:
       }
     });
 
-    // Inyección de los nombres ordenados verticalmente (uno por línea)
     inyectarDatos("list-exact", "count-exact", exactos);
     inyectarDatos("list-winner", "count-winner", tendencias);
     inyectarDatos("list-fail", "count-fail", perdedores);
