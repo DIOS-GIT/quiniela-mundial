@@ -70,11 +70,9 @@
     Object.keys(bets).forEach(mId => {
       if (!scores[mId] || scores[mId].status !== 'SI') return;
       Object.values(bets[mId]).forEach(b => {
-        // CORRECCIÓN: Generar una clave única ignorando espacios y mayúsculas/minúsculas
         const userKey = b.username.trim().toLowerCase();
         if (!userKey) return; 
 
-        // Si el usuario no existe en nuestro acumulador, se inicializa con su nombre original visible
         if (!users[userKey]) {
           users[userKey] = { displayName: b.username.trim(), pts: 0, games: [] };
         }
@@ -84,14 +82,25 @@
         
         let p = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
         
-        // Sumamos los puntos y añadimos los partidos al mismo usuario unificado
         users[userKey].pts += p;
         users[userKey].games.push({ match: `${b.home} vs ${b.away}`, bet: `${hB}-${aB}`, off: `${hR}-${aR}`, p });
       });
     });
 
-    // Ordenar de mayor a menor puntaje consolidado
-    cachedData = Object.entries(users).sort((a,b) => b[1].pts - a[1].pts);
+    // 1. Ordenamos de forma descendente por puntos de manera interna
+    const sortedEntries = Object.entries(users).sort((a,b) => b[1].pts - a[1].pts);
+
+    // 2. CORRECCIÓN EMPATES: Calculamos los puestos reales de la tabla general
+    let currentRank = 1;
+    cachedData = sortedEntries.map(([key, data], index) => {
+      // Si no es el primero y tiene menos puntos que el anterior, aumenta el puesto al número de orden real
+      if (index > 0 && data.pts < sortedEntries[index - 1][1].pts) {
+        currentRank = index + 1;
+      }
+      // Si tienen los mismos puntos, mantendrán automáticamente el mismo 'currentRank'
+      return { key, ...data, rank: currentRank };
+    });
+
     render(cachedData);
   };
 
@@ -99,11 +108,11 @@
   onValue(ref(db, "scores"), (s) => { scores = s.val() || {}; process(); });
 
   window.render = (data) => {
-    document.getElementById("ranking-list").innerHTML = data.map(([key, d], i) => `
+    // CORRECCIÓN BÚSQUEDA: Ahora usamos d.rank (su puesto global guardado fijos) en lugar del índice dinámico del bucle
+    document.getElementById("ranking-list").innerHTML = data.map((d) => `
       <div class="rank-row" onclick="this.querySelector('.details').style.display = this.querySelector('.details').style.display === 'block' ? 'none' : 'block'">
         <div class="header-row">
-          <!-- Renderiza el nombre unificado respetando su formato original -->
-          <div class="name-block"><span style="color:#f5b942">#${i+1}</span> ${d.displayName.toUpperCase()}</div>
+          <div class="name-block"><span style="color:#f5b942">#${d.rank}</span> ${d.displayName.toUpperCase()}</div>
           <div class="pts-block">${d.pts}</div>
         </div>
         <div class="details">
@@ -118,8 +127,8 @@
 
   window.filtrar = () => {
     const t = document.getElementById("search-bar").value.toLowerCase().trim();
-    // Filtra buscando coincidencias en la clave limpia o en el nombre original
-    render(cachedData.filter(([key, d]) => key.includes(t) || d.displayName.toLowerCase().includes(t)));
+    // Filtramos el array conservando sus propiedades fijas intactas (.rank y .displayName)
+    render(cachedData.filter((d) => d.key.includes(t) || d.displayName.toLowerCase().includes(t)));
   };
 </script>
 </body>
