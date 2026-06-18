@@ -2,95 +2,326 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Admin Panel · Quiniela</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<title>Admin Control Panel · Quiniela</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0b0e14; --card: #151921; --line: #2a3242; --grass: #1ed87f; --gold: #f5b942; --text: #eef1f5; --text-dim: #94a3b8; }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; line-height: 1.6; }
-  .container { max-width: 500px; margin: 0 auto; }
-  h1 { font-family: 'Bebas Neue', sans-serif; color: var(--gold); letter-spacing: 2px; text-align: center; margin-bottom: 30px; font-size: 2rem; }
+  :root { 
+    --bg: #07090e; 
+    --card: #111622; 
+    --line: #222b3d; 
+    --text: #eef1f5; 
+    --text-dim: #718096;
+    --gold: #f5b942; 
+    --live: #1ed87f; 
+    --pending: #e2e8f0; 
+    --finished: #3182ce;
+  }
   
-  .admin-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 24px; transition: transform 0.2s; }
-  h3 { margin: 0 0 20px 0; font-size: 1.2rem; text-align: center; color: #fff; }
+  body { 
+    font-family: 'Montserrat', sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    padding: 30px 15px; 
+    margin: 0;
+  }
   
-  .status-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-  .status-btns button { background: #1c222d; border: 1px solid var(--line); color: var(--text-dim); padding: 10px; font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s; }
-  .status-btns button.active { background: var(--gold); color: #000; border-color: var(--gold); }
+  .container { max-width: 550px; margin: 0 auto; }
   
-  .score-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-  input { width: 70px; height: 50px; text-align: center; background: #0c0f14; border: 2px solid var(--line); color: #fff; border-radius: 12px; font-size: 1.5rem; font-weight: bold; }
+  h1 { 
+    font-family: 'Bebas Neue', sans-serif; 
+    color: var(--gold); 
+    letter-spacing: 2px; 
+    text-align: center; 
+    margin-bottom: 5px; 
+    font-size: 3rem;
+    text-shadow: 0 0 15px rgba(245, 185, 66, 0.2);
+  }
   
-  .btn-save { background: var(--grass); color: #000; border: none; padding: 14px; width: 100%; font-weight: 700; border-radius: 10px; cursor: pointer; font-size: 1rem; }
-  .msg { font-size: 12px; margin-top: 12px; text-align: center; font-weight: 600; }
-  .msg.ok { color: var(--grass); }
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 35px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  /* Tarjetas de Administración */
+  .admin-card { 
+    background: var(--card); 
+    border: 1px solid var(--line); 
+    border-radius: 20px; 
+    padding: 24px; 
+    margin-bottom: 25px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 1. ESTADOS DINÁMICOS POR COLORES */
+  .admin-card.state-SCHEDULED { border-left: 6px solid #4a5568; }
+  .admin-card.state-IN_PLAY { 
+    border-left: 6px solid var(--live); 
+    box-shadow: 0 0 20px rgba(30, 216, 127, 0.15);
+    background: linear-gradient(135deg, #111622 0%, #0d1e16 100%);
+  }
+  .admin-card.state-FINISHED { 
+    border-left: 6px solid var(--finished); 
+    opacity: 0.65;
+    background: linear-gradient(135deg, #111622 0%, #0c121c 100%);
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  h3 { 
+    margin: 0; 
+    font-size: 1.25rem; 
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+  
+  .status-badge {
+    font-size: 0.75rem;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .state-SCHEDULED .status-badge { background: #2d3748; color: var(--pending); }
+  .state-IN_PLAY .status-badge { background: rgba(30, 216, 127, 0.2); color: var(--live); animation: pulse 2s infinite; }
+  .state-FINISHED .status-badge { background: rgba(49, 130, 206, 0.2); color: var(--finished); }
+
+  /* Selector de Estado Estilizado */
+  .status-btns { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 8px; 
+    margin-bottom: 20px; 
+  }
+  
+  .status-btns button {
+    border: 1px solid var(--line);
+    background: #171e2e;
+    color: var(--text-dim);
+    padding: 10px 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  
+  .status-btns button:hover { background: #1f293d; color: white; }
+
+  /* Activos por Color de Selección */
+  .state-SCHEDULED .btn-active-SCHEDULED { background: #4a5568 !important; color: white !important; border-color: #718096; }
+  .state-IN_PLAY .btn-active-IN_PLAY { background: var(--live) !important; color: #07090e !important; border-color: var(--live); font-weight: 900; }
+  .state-FINISHED .btn-active-FINISHED { background: var(--finished) !important; color: white !important; border-color: var(--finished); }
+
+  /* Bloque de Marcador */
+  .score-row { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: #090d14;
+    padding: 15px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    margin-bottom: 15px;
+  }
+  
+  .input-group { display: flex; align-items: center; gap: 10px; width: 40%; }
+  .input-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  
+  input[type="number"] { 
+    width: 55px; 
+    padding: 10px; 
+    background: #171e2e; 
+    border: 1px solid var(--line); 
+    color: white; 
+    font-size: 1.2rem; 
+    font-weight: 900; 
+    text-align: center; 
+    border-radius: 10px;
+    outline: none;
+  }
+  input[type="number"]:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(245,185,66,0.2); }
+  
+  .score-vs { font-weight: 900; color: var(--text-dim); font-size: 0.9rem; }
+
+  /* Botón Guardar */
+  .btn-save { 
+    width: 100%; 
+    background: linear-gradient(135deg, #f5b942 0%, #dca334 100%); 
+    color: #07090e; 
+    border: none; 
+    padding: 14px; 
+    font-weight: 900; 
+    font-size: 0.95rem; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(245,185,66,0.2);
+  }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(245,185,66,0.3); }
+  .btn-save:active { transform: translateY(1px); }
+
+  /* Alertas de Estado */
+  .msg { font-size: 0.85rem; font-weight: 700; text-align: center; margin-top: 10px; min-height: 20px; }
+  .msg.ok { color: var(--live); }
+
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>⚙️ CONTROL DE PARTIDOS</h1>
-  <div id="match-list">Cargando partidos...</div>
+  <h1>PANEL DE CONTROL</h1>
+  <div class="subtitle">Gestión Interactiva de Partidos</div>
+  <div id="match-list">Cargando la lista de partidos de la jornada...</div>
 </div>
 
-<script src="matches-config.js"></script>
+<script src="matches-config.js?v=2.5"></script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   const db = getDatabase(initializeApp({ databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+  
   window.uiStatuses = {};
+  let currentFirebaseData = {};
 
-  // 1. FUNCIÓN PARA CARGAR LO QUE YA EXISTE EN FIREBASE
-  onValue(ref(db, 'scores'), (snapshot) => {
-    const data = snapshot.val() || {};
-    Object.keys(data).forEach(matchId => {
-      const matchData = data[matchId];
-      const hInput = document.getElementById(`score-h-${matchId}`);
-      const aInput = document.getElementById(`score-a-${matchId}`);
-      if(hInput) hInput.value = matchData.home;
-      if(aInput) aInput.value = matchData.away;
-      if(matchData.status) setUIStatus(matchId, matchData.status);
-    });
+  // Escuchamos en tiempo real para pintar las tarjetas con sus datos actuales
+  onValue(ref(db, "scores"), (snapshot) => {
+    currentFirebaseData = snapshot.val() || {};
+    recompilarYRenderizar();
   });
 
-  window.setUIStatus = function(matchId, status) {
+  window.setUIStatus = (matchId, status) => {
     window.uiStatuses[matchId] = status;
-    document.querySelectorAll(`.btn-${matchId}`).forEach(btn => btn.classList.toggle("active", btn.getAttribute("data-s") === status));
-  }
+    const card = document.getElementById(`card-${matchId}`);
+    if (card) {
+      // Cambio inmediato de clases de color reactivas
+      card.className = `admin-card state-${status}`;
+      const badge = card.querySelector('.status-badge');
+      if (status === 'SCHEDULED') badge.innerText = 'PENDIENTE';
+      if (status === 'IN_PLAY') badge.innerText = 'EN VIVO';
+      if (status === 'FINISHED') badge.innerText = 'FINALIZADO';
+      
+      // Actualizar botones activos
+      card.querySelectorAll('.status-btns button').forEach(btn => {
+        btn.className = btn.getAttribute('data-s') === status ? `btn-active-${status}` : '';
+      });
+    }
+  };
 
-  window.saveToFirebase = async function(matchId) {
-    const home = Number(document.getElementById(`score-h-${matchId}`).value);
-    const away = Number(document.getElementById(`score-a-${matchId}`).value);
-    const finalStatus = (window.uiStatuses[matchId] === "FINISHED") ? "SI" : (window.uiStatuses[matchId] || "SCHEDULED");
+  window.saveMatch = async (matchId) => {
+    const home = document.getElementById("score-h-" + matchId).value;
+    const away = document.getElementById("score-a-" + matchId).value;
+    
+    // Si la DB tiene "SI", tomamos FINISHED, sino revisamos la UI o por defecto SCHEDULED
+    const dbStatus = currentFirebaseData[matchId] ? currentFirebaseData[matchId].status : "NO";
+    const selectedStatus = window.uiStatuses[matchId] || (dbStatus === "SI" ? "FINISHED" : "SCHEDULED");
+    const finalStatus = (selectedStatus === "FINISHED") ? "SI" : selectedStatus;
+    
     const msgEl = document.getElementById("msg-" + matchId);
     
-    await set(ref(db, `scores/${matchId}`), { home, away, status: finalStatus, updatedAt: Date.now() });
-    msgEl.className = "msg ok"; msgEl.textContent = "¡Actualizado! ✨";
-    setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 2500);
-  }
-
-  // RENDERIZADO
-  const listEl = document.getElementById("match-list");
-  listEl.innerHTML = "";
-  Object.keys(GROUPS).forEach(g => {
-    GROUPS[g].forEach(m => {
-      const card = document.createElement("div");
-      card.className = "admin-card";
-      card.innerHTML = `<h3>${m.home.name} vs ${m.away.name}</h3>
-        <div class="status-btns">
-          <button class="btn-${m.id}" data-s="SCHEDULED" onclick="setUIStatus('${m.id}', 'SCHEDULED')">PENDIENTE</button>
-          <button class="btn-${m.id}" data-s="IN_PLAY" onclick="setUIStatus('${m.id}', 'IN_PLAY')">EN VIVO</button>
-          <button class="btn-${m.id}" data-s="FINISHED" onclick="setUIStatus('${m.id}', 'FINISHED')">FINALIZADO</button>
-        </div>
-        <div class="score-row">
-          <input type="number" id="score-h-${m.id}" value="0">
-          <input type="number" id="score-a-${m.id}" value="0">
-        </div>
-        <button class="btn-save" onclick="saveToFirebase('${m.id}')">GUARDAR RESULTADO 🚀</button>
-        <div class="msg" id="msg-${m.id}"></div>`;
-      listEl.appendChild(card);
+    await set(ref(db, `scores/${matchId}`), { 
+      home: home === "" ? 0 : Number(home), 
+      away: away === "" ? 0 : Number(away), 
+      status: finalStatus, 
+      updatedAt: Date.now() 
     });
-  });
+    
+    msgEl.className = "msg ok"; 
+    msgEl.textContent = "¡Estructura guardada exitosamente! ✨";
+    setTimeout(() => { if(msgEl) msgEl.textContent = ""; }, 2500);
+  };
+
+  function recompilarYRenderizar() {
+    if (typeof GROUPS === 'undefined') return;
+
+    let totalMatches = [];
+    
+    // Aplanamos todos los partidos de la cartelera en un solo array plano
+    Object.keys(GROUPS).forEach(g => {
+      GROUPS[g].forEach(m => {
+        const fbState = currentFirebaseData[m.id] || {};
+        // Traducimos el 'SI' a FINISHED interno para la lógica visual
+        let currentStatus = fbState.status === 'SI' ? 'FINISHED' : (fbState.status || 'SCHEDULED');
+        
+        // Conservar la selección temporal que haga el usuario en la UI antes de guardar
+        if (window.uiStatuses[m.id]) {
+          currentStatus = window.uiStatuses[m.id];
+        }
+
+        totalMatches.push({
+          ...m,
+          fbHome: fbState.home !== undefined ? fbState.home : "",
+          fbAway: fbState.away !== undefined ? fbState.away : "",
+          statusInterno: currentStatus
+        });
+      });
+    });
+
+    // 2. REORDENACIÓN INTELIGENTE: Petición #2 cumplida
+    // Orden de prioridad: IN_PLAY (En vivo) primero -> SCHEDULED (Pendiente) segundo -> FINISHED (Finalizado) al fondo.
+    totalMatches.sort((a, b) => {
+      const prioridades = { 'IN_PLAY': 1, 'SCHEDULED': 2, 'FINISHED': 3 };
+      return prioridades[a.statusInterno] - prioridades[b.statusInterno];
+    });
+
+    // Pintar HTML
+    const listEl = document.getElementById("match-list");
+    listEl.innerHTML = totalMatches.map(m => {
+      const s = m.statusInterno;
+      const displayStatusText = s === 'SCHEDULED' ? 'PENDIENTE' : (s === 'IN_PLAY' ? 'EN VIVO' : 'FINALIZADO');
+      
+      return `
+        <div class="admin-card state-${s}" id="card-${m.id}">
+          <div class="card-header">
+            <h3>${m.home.name} vs ${m.away.name}</h3>
+            <span class="status-badge">${displayStatusText}</span>
+          </div>
+          
+          <div class="status-btns">
+            <button class="${s === 'SCHEDULED' ? 'btn-active-SCHEDULED' : ''}" data-s="SCHEDULED" onclick="setUIStatus('${m.id}', 'SCHEDULED')">PENDIENTE</button>
+            <button class="${s === 'IN_PLAY' ? 'btn-active-IN_PLAY' : ''}" data-s="IN_PLAY" onclick="setUIStatus('${m.id}', 'IN_PLAY')">EN VIVO</button>
+            <button class="${s === 'FINISHED' ? 'btn-active-FINISHED' : ''}" data-s="FINISHED" onclick="setUIStatus('${m.id}', 'FINISHED')">FINALIZADO</button>
+          </div>
+          
+          <div class="score-row">
+            <div class="input-group">
+              <label>${m.home.name}</label>
+              <input type="number" id="score-h-${m.id}" value="${m.fbHome}" min="0">
+            </div>
+            <div class="score-vs">VS</div>
+            <div class="input-group" style="justify-content: flex-end;">
+              <input type="number" id="score-a-${m.id}" value="${m.fbAway}" min="0">
+              <label>${m.away.name}</label>
+            </div>
+          </div>
+          
+          <button class="btn-save" onclick="saveMatch('${m.id}')">💾 Actualizar Datos</button>
+          <div id="msg-${m.id}" class="msg"></div>
+        </div>
+      `;
+    }).join("");
+  }
 </script>
 </body>
 </html>
