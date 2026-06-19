@@ -1,44 +1,44 @@
-// CONFIGURACIÓN DE LOS 4 PARTIDOS DE MAÑANA (18 DE JUNIO) - GRUPOS A Y B
+// CONFIGURACIÓN DE LOS 4 PARTIDOS DE MAÑANA (19 DE JUNIO) - GRUPOS C Y D
 
 const GROUPS = {
-  "A": [
+  "C": [
     {
-      id: "match_a1",
-      groupName: "Grupo A",
-      date: "Mañana · 11:00 a. m.",
-      closeTime: "2026-06-18T11:00:00-05:00", // Cierre automático hora Colombia
+      id: "match_c1",
+      groupName: "Grupo C",
+      date: "Mañana · 5:00 p. m.",
+      closeTime: "2026-06-19T17:00:00-05:00", // Cierre automático hora Colombia
       cardsInPlay: 2,
-      home: { name: "Chequia", flag: "🇨🇿", card: "MITICO-chequia.jpg" },
-      away: { name: "Sudáfrica", flag: "🇿🇦", card: "MITICO.sudafrica.jpg" } // Ojo: en tu repo está con punto "MITICO.sudafrica.jpg"
+      home: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" },
+      away: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" }
     },
     {
-      id: "match_a2",
-      groupName: "Grupo A",
-      date: "Mañana · 8:00 p. m.",
-      closeTime: "2026-06-18T20:00:00-05:00",
+      id: "match_c2",
+      groupName: "Grupo C",
+      date: "Mañana · 7:30 p. m.",
+      closeTime: "2026-06-19T19:30:00-05:00",
       cardsInPlay: 2,
-      home: { name: "México", flag: "🇲🇽", card: "MITICO-mexico.jpg" },
-      away: { name: "Corea del Sur", flag: "🇰🇷", card: "MITICO-coreadelsur.jpg" }
+      home: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" },
+      away: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }
     }
   ],
-  "B": [
+  "D": [
     {
-      id: "match_b1",
-      groupName: "Grupo B",
+      id: "match_d1",
+      groupName: "Grupo D",
       date: "Mañana · 2:00 p. m.",
-      closeTime: "2026-06-18T14:00:00-05:00",
+      closeTime: "2026-06-19T14:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Suiza", flag: "🇨🇭", card: "MITICO-suiza.jpg" },
-      away: { name: "Bosnia y Herzegovina", flag: "🇧🇦", card: "MITICO-bosnia.jpg" } // En tu repo mapeado como MITICO-bosnia.jpg
+      home: { name: "Estados Unidos", flag: "🇺🇸", card: "MITICO-estadosunidos.jpg" },
+      away: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }
     },
     {
-      id: "match_b2",
-      groupName: "Grupo B",
-      date: "Mañana · 5:00 p. m.",
-      closeTime: "2026-06-18T17:00:00-05:00",
+      id: "match_d2",
+      groupName: "Grupo D",
+      date: "Mañana · 10:00 p. m.",
+      closeTime: "2026-06-19T22:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Canadá", flag: "🇨🇦", card: "MITICO-canada.jpg" },
-      away: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }
+      home: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" },
+      away: { name: "Paraguay", flag: "🇵🇾", card: "MITICO-paraguay.jpg" }
     }
   ]
 };
