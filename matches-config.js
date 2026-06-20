@@ -1,44 +1,43 @@
-// CONFIGURACIÓN DE LOS 4 PARTIDOS DE MAÑANA (19 DE JUNIO) - GRUPOS C Y D
-
+// CONFIGURACIÓN DE LOS 4 PARTIDOS DE MAÑANA (20 DE JUNIO) - GRUPOS E Y F
 const GROUPS = {
-  "C": [
+  "E": [
     {
-      id: "match_c1",
-      groupName: "Grupo C",
-      date: "Mañana · 5:00 p. m.",
-      closeTime: "2026-06-19T17:00:00-05:00", // Cierre automático hora Colombia
+      id: "match_e1",
+      groupName: "Grupo E",
+      date: "Mañana · 3:00 p. m.",
+      closeTime: "2026-06-20T15:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" },
-      away: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" }
+      home: { name: "Alemania", flag: "🇩🇪", card: "MITICO-alemania.jpg" },
+      away: { name: "Costa de Marfil", flag: "🇨🇮", card: "MITICO-costademarfil.jpg" }
     },
     {
-      id: "match_c2",
-      groupName: "Grupo C",
-      date: "Mañana · 7:30 p. m.",
-      closeTime: "2026-06-19T19:30:00-05:00",
+      id: "match_e2",
+      groupName: "Grupo E",
+      date: "Mañana · 7:00 p. m.",
+      closeTime: "2026-06-20T19:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" },
-      away: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }
+      home: { name: "Ecuador", flag: "🇪🇨", card: "MITICO-ecuador.jpg" },
+      away: { name: "Curazao", flag: "🇨🇼", card: "MITICO-curazao.jpg" }
     }
   ],
-  "D": [
+  "F": [
     {
-      id: "match_d1",
-      groupName: "Grupo D",
-      date: "Mañana · 2:00 p. m.",
-      closeTime: "2026-06-19T14:00:00-05:00",
+      id: "match_f1",
+      groupName: "Grupo F",
+      date: "Mañana · 12:00 p. m.",
+      closeTime: "2026-06-20T12:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Estados Unidos", flag: "🇺🇸", card: "MITICO-estadosunidos.jpg" },
-      away: { name: "Australia", flag: "🇦🇺", card: "MITICO-australia.jpg" }
+      home: { name: "Países Bajos", flag: "🇳🇱", card: "MITICO-paisesbajos.jpg" },
+      away: { name: "Suecia", flag: "🇸🇪", card: "MITICO-suecia.jpg" }
     },
     {
-      id: "match_d2",
-      groupName: "Grupo D",
-      date: "Mañana · 10:00 p. m.",
-      closeTime: "2026-06-19T22:00:00-05:00",
+      id: "match_f2",
+      groupName: "Grupo F",
+      date: "Mañana · 11:00 p. m.",
+      closeTime: "2026-06-20T23:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Turquía", flag: "🇹🇷", card: "MITICO-turquia.jpg" },
-      away: { name: "Paraguay", flag: "🇵🇾", card: "MITICO-paraguay.jpg" }
+      home: { name: "Túnez", flag: "🇹🇳", card: "MITICO-tunez.jpg" },
+      away: { name: "Japón", flag: "🇯🇵", card: "MITICO-japon.jpg" }
     }
   ]
 };
