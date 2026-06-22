@@ -1,43 +1,43 @@
-// CONFIGURACIÓN DE LOS 4 PARTIDOS DE HOY (21 DE JUNIO) - GRUPOS G Y H
+// CONFIGURACIÓN DE LOS 4 PARTIDOS DE MAÑANA (22 DE JUNIO) - GRUPOS I Y J
 const GROUPS = {
-  "G": [
+  "I": [
     {
-      id: "2026_g1",
-      groupName: "Grupo G",
-      date: "Hoy · 2:00 p. m.",
-      closeTime: "2026-06-21T14:00:00-05:00", // Cierre automático hora Colombia
+      id: "2026_i1",
+      groupName: "Grupo I",
+      date: "Mañana · 4:00 p. m.",
+      closeTime: "2026-06-22T16:00:00-05:00", // Cierre automático hora Colombia
       cardsInPlay: 2,
-      home: { name: "Bélgica", flag: "🇧🇪", card: "MITICO-belgica.jpg" },
-      away: { name: "Irán", flag: "🇮🇷", card: "MITICO-iran.jpg" }
+      home: { name: "Francia", flag: "🇫🇷", card: "MITICO-francia.jpg" },
+      away: { name: "Irak", flag: "🇮🇶", card: "MITICO-irak.jpg" }
     },
     {
-      id: "2026_g2",
-      groupName: "Grupo G",
-      date: "Hoy · 8:00 p. m.",
-      closeTime: "2026-06-21T20:00:00-05:00",
+      id: "2026_i2",
+      groupName: "Grupo I",
+      date: "Mañana · 7:00 p. m.",
+      closeTime: "2026-06-22T19:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Nueva Zelanda", flag: "🇳🇿", card: "MITICO-nuevazelanda.jpg" },
-      away: { name: "Egipto", flag: "🇪🇬", card: "MITICO-egipto.jpg" }
+      home: { name: "Noruega", flag: "🇳🇴", card: "MITICO-noruega.jpg" },
+      away: { name: "Senegal", flag: "🇸🇳", card: "MITICO-senegal.jpg" }
     }
   ],
-  "H": [
+  "J": [
     {
-      id: "2026_h1",
-      groupName: "Grupo H",
-      date: "Hoy · 11:00 a. m.",
-      closeTime: "2026-06-21T11:00:00-05:00",
+      id: "2026_j1",
+      groupName: "Grupo J",
+      date: "Mañana · 12:00 p. m.",
+      closeTime: "2026-06-22T12:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "España", flag: "🇪🇸", card: "MITICO-espana.jpg" },
-      away: { name: "Arabia Saudita", flag: "🇸🇦", card: "MITICO-arabiasaudita.jpg" }
+      home: { name: "Argentina", flag: "🇦🇷", card: "MITICO-argentina.jpg" },
+      away: { name: "Austria", flag: "🇦🇹", card: "MITICO-austria.jpg" }
     },
     {
-      id: "2026_h2",
-      groupName: "Grupo H",
-      date: "Hoy · 5:00 p. m.",
-      closeTime: "2026-06-21T17:00:00-05:00",
+      id: "2026_j2",
+      groupName: "Grupo J",
+      date: "Mañana · 10:00 p. m.",
+      closeTime: "2026-06-22T22:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Uruguay", flag: "🇺🇾", card: "MITICO-uruguay.jpg" },
-      away: { name: "Cabo Verde", flag: "🇨🇻", card: "MITICO-caboverde.jpg" }
+      home: { name: "Jordania", flag: "🇯🇴", card: "MITICO-jordania.jpg" },
+      away: { name: "Argelia", flag: "🇩🇿", card: "MITICO-argelia.jpg" }
     }
   ]
 };
