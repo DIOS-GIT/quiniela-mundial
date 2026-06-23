@@ -5,7 +5,7 @@
 <title>Extractor Oficial · Quiniela</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0a0c10; --card: #151921; --text: #eef1f5; --accent: #1ed87f; --exact: #f5b942; --fail: #ff4a4a; }
+  :root { --bg: #0a0c10; --card: #151921; --text: #eef1f5; --accent: #1ed87f; --exact: #f5b942; --fail: #ff4a4a; --extrema: #b463f5; }
   body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; }
   
   .container { max-width: 900px; margin: 0 auto; }
@@ -22,6 +22,7 @@
   .col-box.exact-box { border-top: 4px solid var(--exact); }
   .col-box.winner-box { border-top: 4px solid var(--accent); }
   .col-box.fail-box { border-top: 4px solid var(--fail); }
+  .col-box.extrema-box { border-top: 4px solid var(--extrema); }
   
   .col-title { font-weight: 900; font-size: 1.1rem; margin-bottom: 5px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
   .count-badge { background: #1b212c; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 900; border: 1px solid #2a3242; }
@@ -29,6 +30,7 @@
   .exact-box .col-title { color: var(--exact); }
   .winner-box .col-title { color: var(--accent); }
   .fail-box .col-title { color: var(--fail); }
+  .extrema-box .col-title { color: var(--extrema); }
   
   .col-desc { font-size: 0.8rem; color: #888; margin-bottom: 15px; height: 32px; }
   
@@ -39,10 +41,24 @@
   .exact-box .btn-copy { background: var(--exact); color: #0a0c10; }
   .winner-box .btn-copy { background: var(--accent); color: #0a0c10; }
   .fail-box .btn-copy { background: var(--fail); color: #fff; }
+  .extrema-box .btn-copy { background: var(--extrema); color: #fff; }
   
   .exact-box .btn-copy:hover { background: #dca334; }
   .winner-box .btn-copy:hover { background: #17b86c; }
   .fail-box .btn-copy:hover { background: #e03b3b; }
+  .extrema-box .btn-copy:hover { background: #a855e0; }
+
+  /* Lista de apuestas extremas con detalle de carta + estado de acierto */
+  .extrema-list { width: 100%; height: 250px; background: #0a0c10; border: 1px dashed #2a3242; border-radius: 10px; padding: 12px; box-sizing: border-box; margin-bottom: 15px; overflow-y: auto; font-size: 13px; }
+  .extrema-empty { color: #555; font-family: 'Montserrat', sans-serif; padding: 10px 2px; }
+  .extrema-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 6px; border-bottom: 1px solid #1b212c; }
+  .extrema-item:last-child { border-bottom: none; }
+  .extrema-item .ex-nick { font-weight: 700; color: #fff; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .extrema-item .ex-carta { font-size: 11px; color: var(--extrema); text-align: right; flex-shrink: 0; }
+  .extrema-item.hit { background: rgba(180, 99, 245, 0.08); }
+  .extrema-item .ex-tag { font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; flex-shrink: 0; }
+  .extrema-item.hit .ex-tag { background: rgba(180, 99, 245, 0.25); color: var(--extrema); }
+  .extrema-item.miss .ex-tag { background: rgba(255, 74, 74, 0.15); color: var(--fail); }
 </style>
 </head>
 <body>
@@ -78,6 +94,14 @@
       <div class="col-desc">Enviaron su apuesta pero no sumaron ningún punto (0 pts).</div>
       <textarea id="list-fail" readonly placeholder="Nicks en fila..."></textarea>
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-fail', this)">📋 Copiar Perdedores</button>
+    </div>
+
+    <div class="col-box extrema-box">
+      <div class="col-title">⚡ Apuestas Extremas <span id="count-extrema" class="count-badge">0</span></div>
+      <div class="col-desc">Jugaron carta extra. Morado = acertó exacto (cobra la carta). Rojo = falló (no cobra).</div>
+      <div class="extrema-list" id="list-extrema-display"><div class="extrema-empty">Sin apuestas extremas en este partido.</div></div>
+      <textarea id="list-extrema" readonly style="display:none;"></textarea>
+      <button class="btn-copy" onclick="copiarAlPortapapeles('list-extrema', this)">📋 Copiar Extremas (con cartas)</button>
     </div>
   </div>
 </div>
@@ -137,26 +161,59 @@
     let exactos = [];
     let tendencias = [];
     let perdedores = [];
+    let extremas = [];
     
     Object.values(matchBets).forEach(b => {
       if (!b.username) return;
       const nick = b.username.trim();
       const hB = Number(b.homeScore);
       const aB = Number(b.awayScore);
+      const acertoExacto = (hB === hR && aB === aR);
       
-      if (hB === hR && aB === aR) {
+      if (acertoExacto) {
         exactos.push(nick);
       } else if ((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) {
         tendencias.push(nick);
       } else {
         perdedores.push(nick);
       }
+
+      if (b.extrema) {
+        const cartaNombre = b.cartaExtra ? b.cartaExtra.split(' —')[0] : 'Sin especificar';
+        extremas.push({ nick, carta: cartaNombre, acertoExacto });
+      }
     });
 
     inyectarDatos("list-exact", "count-exact", exactos);
     inyectarDatos("list-winner", "count-winner", tendencias);
     inyectarDatos("list-fail", "count-fail", perdedores);
+    inyectarExtremas(extremas);
   };
+
+  function inyectarExtremas(lista) {
+    document.getElementById("count-extrema").innerText = lista.length;
+
+    // Texto plano para copiar: nick + carta a entregar
+    const textoCopia = lista.map(e => `${e.nick} — ${e.carta}${e.acertoExacto ? '' : ' (NO COBRA)'}`).join("\n");
+    document.getElementById("list-extrema").value = textoCopia;
+
+    const displayEl = document.getElementById("list-extrema-display");
+    if (lista.length === 0) {
+      displayEl.innerHTML = `<div class="extrema-empty">Sin apuestas extremas en este partido.</div>`;
+      return;
+    }
+
+    // Ordenar: primero los que acertaron (cobran carta), luego los que fallaron
+    const ordenada = [...lista].sort((a, b) => (b.acertoExacto ? 1 : 0) - (a.acertoExacto ? 1 : 0));
+
+    displayEl.innerHTML = ordenada.map(e => `
+      <div class="extrema-item ${e.acertoExacto ? 'hit' : 'miss'}">
+        <span class="ex-nick">${e.nick}</span>
+        <span class="ex-carta">${e.carta}</span>
+        <span class="ex-tag">${e.acertoExacto ? '✅ Cobra' : '❌ No cobra'}</span>
+      </div>
+    `).join("");
+  }
 
   function inyectarDatos(areaId, badgeId, lista) {
     document.getElementById(areaId).value = lista.join("\n");
@@ -167,6 +224,7 @@
     inyectarDatos("list-exact", "count-exact", []);
     inyectarDatos("list-winner", "count-winner", []);
     inyectarDatos("list-fail", "count-fail", []);
+    inyectarExtremas([]);
     document.getElementById("list-exact").placeholder = "Nicks en fila...";
   }
 
