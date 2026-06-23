@@ -98,7 +98,7 @@
 
     <div class="col-box extrema-box">
       <div class="col-title">⚡ Apuestas Extremas <span id="count-extrema" class="count-badge">0</span></div>
-      <div class="col-desc">Jugaron carta extra. Morado = acertó exacto (cobra la carta). Rojo = falló (no cobra).</div>
+      <div class="col-desc">Jugaron carta extra. Morado = acertó exacto (cobra la carta extra). Rojo = falló el exacto (no cobra carta, pero su punto de ranking normal no se ve afectado).</div>
       <div class="extrema-list" id="list-extrema-display"><div class="extrema-empty">Sin apuestas extremas en este partido.</div></div>
       <textarea id="list-extrema" readonly style="display:none;"></textarea>
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-extrema', this)">📋 Copiar Extremas (con cartas)</button>
@@ -169,6 +169,7 @@
       const hB = Number(b.homeScore);
       const aB = Number(b.awayScore);
       const acertoExacto = (hB === hR && aB === aR);
+      const esExtrema = !!b.extrema;
       
       if (acertoExacto) {
         exactos.push(nick);
@@ -178,7 +179,7 @@
         perdedores.push(nick);
       }
 
-      if (b.extrema) {
+      if (esExtrema) {
         const cartaNombre = b.cartaExtra ? b.cartaExtra.split(' —')[0] : 'Sin especificar';
         extremas.push({ nick, carta: cartaNombre, acertoExacto });
       }
