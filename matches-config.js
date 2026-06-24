@@ -50,13 +50,13 @@ const GROUPS = {
       home: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" },
       away: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }
     },
-    {
-      id: "2026_c2_24_6", // <-- CAMBIADO: Soluciona Escocia vs Brasil
+{
+      id: "2026_c2_24_6",
       groupName: "Grupo C",
       date: "Hoy · 5:00 p. m.",
       closeTime: "2026-06-24T17:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Escocia", flag: "🏴%F0%9F%8F%B4%F0%9F%90%A7%F0%9F%90%A6%F0%9F%90%A4%F0%9F%90%A5󠁿", card: "MITICO-escocia.jpg" },
+      home: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" }, // <-- Asegúrate de que la bandera sea solo el emoji limpio
       away: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }
     }
   ]
