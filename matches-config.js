@@ -1,43 +1,63 @@
-// CONFIGURACIÓN DE LOS 4 PARTIDOS DE HOY (23 DE JUNIO) - GRUPOS K Y L
+// CONFIGURACIÓN DE LOS 6 PARTIDOS DE HOY (24 DE JUNIO) - GRUPOS A, B Y C
 const GROUPS = {
-  "K": [
+  "A": [
     {
-      id: "2026_k1",
-      groupName: "Grupo K",
-      date: "Hoy · 12:00 p. m.",
-      closeTime: "2026-06-23T12:00:00-05:00", // Cierre automático hora Colombia
+      id: "2026_a1",
+      groupName: "Grupo A",
+      date: "Hoy · 8:00 p. m.",
+      closeTime: "2026-06-24T20:00:00-05:00", // Cierre automático hora Colombia
       cardsInPlay: 2,
-      home: { name: "Portugal", flag: "🇵🇹", card: "MITICO-portugal.jpg" },
-      away: { name: "Uzbekistán", flag: "🇺🇿", card: "MITICO-uzbekistan.jpg" }
+      home: { name: "Sudáfrica", flag: "🇿🇦", card: "MITICO-sudafrica.jpg" },
+      away: { name: "Corea del Sur", flag: "🇰🇷", card: "MITICO-coreadelsur.jpg" }
     },
     {
-      id: "2026_k2",
-      groupName: "Grupo K",
-      date: "Hoy · 9:00 p. m.",
-      closeTime: "2026-06-23T21:00:00-05:00",
+      id: "2026_a2",
+      groupName: "Grupo A",
+      date: "Hoy · 8:00 p. m.",
+      closeTime: "2026-06-24T20:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Colombia", flag: "🇨🇴", card: "MITICO-colombia.jpg" },
-      away: { name: "RD Congo", flag: "🇨🇩", card: "MITICO-rdcongo.jpg" }
+      home: { name: "Chequia", flag: "🇨🇿", card: "MITICO-chequia.jpg" },
+      away: { name: "México", flag: "🇲🇽", card: "MITICO-mexico.jpg" }
     }
   ],
-  "L": [
+  "B": [
     {
-      id: "2026_l1",
-      groupName: "Grupo L",
-      date: "Hoy · 3:00 p. m.",
-      closeTime: "2026-06-23T15:00:00-05:00",
+      id: "2026_b1",
+      groupName: "Grupo B",
+      date: "Hoy · 2:00 p. m.",
+      closeTime: "2026-06-24T14:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Inglaterra", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", card: "MITICO-inglaterra.jpg" },
-      away: { name: "Ghana", flag: "🇬🇭", card: "MITICO-ghana.jpg" }
+      home: { name: "Suiza", flag: "🇨🇭", card: "MITICO-suiza.jpg" },
+      away: { name: "Canadá", flag: "🇨🇦", card: "MITICO-canada.jpg" }
     },
     {
-      id: "2026_l2",
-      groupName: "Grupo L",
-      date: "Hoy · 6:00 p. m.",
-      closeTime: "2026-06-23T18:00:00-05:00",
+      id: "2026_b2",
+      groupName: "Grupo B",
+      date: "Hoy · 2:00 p. m.",
+      closeTime: "2026-06-24T14:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Panamá", flag: "🇵🇦", card: "MITICO-panama.jpg" },
-      away: { name: "Croacia", flag: "🇭🇷", card: "MITICO-croacia.jpg" }
+      home: { name: "Bosnia y Herzegovina", flag: "🇧🇦", card: "MITICO-bosniayherzegovina.jpg" },
+      away: { name: "Catar", flag: "🇶🇦", card: "MITICO-catar.jpg" }
+    }
+  ],
+  "C": [
+    {
+      id: "2026_c1",
+      groupName: "Grupo C",
+      date: "Hoy · 5:00 p. m.",
+      closeTime: "2026-06-24T17:00:00-05:00",
+      cardsInPlay: 2,
+      home: { name: "Marruecos", flag: "🇲🇦", card: "MITICO-marruecos.jpg" },
+      away: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }
+    },
+    {
+      id: "2026_c2",
+      groupName: "Grupo C",
+      date: "Hoy · 5:00 p. m.",
+      closeTime: "2026-06-24T17:00:00-05:00",
+      cardsInPlay: 2,
+      home: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" },
+      away: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }
     }
   ]
 };
