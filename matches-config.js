@@ -1,17 +1,17 @@
-// CONFIGURACIÓN DE LOS 6 PARTIDOS DE HOY (24 DE JUNIO) - GRUPOS A, B Y C
+// CONFIGURACIÓN CORREGIDA CON IDs ÚNICOS PARA HOY (24 DE JUNIO)
 const GROUPS = {
   "A": [
     {
-      id: "2026_a1",
+      id: "2026_a1_24_6", // Mantiene limpio el partido
       groupName: "Grupo A",
       date: "Hoy · 8:00 p. m.",
-      closeTime: "2026-06-24T20:00:00-05:00", // Cierre automático hora Colombia
+      closeTime: "2026-06-24T20:00:00-05:00",
       cardsInPlay: 2,
       home: { name: "Sudáfrica", flag: "🇿🇦", card: "MITICO-sudafrica.jpg" },
       away: { name: "Corea del Sur", flag: "🇰🇷", card: "MITICO-coreadelsur.jpg" }
     },
     {
-      id: "2026_a2",
+      id: "2026_a2_24_6", // Asegura que Chequia vs México salga en 0-0
       groupName: "Grupo A",
       date: "Hoy · 8:00 p. m.",
       closeTime: "2026-06-24T20:00:00-05:00",
@@ -22,7 +22,7 @@ const GROUPS = {
   ],
   "B": [
     {
-      id: "2026_b1",
+      id: "2026_b1_24_6", // <-- CAMBIADO: Soluciona el Suiza vs Canadá
       groupName: "Grupo B",
       date: "Hoy · 2:00 p. m.",
       closeTime: "2026-06-24T14:00:00-05:00",
@@ -31,7 +31,7 @@ const GROUPS = {
       away: { name: "Canadá", flag: "🇨🇦", card: "MITICO-canada.jpg" }
     },
     {
-      id: "2026_b2",
+      id: "2026_b2_24_6", // Mantiene limpio Bosnia vs Catar
       groupName: "Grupo B",
       date: "Hoy · 2:00 p. m.",
       closeTime: "2026-06-24T14:00:00-05:00",
@@ -42,7 +42,7 @@ const GROUPS = {
   ],
   "C": [
     {
-      id: "2026_c1",
+      id: "2026_c1_24_6", // <-- CAMBIADO: Soluciona Marruecos vs Haití
       groupName: "Grupo C",
       date: "Hoy · 5:00 p. m.",
       closeTime: "2026-06-24T17:00:00-05:00",
@@ -51,12 +51,12 @@ const GROUPS = {
       away: { name: "Haití", flag: "🇭🇹", card: "MITICO-haiti.jpg" }
     },
     {
-      id: "2026_c2",
+      id: "2026_c2_24_6", // <-- CAMBIADO: Soluciona Escocia vs Brasil
       groupName: "Grupo C",
       date: "Hoy · 5:00 p. m.",
       closeTime: "2026-06-24T17:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Escocia", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", card: "MITICO-escocia.jpg" },
+      home: { name: "Escocia", flag: "🏴%F0%9F%8F%B4%F0%9F%90%A7%F0%9F%90%A6%F0%9F%90%A4%F0%9F%90%A5󠁿", card: "MITICO-escocia.jpg" },
       away: { name: "Brasil", flag: "🇧🇷", card: "MITICO-brasil.jpg" }
     }
   ]
