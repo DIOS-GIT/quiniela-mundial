@@ -40,24 +40,24 @@ const GROUPS = {
       away: { name: "Ecuador", flag: "🇪🇨", card: "MITICO-ecuador.jpg" }
     }
   ],
-  "F": [
+"F": [
     {
       id: "2026_f1_25_6",
       groupName: "Grupo F",
-      date: "Mañana · 8:00 p. m.",
-      closeTime: "2026-06-25T20:00:00-05:00",
+      date: "Mañana · 6:00 p. m.",
+      closeTime: "2026-06-25T18:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Países Bajos", flag: "🇳🇱", card: "MITICO-paisesbajos.jpg" },
-      away: { name: "Japón", flag: "🇯🇵", card: "MITICO-japon.jpg" }
+      home: { name: "Túnez", flag: "🇹🇳", card: "MITICO-tunez.jpg" },
+      away: { name: "Países Bajos", flag: "🇳🇱", card: "MITICO-paisesbajos.jpg" }
     },
     {
       id: "2026_f2_25_6",
       groupName: "Grupo F",
-      date: "Mañana · 8:00 p. m.",
-      closeTime: "2026-06-25T20:00:00-05:00",
+      date: "Mañana · 6:00 p. m.",
+      closeTime: "2026-06-25T18:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Suecia", flag: "🇸🇪", card: "MITICO-suecia.jpg" },
-      away: { name: "Túnez", flag: "🇹🇳", card: "MITICO-tunez.jpg" }
+      home: { name: "Japón", flag: "🇯🇵", card: "MITICO-japon.jpg" }, // <-- Japón vs Suecia perfecto como en imagen_7.png
+      away: { name: "Suecia", flag: "🇸🇪", card: "MITICO-suecia.jpg" }
     }
   ]
 };
