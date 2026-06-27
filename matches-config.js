@@ -1,63 +1,63 @@
-// CONFIGURACIÓN DE LOS 6 PARTIDOS PARA EL 26 DE JUNIO - VERIFICADO
+// CONFIGURACIÓN DE LOS 6 PARTIDOS PARA MAÑANA (27 DE JUNIO) - GRUPOS J, K Y L
 const GROUPS = {
-  "G": [
+  "J": [
     {
-      id: "2026_g1_26_6",
-      groupName: "Grupo G",
-      date: "Mañana · 10:00 p. m.",
-      closeTime: "2026-06-26T22:00:00-05:00",
+      id: "2026_j1_27_6",
+      groupName: "Grupo J",
+      date: "Mañana · 9:00 p. m.",
+      closeTime: "2026-06-27T21:00:00-05:00", // Hora Colombia (-05:00)
       cardsInPlay: 2,
-      home: { name: "Nueva Zelanda", flag: "🇳🇿", card: "MITICO-nuevazelanda.jpg" },
-      away: { name: "Bélgica", flag: "🇧🇪", card: "MITICO-belgica.jpg" }
+      home: { name: "Argelia", flag: "🇩🇿", card: "MITICO-argelia.jpg" },
+      away: { name: "Austria", flag: "🇦🇹", card: "MITICO-austria.jpg" }
     },
     {
-      id: "2026_g2_26_6",
-      groupName: "Grupo G",
-      date: "Mañana · 10:00 p. m.",
-      closeTime: "2026-06-26T22:00:00-05:00",
+      id: "2026_j2_27_6",
+      groupName: "Grupo J",
+      date: "Mañana · 9:00 p. m.",
+      closeTime: "2026-06-27T21:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Egipto", flag: "🇪🇬", card: "MITICO-egipto.jpg" },
-      away: { name: "Irán", flag: "🇮🇷", card: "MITICO-iran.jpg" }
+      home: { name: "Jordania", flag: "🇯🇴", card: "MITICO-jordania.jpg" },
+      away: { name: "Argentina", flag: "🇦🇷", card: "MITICO-argentina.jpg" }
     }
   ],
-  "H": [
+  "K": [
     {
-      id: "2026_h1_26_6",
-      groupName: "Grupo H",
-      date: "Mañana · 7:00 p. m.",
-      closeTime: "2026-06-26T19:00:00-05:00",
+      id: "2026_k1_27_6",
+      groupName: "Grupo K",
+      date: "Mañana · 6:30 p. m.",
+      closeTime: "2026-06-27T18:30:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Cabo Verde", flag: "🇨🇻", card: "MITICO-caboverde.jpg" },
-      away: { name: "Arabia Saudita", flag: "🇸🇦", card: "MITICO-arabiasaudita.jpg" }
+      home: { name: "Colombia", flag: "🇨🇴", card: "MITICO-colombia.jpg" },
+      away: { name: "Portugal", flag: "🇵🇹", card: "MITICO-portugal.jpg" }
     },
     {
-      id: "2026_h2_26_6",
-      groupName: "Grupo H",
-      date: "Mañana · 7:00 p. m.",
-      closeTime: "2026-06-26T19:00:00-05:00",
+      id: "2026_k2_27_6",
+      groupName: "Grupo K",
+      date: "Mañana · 6:30 p. m.",
+      closeTime: "2026-06-27T18:30:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Uruguay", flag: "🇺🇾", card: "MITICO-uruguay.jpg" },
-      away: { name: "España", flag: "🇪🇸", card: "MITICO-espana.jpg" }
+      home: { name: "RD Congo", flag: "🇨🇩", card: "MITICO-rdcongo.jpg" },
+      away: { name: "Uzbekistán", flag: "🇺🇿", card: "MITICO-uzbekistan.jpg" }
     }
   ],
-  "I": [
+  "L": [
     {
-      id: "2026_i1_26_6",
-      groupName: "Grupo I",
-      date: "Mañana · 2:00 p. m.",
-      closeTime: "2026-06-26T14:00:00-05:00",
+      id: "2026_l1_27_6",
+      groupName: "Grupo L",
+      date: "Mañana · 4:00 p. m.",
+      closeTime: "2026-06-27T16:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Noruega", flag: "🇳🇴", card: "MITICO-noruega.jpg" },
-      away: { name: "Francia", flag: "🇫🇷", card: "MITICO-francia.jpg" }
+      home: { name: "Panamá", flag: "🇵🇦", card: "MITICO-panama.jpg" },
+      away: { name: "Inglaterra", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", card: "MITICO-inglaterra.jpg" }
     },
     {
-      id: "2026_i2_26_6",
-      groupName: "Grupo I",
-      date: "Mañana · 2:00 p. m.",
-      closeTime: "2026-06-26T14:00:00-05:00",
+      id: "2026_l2_27_6",
+      groupName: "Grupo L",
+      date: "Mañana · 4:00 p. m.",
+      closeTime: "2026-06-27T16:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Senegal", flag: "🇸🇳", card: "MITICO-senegal.jpg" },
-      away: { name: "Irak", flag: "🇮🇶", card: "MITICO-irak.jpg" }
+      home: { name: "Croacia", flag: "🇭🇷", card: "MITICO-croacia.jpg" },
+      away: { name: "Ghana", flag: "🇬🇭", card: "MITICO-ghana.jpg" }
     }
   ]
 };
