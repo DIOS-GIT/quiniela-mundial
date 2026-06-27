@@ -1,14 +1,14 @@
 // CONFIGURACIÓN DE LOS 6 PARTIDOS PARA EL 26 DE JUNIO - VERIFICADO
 const GROUPS = {
- "G": [
+  "G": [
     {
       id: "2026_g1_26_6",
       groupName: "Grupo G",
       date: "Mañana · 10:00 p. m.",
       closeTime: "2026-06-26T22:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Bélgica", flag: "🇧🇪", card: "MITICO-belgica.jpg" }, // <-- Corregido: Bélgica vs Irán
-      away: { name: "Irán", flag: "🇮🇷", card: "MITICO-iran.jpg" }
+      home: { name: "Nueva Zelanda", flag: "🇳🇿", card: "MITICO-nuevazelanda.jpg" },
+      away: { name: "Bélgica", flag: "🇧🇪", card: "MITICO-belgica.jpg" }
     },
     {
       id: "2026_g2_26_6",
@@ -16,8 +16,8 @@ const GROUPS = {
       date: "Mañana · 10:00 p. m.",
       closeTime: "2026-06-26T22:00:00-05:00",
       cardsInPlay: 2,
-      home: { name: "Nueva Zelanda", flag: "🇳🇿", card: "MITICO-nuevazelanda.jpg" }, // <-- Corregido: Nueva Zelanda vs Egipto
-      away: { name: "Egipto", flag: "🇪🇬", card: "MITICO-egipto.jpg" }
+      home: { name: "Egipto", flag: "🇪🇬", card: "MITICO-egipto.jpg" },
+      away: { name: "Irán", flag: "🇮🇷", card: "MITICO-iran.jpg" }
     }
   ],
   "H": [
