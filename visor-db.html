@@ -598,7 +598,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
   /* ── Firebase (conexión intacta) ── */
   const db = getDatabase(initializeApp({
@@ -736,6 +736,28 @@
   }
 
   /* ═══════════════════════════════════════════════
+     LIMPIAR APUESTAS DE EMPATE
+  ═══════════════════════════════════════════════ */
+  window.limpiarEmpates = (id) => {
+    const betList = Object.entries(bets[id] || {});
+    const empates = betList.filter(([, b]) => Number(b.homeScore) === Number(b.awayScore));
+
+    if (empates.length === 0) {
+      showToast('ℹ️', 'No hay apuestas de empate en este partido', 'success');
+      return;
+    }
+
+    const nombres = empates.map(([, b]) => b.username).join(', ');
+    const ok = confirm(`⚠️ Vas a eliminar ${empates.length} apuesta(s) de empate:\n\n${nombres}\n\n¿Confirmar? Estas personas podrán volver a apostar.`);
+    if (!ok) return;
+
+    const promises = empates.map(([key]) => remove(ref(db, `bets/${id}/${key}`)));
+    Promise.all(promises)
+      .then(() => showToast('🗑️', `${empates.length} apuesta(s) de empate eliminadas`, 'success'))
+      .catch(() => showToast('❌', 'Error al eliminar', 'error'));
+  };
+
+  /* ═══════════════════════════════════════════════
      RENDER PRINCIPAL
   ═══════════════════════════════════════════════ */
   function render() {
@@ -861,14 +883,23 @@
 
           <!-- Apuestas -->
           <div class="bets-section">
-            <div class="bets-section-title">${betList.length} apuesta${betList.length !== 1 ? 's' : ''} registrada${betList.length !== 1 ? 's' : ''}</div>
+            <div class="bets-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>${betList.length} apuesta${betList.length !== 1 ? 's' : ''} registrada${betList.length !== 1 ? 's' : ''}</span>
+              ${betList.filter(b => Number(b.homeScore) === Number(b.awayScore)).length > 0 ? `
+                <button onclick="limpiarEmpates('${id}')" style="background:rgba(255,80,84,0.15); border:1px solid var(--red); color:var(--red); padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; letter-spacing:0.5px;">
+                  🗑️ Limpiar empates (${betList.filter(b => Number(b.homeScore) === Number(b.awayScore)).length})
+                </button>
+              ` : ''}
+            </div>
             <div class="bets-grid">
-              ${betList.map(b => `
-                <div class="bet-chip">
-                  <span class="bet-chip-name">${b.username || 'Anónimo'}</span>
-                  <span class="bet-chip-score">${b.homeScore ?? '?'} — ${b.awayScore ?? '?'}</span>
-                </div>
-              `).join('')}
+              ${betList.map(b => {
+                const esEmpate = Number(b.homeScore) === Number(b.awayScore);
+                return `
+                <div class="bet-chip" style="${esEmpate ? 'border:1px solid var(--red); background:rgba(255,80,84,0.08);' : ''}">
+                  <span class="bet-chip-name">${b.username || 'Anónimo'}${esEmpate ? ' <span style="color:var(--red);font-size:10px;">EMPATE</span>' : ''}</span>
+                  <span class="bet-chip-score" style="${esEmpate ? 'color:var(--red);' : ''}">${b.homeScore ?? '?'} — ${b.awayScore ?? '?'}</span>
+                </div>`;
+              }).join('')}
             </div>
           </div>
 
