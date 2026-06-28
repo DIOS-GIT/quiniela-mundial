@@ -694,7 +694,7 @@
       </li>
       <li>
         <span class="num-badge">2</span>
-        <span class="text-content">Coloca el marcador que crees que será el resultado final del partido.</span>
+        <span class="text-content">Coloca el marcador que crees que será el resultado final del partido (tiempo reglamentario + prórroga si la hay).</span>
       </li>
       <li>
         <span class="num-badge">3</span>
@@ -706,22 +706,26 @@
       </li>
       <li>
         <span class="num-badge">5</span>
-        <span class="text-content">Las cartas se enviarán una vez termine el partido.</span>
+        <span class="text-content">🥅 <span class="reward">Fase eliminatoria — Penales:</span> En esta fase <b>no hay empate</b>. Si apuestas un marcador igualado (ej: 1-1), deberás elegir también <span class="reward">quién gana en penales</span>. Si aciertas el marcador exacto <b>y</b> el ganador en penales → <span class="reward">2 cartas</span>. Si aciertas el marcador pero fallas los penales → <span class="reward">1 carta</span> (tendencia). Si fallas el marcador → <span class="reward">0 cartas</span>.</span>
       </li>
       <li>
         <span class="num-badge">6</span>
-        <span class="text-content">💬 En caso de no recibir la carta, comunicarse con el staff de submanhwa vía <a href="https://discord.gg/submanhwa" target="_blank" style="color: #5d9dff; font-weight: bold;">Discord</a>.</span>
+        <span class="text-content">Las cartas se enviarán una vez termine el partido.</span>
       </li>
       <li>
         <span class="num-badge">7</span>
-        <span class="text-content">⏰ Las apuestas se <span class="reward">cierran automáticamente</span> cuando inicia el partido. ¡No llegues tarde!</span>
+        <span class="text-content">💬 En caso de no recibir la carta, comunicarse con el staff de submanhwa vía <a href="https://discord.gg/submanhwa" target="_blank" style="color: #5d9dff; font-weight: bold;">Discord</a>.</span>
       </li>
       <li>
         <span class="num-badge">8</span>
-        <span class="text-content">💎 Si al momento de la entrega <span class="reward">ya posees la carta asignada</span>, recibirás automáticamente una compensación de <span class="reward">2,000 Kakeras</span>. Este proceso es automático y no requiere acción por tu parte.</span>
+        <span class="text-content">⏰ Las apuestas se <span class="reward">cierran automáticamente</span> cuando inicia el partido. ¡No llegues tarde!</span>
       </li>
       <li>
         <span class="num-badge">9</span>
+        <span class="text-content">💎 Si al momento de la entrega <span class="reward">ya posees la carta asignada</span>, recibirás automáticamente una compensación de <span class="reward">2,000 Kakeras</span>. Este proceso es automático y no requiere acción por tu parte.</span>
+      </li>
+      <li>
+        <span class="num-badge">10</span>
         <span class="text-content">⚡ <span class="reward">Apuesta Extrema</span>: Activa esta opción y elige una <span class="reward">carta extra</span>. Si aciertas el <span class="reward">marcador exacto</span>, ganarás las 2 cartas normales más la carta extra — <span class="reward">3 cartas en total</span>. Si <b>no</b> aciertas el marcador exacto, <span class="reward">no recibirás ninguna carta</span>, incluso si acertaste el ganador. Es todo o nada.</span>
       </li>
     </ol>
@@ -753,6 +757,52 @@
     "Senegal — Mítico","Sudafrica — Mítico","Suecia — Mítico","Suiza — Mítico",
     "Tunez — Mítico","Turquía — Mítico","Uruguay — Mítico","Uzbekistán — Mítico"
   ];
+
+  window.checkEmpate = function(matchId, homeName, homeFlag, awayName, awayFlag) {
+    const h = document.getElementById(`home-${matchId}`);
+    const a = document.getElementById(`away-${matchId}`);
+    const row = document.getElementById(`penales-row-${matchId}`);
+    if (!h || !a || !row) return;
+
+    const hV = h.value;
+    const aV = a.value;
+
+    if (hV !== "" && aV !== "" && Number(hV) === Number(aV)) {
+      // Empate detectado: mostrar selector de penales
+      const btnHome = document.getElementById(`pen-home-${matchId}`);
+      const btnAway = document.getElementById(`pen-away-${matchId}`);
+      if (btnHome) btnHome.textContent = `${homeFlag} ${homeName}`;
+      if (btnAway) btnAway.textContent = `${awayFlag} ${awayName}`;
+      row.style.display = "block";
+    } else {
+      row.style.display = "none";
+      // Limpiar selección previa
+      const btnHome = document.getElementById(`pen-home-${matchId}`);
+      const btnAway = document.getElementById(`pen-away-${matchId}`);
+      if (btnHome) { btnHome.style.background = "#0c0f14"; btnHome.style.borderColor = "#2a3242"; btnHome.removeAttribute("data-selected"); }
+      if (btnAway) { btnAway.style.background = "#0c0f14"; btnAway.style.borderColor = "#2a3242"; btnAway.removeAttribute("data-selected"); }
+    }
+  };
+
+  window.seleccionarPenales = function(matchId, side) {
+    const btnHome = document.getElementById(`pen-home-${matchId}`);
+    const btnAway = document.getElementById(`pen-away-${matchId}`);
+    if (!btnHome || !btnAway) return;
+
+    // Reset ambos
+    btnHome.style.background = "#0c0f14";
+    btnHome.style.borderColor = "#2a3242";
+    btnHome.removeAttribute("data-selected");
+    btnAway.style.background = "#0c0f14";
+    btnAway.style.borderColor = "#2a3242";
+    btnAway.removeAttribute("data-selected");
+
+    // Marcar el seleccionado
+    const selected = side === "home" ? btnHome : btnAway;
+    selected.style.background = "rgba(245,185,66,0.15)";
+    selected.style.borderColor = "#f5b942";
+    selected.setAttribute("data-selected", "true");
+  };
 
   window.toggleExtrema = function(matchId) {
     const check = document.getElementById(`extrema-check-${matchId}`);
@@ -879,9 +929,16 @@
             <div class="form-msg err" style="margin-bottom:10px;">🔒 Las apuestas para este partido están cerradas.</div>
           ` : `
           <div class="score-inputs">
-            <input type="number" min="0" max="20" placeholder="0" id="home-${match.id}">
+            <input type="number" min="0" max="20" placeholder="0" id="home-${match.id}" oninput="checkEmpate('${match.id}', '${match.home.name}', '${match.home.flag}', '${match.away.name}', '${match.away.flag}')">
             <span class="score-sep">—</span>
-            <input type="number" min="0" max="20" placeholder="0" id="away-${match.id}">
+            <input type="number" min="0" max="20" placeholder="0" id="away-${match.id}" oninput="checkEmpate('${match.id}', '${match.home.name}', '${match.home.flag}', '${match.away.name}', '${match.away.flag}')">
+          </div>
+          <div id="penales-row-${match.id}" style="display:none; margin-bottom:12px; background:#1b212c; border:1px solid #f5b942; border-radius:10px; padding:12px;">
+            <div style="font-size:0.8rem; font-weight:700; color:#f5b942; margin-bottom:8px;">⚡ EMPATE — ¿Quién gana en penales?</div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" id="pen-home-${match.id}" onclick="seleccionarPenales('${match.id}', 'home')" style="flex:1; padding:10px; border-radius:8px; border:1px solid #2a3242; background:#0c0f14; color:#eef1f5; font-weight:700; cursor:pointer; transition:all .15s;"></button>
+              <button type="button" id="pen-away-${match.id}" onclick="seleccionarPenales('${match.id}', 'away')" style="flex:1; padding:10px; border-radius:8px; border:1px solid #2a3242; background:#0c0f14; color:#eef1f5; font-weight:700; cursor:pointer; transition:all .15s;"></button>
+            </div>
           </div>
           <div class="name-row">
             <input type="text" placeholder="Tu nombre o nick" id="name-${match.id}">
@@ -1006,6 +1063,18 @@
       return;
     }
 
+    // Bloquear empate sin penales seleccionados
+    if (Number(homeScore) === Number(awayScore)) {
+      const btnHome = document.getElementById(`pen-home-${match.id}`);
+      const btnAway = document.getElementById(`pen-away-${match.id}`);
+      const penalSelected = (btnHome && btnHome.getAttribute("data-selected")) || (btnAway && btnAway.getAttribute("data-selected"));
+      if (!penalSelected) {
+        msgEl.className = "form-msg err";
+        msgEl.textContent = "Marcador empatado: debes elegir quién gana en penales.";
+        return;
+      }
+    }
+
     const normalized = name.toLowerCase();
     const existing = (currentBets[match.id] || []).find(
       d => (d.username || "").trim().toLowerCase() === normalized
@@ -1041,6 +1110,14 @@
         username: name,
         createdAt: Date.now()
       };
+
+      // Guardar ganador de penales si hay empate
+      if (Number(homeScore) === Number(awayScore)) {
+        const btnHome = document.getElementById(`pen-home-${match.id}`);
+        const btnAway = document.getElementById(`pen-away-${match.id}`);
+        if (btnHome && btnHome.getAttribute("data-selected")) betData.penalesGanador = "home";
+        else if (btnAway && btnAway.getAttribute("data-selected")) betData.penalesGanador = "away";
+      }
       if (esExtrema) {
         betData.extrema = true;
         betData.cartaExtra = cartaExtra;
