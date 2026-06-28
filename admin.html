@@ -229,6 +229,25 @@
     }
   };
 
+  window.checkAdminEmpate = (matchId, homeName, awayName) => {
+    const h = document.getElementById(`score-h-${matchId}`);
+    const a = document.getElementById(`score-a-${matchId}`);
+    const row = document.getElementById(`admin-pen-row-${matchId}`);
+    if (!h || !a || !row) return;
+    row.style.display = (h.value !== "" && a.value !== "" && Number(h.value) === Number(a.value)) ? "block" : "none";
+  };
+
+  window.selAdminPen = (matchId, side) => {
+    const btnH = document.getElementById(`admin-pen-home-${matchId}`);
+    const btnA = document.getElementById(`admin-pen-away-${matchId}`);
+    if (!btnH || !btnA) return;
+    [btnH, btnA].forEach(b => { b.style.background = "#171e2e"; b.style.borderColor = "var(--line)"; b.removeAttribute("data-selected"); });
+    const sel = side === "home" ? btnH : btnA;
+    sel.style.background = "rgba(245,185,66,0.15)";
+    sel.style.borderColor = "var(--gold)";
+    sel.setAttribute("data-selected", "true");
+  };
+
   window.saveMatch = async (matchId) => {
     const home = document.getElementById("score-h-" + matchId).value;
     const away = document.getElementById("score-a-" + matchId).value;
@@ -240,12 +259,22 @@
     
     const msgEl = document.getElementById("msg-" + matchId);
     
-    await set(ref(db, `scores/${matchId}`), { 
+    const saveData = { 
       home: home === "" ? 0 : Number(home), 
       away: away === "" ? 0 : Number(away), 
       status: finalStatus, 
       updatedAt: Date.now() 
-    });
+    };
+
+    // Guardar ganador en penales si el resultado es empate
+    if (Number(home) === Number(away)) {
+      const btnH = document.getElementById(`admin-pen-home-${matchId}`);
+      const btnA = document.getElementById(`admin-pen-away-${matchId}`);
+      if (btnH && btnH.getAttribute("data-selected")) saveData.penalesGanador = "home";
+      else if (btnA && btnA.getAttribute("data-selected")) saveData.penalesGanador = "away";
+    }
+
+    await set(ref(db, `scores/${matchId}`), saveData);
     
     msgEl.className = "msg ok"; 
     msgEl.textContent = "¡Estructura guardada exitosamente! ✨";
@@ -307,12 +336,26 @@
           <div class="score-row">
             <div class="input-group">
               <label>${m.home.name}</label>
-              <input type="number" id="score-h-${m.id}" value="${m.fbHome}" min="0">
+              <input type="number" id="score-h-${m.id}" value="${m.fbHome}" min="0" oninput="checkAdminEmpate('${m.id}', '${m.home.name}', '${m.away.name}')">
             </div>
             <div class="score-vs">VS</div>
             <div class="input-group" style="justify-content: flex-end;">
-              <input type="number" id="score-a-${m.id}" value="${m.fbAway}" min="0">
+              <input type="number" id="score-a-${m.id}" value="${m.fbAway}" min="0" oninput="checkAdminEmpate('${m.id}', '${m.home.name}', '${m.away.name}')">
               <label>${m.away.name}</label>
+            </div>
+          </div>
+
+          <div id="admin-pen-row-${m.id}" style="display:${(m.fbHome !== '' && m.fbAway !== '' && Number(m.fbHome) === Number(m.fbAway)) ? 'block' : 'none'}; margin-bottom:15px; background:#090d14; border:1px solid var(--gold); border-radius:12px; padding:14px;">
+            <div style="font-size:0.8rem; font-weight:700; color:var(--gold); margin-bottom:10px;">⚡ EMPATE — ¿Quién ganó en penales?</div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" id="admin-pen-home-${m.id}" onclick="selAdminPen('${m.id}', 'home')"
+                style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line); background:#171e2e; color:var(--text); font-weight:700; cursor:pointer; transition:all .2s;">
+                ${m.home.name}
+              </button>
+              <button type="button" id="admin-pen-away-${m.id}" onclick="selAdminPen('${m.id}', 'away')"
+                style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line); background:#171e2e; color:var(--text); font-weight:700; cursor:pointer; transition:all .2s;">
+                ${m.away.name}
+              </button>
             </div>
           </div>
           
