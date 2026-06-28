@@ -166,6 +166,8 @@
 
     const hR = Number(matchScore.home);
     const aR = Number(matchScore.away);
+    // Ganador en penales guardado por el admin (si el partido fue empate)
+    const penalesRealGanador = matchScore.penalesGanador || null; // "home" | "away" | null
     
     let exactos = [];
     let tendencias = [];
@@ -177,12 +179,34 @@
       const nick = b.username.trim();
       const hB = Number(b.homeScore);
       const aB = Number(b.awayScore);
-      const acertoExacto = (hB === hR && aB === aR);
+      const esEmpateApuesta = (hB === aB);
+      const esEmpateReal = (hR === aR);
       const esExtrema = !!b.extrema;
 
+      // Marcador exacto
+      const acertoMarcador = (hB === hR && aB === aR);
+
+      // Para empates: también verificar si acertó el ganador en penales
+      let acertoExacto = false;
+      if (acertoMarcador) {
+        if (esEmpateReal) {
+          // Solo es exacto si además acertó quién ganó en penales
+          acertoExacto = penalesRealGanador ? (b.penalesGanador === penalesRealGanador) : true;
+        } else {
+          acertoExacto = true;
+        }
+      }
+
+      // Tendencia: acertó el resultado final (home gana, away gana, o empate+penales)
+      let acertoTendencia = false;
+      if (esEmpateReal && esEmpateApuesta) {
+        // Apostó empate y fue empate: acertó tendencia si eligió penales (aunque sea equivocado)
+        acertoTendencia = !!b.penalesGanador;
+      } else if (!esEmpateReal) {
+        acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR);
+      }
+
       if (esExtrema) {
-        // Las apuestas extremas no se mezclan con las columnas normales,
-        // viven únicamente en su propio recuadro morado.
         const cartaNombre = b.cartaExtra ? b.cartaExtra.split(' —')[0] : 'Sin especificar';
         extremas.push({ nick, carta: cartaNombre, acertoExacto });
         return;
@@ -190,7 +214,7 @@
       
       if (acertoExacto) {
         exactos.push(nick);
-      } else if ((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) {
+      } else if (acertoTendencia) {
         tendencias.push(nick);
       } else {
         perdedores.push(nick);
