@@ -98,6 +98,8 @@
     color: var(--grass);
     background: rgba(30,216,127,0.08);
   }
+  .group-tab.results-tab{ border-color: var(--gold); color: var(--text-dim); }
+  .group-tab.results-tab.active{ border-color: var(--gold) !important; color: var(--gold) !important; background: rgba(245,185,66,0.08) !important; }
   .group-tab:hover{ color: var(--text); }
 
   /* MATCH CARD */
@@ -859,15 +861,106 @@
   const currentBets = {};
   const liveScoresState = {};
 
+  // Estado de tab: 'active' | 'results'
+  let currentTab = 'active';
+
   function renderGroups(){
     if(!groupsEl) return;
     groupsEl.innerHTML = "";
+
+    // Tab principal (nombre del grupo)
     Object.keys(GROUPS).forEach(g => {
       const btn = document.createElement("button");
-      btn.className = "group-tab" + (g === currentGroup ? " active" : "");
+      btn.className = "group-tab" + (currentTab === 'active' && g === currentGroup ? " active" : "");
       btn.textContent = "Grupo " + g;
-      btn.onclick = () => { currentGroup = g; renderGroups(); renderMatches(); };
+      btn.onclick = () => { currentGroup = g; currentTab = 'active'; renderGroups(); renderMatches(); };
       groupsEl.appendChild(btn);
+    });
+
+    // Tab de Resultados
+    const btnRes = document.createElement("button");
+    btnRes.className = "group-tab" + (currentTab === 'results' ? " active results-tab" : " results-tab");
+    btnRes.textContent = "Resultados";
+    btnRes.onclick = () => { currentTab = 'results'; renderGroups(); renderResults(); };
+    groupsEl.appendChild(btnRes);
+  }
+
+  function renderResults(){
+    if(!matchesEl) return;
+    matchesEl.innerHTML = "";
+
+    // Recopilar todos los partidos finalizados (status SI o FINISHED en liveScoresState)
+    const finalizados = [];
+    Object.keys(GROUPS).forEach(g => {
+      GROUPS[g].forEach(m => {
+        const score = liveScoresState[m.id];
+        if (score && (score.status === 'SI' || score.status === 'FINISHED')) {
+          finalizados.push({ match: m, score });
+        }
+      });
+    });
+
+    if (finalizados.length === 0) {
+      matchesEl.innerHTML = `<div style="text-align:center; color:#8b96a8; padding:40px 20px; font-size:0.95rem;">Aún no hay partidos finalizados.</div>`;
+      return;
+    }
+
+    finalizados.forEach(({ match: m, score }) => {
+      const hG = Number(score.home);
+      const aG = Number(score.away);
+      let ganadorText = "";
+      if (hG > aG) ganadorText = `Ganó ${m.home.name}`;
+      else if (aG > hG) ganadorText = `Ganó ${m.away.name}`;
+      else {
+        const penWinner = score.penalesGanador === 'home' ? m.home.name : score.penalesGanador === 'away' ? m.away.name : null;
+        ganadorText = penWinner ? `Empate — Pasó ${penWinner} (penales)` : "Empate";
+      }
+
+      const card = document.createElement("div");
+      card.className = "match";
+      card.style.cssText = "border-left: 4px solid #3182ce; opacity: 0.9;";
+      card.innerHTML = `
+        <div class="match-meta">
+          <span>${m.groupName}</span>
+          <span>·</span>
+          <span>${m.date}</span>
+          <span class="live" style="color:#3182ce;">· FINALIZADO</span>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding: 16px 0 8px; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
+            <span style="font-size:28px;">${m.home.flag}</span>
+            <div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px;">${m.home.name}</div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:42px; background:var(--bg-panel); border:1px solid var(--line); border-radius:10px; padding:4px 18px; min-width:60px; text-align:center;">${hG}</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--text-dim);">—</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:42px; background:var(--bg-panel); border:1px solid var(--line); border-radius:10px; padding:4px 18px; min-width:60px; text-align:center;">${aG}</div>
+            </div>
+            <div style="font-size:12px; font-weight:700; color:#1ed87f;">${ganadorText}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0; justify-content:flex-end; text-align:right;">
+            <div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px;">${m.away.name}</div>
+            </div>
+            <span style="font-size:28px;">${m.away.flag}</span>
+          </div>
+        </div>
+
+        <div class="bets-section" style="margin-top:10px;">
+          <div class="bets-label" style="font-size:0.75rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+            Apuestas registradas <span id="res-count-${m.id}" style="color:var(--gold);"></span>
+          </div>
+          <div id="res-bets-${matchIdToSelector(m.id)}"></div>
+        </div>
+      `;
+      matchesEl.appendChild(card);
+
+      // Escuchar apuestas para este partido finalizado
+      listenBets(m.id);
     });
   }
 
@@ -1144,8 +1237,9 @@
 
   function listenBets(matchId){
     const safeId = matchIdToSelector(matchId);
-    const betsEl = document.getElementById(`bets-${safeId}`);
-    const countEl = document.getElementById(`count-${matchId}`);
+    // Puede estar en el tab normal o en el tab de resultados
+    const betsEl = document.getElementById(`bets-${safeId}`) || document.getElementById(`res-bets-${safeId}`);
+    const countEl = document.getElementById(`count-${matchId}`) || document.getElementById(`res-count-${matchId}`);
     const betsRef = ref(db, "bets/" + matchId);
 
     onValue(betsRef, (snapshot) => {
@@ -1162,7 +1256,7 @@
       const entries = Object.values(rawData).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       currentBets[matchId] = entries;
 
-      if (countEl) countEl.textContent = entries.length;
+      if (countEl) countEl.textContent = `(${entries.length})`;
 
       buildBetsListDOM(matchId, entries, betsEl);
     });
@@ -1189,6 +1283,7 @@
     };
 
     const liveInfo = liveScoresState[matchId];
+    const PREVIEW = 5; // Cuántas apuestas mostrar por defecto
 
     betsEl.innerHTML = "";
     ["red", "blue", "white"].forEach(color => {
@@ -1196,10 +1291,9 @@
       const section = document.createElement("div");
       section.className = `bet-side ${color}`;
       section.innerHTML = `<div class="bet-side-label"><span class="dot ${color}"></span>${labels[color]}</div>`;
-      
-      groups[color].forEach(d => {
+
+      const buildRow = (d) => {
         const row = document.createElement("div");
-        
         let isPerfect = false;
         let tagHtml = "";
 
@@ -1216,12 +1310,48 @@
 
         row.className = `bet-row ${color} ${isPerfect ? 'perfect-match' : ''}`;
         const extremaBadge = d.extrema ? `<span class="extrema-badge">⚡ ${d.cartaExtra ? d.cartaExtra.split(' —')[0] : 'Extrema'}</span>` : '';
+        const penBadge = d.penalesGanador ? `<span style="font-size:10px; color:#f5b942; margin-left:4px;">⚡ ${d.penalesGanador === 'home' ? (match ? match.home.name : 'Local') : (match ? match.away.name : 'Visitante')}</span>` : '';
         row.innerHTML = `
-          <span class="bname">${escapeHtml(d.username)}${tagHtml}${extremaBadge}</span>
+          <span class="bname">${escapeHtml(d.username)}${tagHtml}${extremaBadge}${penBadge}</span>
           <span class="bscore">${d.homeScore} - ${d.awayScore}</span>
         `;
-        section.appendChild(row);
-      });
+        return row;
+      };
+
+      const lista = groups[color];
+      const preview = lista.slice(0, PREVIEW);
+      const resto = lista.slice(PREVIEW);
+
+      preview.forEach(d => section.appendChild(buildRow(d)));
+
+      if (resto.length > 0) {
+        // Contenedor oculto con el resto
+        const hiddenDiv = document.createElement("div");
+        hiddenDiv.id = `hidden-bets-${matchId}-${color}`;
+        hiddenDiv.style.display = "none";
+        resto.forEach(d => hiddenDiv.appendChild(buildRow(d)));
+        section.appendChild(hiddenDiv);
+
+        // Botón ver todas
+        const btnVer = document.createElement("button");
+        btnVer.id = `btn-ver-${matchId}-${color}`;
+        btnVer.textContent = `Ver todas (${lista.length}) ▼`;
+        btnVer.style.cssText = "width:100%; margin-top:8px; padding:8px; background:transparent; border:1px dashed #2a3242; color:#8b96a8; border-radius:8px; cursor:pointer; font-size:12px; font-weight:700; transition:all .15s;";
+        btnVer.onmouseenter = () => btnVer.style.borderColor = "#f5b942";
+        btnVer.onmouseleave = () => btnVer.style.borderColor = "#2a3242";
+        btnVer.onclick = () => {
+          const hidden = document.getElementById(`hidden-bets-${matchId}-${color}`);
+          if (hidden.style.display === "none") {
+            hidden.style.display = "block";
+            btnVer.textContent = `Ocultar ▲`;
+          } else {
+            hidden.style.display = "none";
+            btnVer.textContent = `Ver todas (${lista.length}) ▼`;
+          }
+        };
+        section.appendChild(btnVer);
+      }
+
       betsEl.appendChild(section);
     });
   }
@@ -1262,6 +1392,13 @@
         const statusText = isFinished ? "⚽ Partido finalizado" : status === "PAUSED" ? "⏸ Medio tiempo" : "🔴 EN VIVO";
         const statusClass = isFinished ? "finished" : "in-play";
 
+        // Mostrar ganador en penales si el marcador es empate
+        let penalesHtml = "";
+        if (isFinished && Number(home) === Number(away) && d.penalesGanador) {
+          const penNombre = d.penalesGanador === 'home' ? match.home.name : match.away.name;
+          penalesHtml = `<div style="text-align:center; font-size:12px; font-weight:700; color:#f5b942; margin-top:6px;">⚡ Pasa ${penNombre} (penales)</div>`;
+        }
+
         liveEl.innerHTML = `
           <div class="live-score-status ${statusClass}">${statusText}</div>        
           <div class="live-score">
@@ -1269,6 +1406,7 @@
             <div class="score-sep">—</div>
             <div class="score-box">${away ?? 0}</div>
           </div>
+          ${penalesHtml}
         `;
       } else {
         liveEl.innerHTML = "";
@@ -1276,14 +1414,24 @@
       }
 
       const safeId = matchIdToSelector(match.id);
-      const betsEl = document.getElementById(`bets-${safeId}`);
+      const betsEl = document.getElementById(`bets-${safeId}`) || document.getElementById(`res-bets-${safeId}`);
       if(betsEl && currentBets[match.id]) {
         buildBetsListDOM(match.id, currentBets[match.id], betsEl);
+      }
+
+      // Si el partido acaba de finalizar y estamos en el tab de resultados, re-renderizar
+      if ((status === 'SI' || status === 'FINISHED') && currentTab === 'results') {
+        renderResults();
       }
     });
 
     listenBets(match.id);
   }
+
+  // Escuchar scores de TODOS los partidos al inicio para detectar finalizados
+  Object.keys(GROUPS).forEach(g => {
+    GROUPS[g].forEach(match => listenLiveScore(match));
+  });
 
   renderGroups();
   renderMatches();
