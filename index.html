@@ -969,7 +969,17 @@
     matchesEl.innerHTML = "";
     if(!GROUPS[currentGroup]) return;
 
-    GROUPS[currentGroup].forEach(match => {
+    const matchesFiltrados = GROUPS[currentGroup].filter(match => {
+      const score = liveScoresState[match.id];
+      return !(score && (score.status === 'SI' || score.status === 'FINISHED'));
+    });
+
+    if (matchesFiltrados.length === 0) {
+      matchesEl.innerHTML = `<div style="text-align:center; color:#8b96a8; padding:40px 20px; font-size:0.95rem;">Todos los partidos de esta jornada han finalizado. Revisa el tab <b style="color:#f5b942;">Resultados</b>.</div>`;
+      return;
+    }
+
+    matchesFiltrados.forEach(match => {
       const closed = match.closeTime && Date.now() >= new Date(match.closeTime).getTime();
 
       const card = document.createElement("div");
@@ -1419,9 +1429,13 @@
         buildBetsListDOM(match.id, currentBets[match.id], betsEl);
       }
 
-      // Si el partido acaba de finalizar y estamos en el tab de resultados, re-renderizar
-      if ((status === 'SI' || status === 'FINISHED') && currentTab === 'results') {
-        renderResults();
+      // Si el partido acaba de finalizar, actualizar ambos tabs
+      if (status === 'SI' || status === 'FINISHED') {
+        if (currentTab === 'results') {
+          renderResults();
+        } else {
+          renderMatches(); // Sacar el partido del tab activo
+        }
       }
     });
 
