@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Control Panel · Quiniela</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
@@ -21,7 +22,7 @@
     font-family: 'Montserrat', sans-serif; 
     background: var(--bg); 
     color: var(--text); 
-    padding: 30px 15px; 
+    padding: 20px 12px; 
     margin: 0;
   }
   
@@ -33,15 +34,15 @@
     letter-spacing: 2px; 
     text-align: center; 
     margin-bottom: 5px; 
-    font-size: 3rem;
+    font-size: clamp(2rem, 8vw, 3rem);
     text-shadow: 0 0 15px rgba(245, 185, 66, 0.2);
   }
   
   .subtitle {
     text-align: center;
     color: var(--text-dim);
-    font-size: 0.9rem;
-    margin-bottom: 35px;
+    font-size: 0.85rem;
+    margin-bottom: 24px;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -50,24 +51,23 @@
   .admin-card { 
     background: var(--card); 
     border: 1px solid var(--line); 
-    border-radius: 20px; 
-    padding: 24px; 
-    margin-bottom: 25px; 
+    border-radius: 16px; 
+    padding: 18px 14px; 
+    margin-bottom: 18px; 
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 10px 20px rgba(0,0,0,0.4);
     position: relative;
     overflow: hidden;
   }
 
-  /* 1. ESTADOS DINÁMICOS POR COLORES */
-  .admin-card.state-SCHEDULED { border-left: 6px solid #4a5568; }
+  .admin-card.state-SCHEDULED { border-left: 5px solid #4a5568; }
   .admin-card.state-IN_PLAY { 
-    border-left: 6px solid var(--live); 
+    border-left: 5px solid var(--live); 
     box-shadow: 0 0 20px rgba(30, 216, 127, 0.15);
     background: linear-gradient(135deg, #111622 0%, #0d1e16 100%);
   }
   .admin-card.state-FINISHED { 
-    border-left: 6px solid var(--finished); 
+    border-left: 5px solid var(--finished); 
     opacity: 0.65;
     background: linear-gradient(135deg, #111622 0%, #0c121c 100%);
   }
@@ -75,86 +75,104 @@
   .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 14px;
   }
 
   h3 { 
     margin: 0; 
-    font-size: 1.25rem; 
+    font-size: clamp(0.95rem, 4vw, 1.2rem);
     font-weight: 900;
     letter-spacing: -0.5px;
+    line-height: 1.3;
   }
   
   .status-badge {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 900;
     padding: 4px 10px;
     border-radius: 20px;
     text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .state-SCHEDULED .status-badge { background: #2d3748; color: var(--pending); }
   .state-IN_PLAY .status-badge { background: rgba(30, 216, 127, 0.2); color: var(--live); animation: pulse 2s infinite; }
   .state-FINISHED .status-badge { background: rgba(49, 130, 206, 0.2); color: var(--finished); }
 
-  /* Selector de Estado Estilizado */
+  /* Selector de Estado */
   .status-btns { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
-    gap: 8px; 
-    margin-bottom: 20px; 
+    gap: 6px; 
+    margin-bottom: 16px; 
   }
   
   .status-btns button {
     border: 1px solid var(--line);
     background: #171e2e;
     color: var(--text-dim);
-    padding: 10px 5px;
-    font-size: 0.75rem;
+    padding: 12px 4px;
+    font-size: 0.7rem;
     font-weight: 700;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
+    touch-action: manipulation;
   }
   
-  .status-btns button:hover { background: #1f293d; color: white; }
+  .status-btns button:hover,
+  .status-btns button:active { background: #1f293d; color: white; }
 
-  /* Activos por Color de Selección */
   .state-SCHEDULED .btn-active-SCHEDULED { background: #4a5568 !important; color: white !important; border-color: #718096; }
   .state-IN_PLAY .btn-active-IN_PLAY { background: var(--live) !important; color: #07090e !important; border-color: var(--live); font-weight: 900; }
   .state-FINISHED .btn-active-FINISHED { background: var(--finished) !important; color: white !important; border-color: var(--finished); }
 
-  /* Bloque de Marcador */
+  /* Marcador */
   .score-row { 
     display: flex; 
     align-items: center; 
     justify-content: space-between; 
     background: #090d14;
-    padding: 15px;
-    border-radius: 14px;
+    padding: 12px 10px;
+    border-radius: 12px;
     border: 1px solid var(--line);
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    gap: 6px;
   }
   
-  .input-group { display: flex; align-items: center; gap: 10px; width: 40%; }
-  .input-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .input-group { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .input-group label { 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    color: var(--text-dim); 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+    min-width: 0;
+  }
   
   input[type="number"] { 
-    width: 55px; 
-    padding: 10px; 
+    width: 52px;
+    min-width: 52px;
+    padding: 10px 6px; 
     background: #171e2e; 
     border: 1px solid var(--line); 
     color: white; 
-    font-size: 1.2rem; 
+    font-size: 1.3rem; 
     font-weight: 900; 
     text-align: center; 
     border-radius: 10px;
     outline: none;
+    -moz-appearance: textfield;
   }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type="number"]:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(245,185,66,0.2); }
   
-  .score-vs { font-weight: 900; color: var(--text-dim); font-size: 0.9rem; }
+  .score-vs { font-weight: 900; color: var(--text-dim); font-size: 0.85rem; flex-shrink: 0; }
 
   /* Botón Guardar */
   .btn-save { 
@@ -162,20 +180,20 @@
     background: linear-gradient(135deg, #f5b942 0%, #dca334 100%); 
     color: #07090e; 
     border: none; 
-    padding: 14px; 
+    padding: 16px; 
     font-weight: 900; 
-    font-size: 0.95rem; 
+    font-size: 1rem; 
     border-radius: 12px; 
     cursor: pointer; 
     transition: all 0.2s; 
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 12px rgba(245,185,66,0.2);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
-  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(245,185,66,0.3); }
-  .btn-save:active { transform: translateY(1px); }
+  .btn-save:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(245,185,66,0.15); }
 
-  /* Alertas de Estado */
   .msg { font-size: 0.85rem; font-weight: 700; text-align: center; margin-top: 10px; min-height: 20px; }
   .msg.ok { color: var(--live); }
 
@@ -183,6 +201,36 @@
     0% { opacity: 0.6; }
     50% { opacity: 1; }
     100% { opacity: 0.6; }
+  }
+
+  /* Stepper táctil para los inputs numéricos en móvil */
+  .stepper-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .stepper-btn {
+    width: 52px;
+    height: 30px;
+    background: #1f293d;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 1rem;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stepper-btn:active { background: #2a3650; color: white; }
+
+  @media (max-width: 480px) {
+    body { padding: 16px 10px; }
+    .admin-card { padding: 16px 12px; border-radius: 14px; }
   }
 </style>
 </head>
@@ -210,6 +258,14 @@
     currentFirebaseData = snapshot.val() || {};
     recompilarYRenderizar();
   });
+
+  window.stepScore = (inputId, delta, matchId, homeName, awayName) => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const current = input.value === "" ? 0 : Number(input.value);
+    input.value = Math.max(0, current + delta);
+    checkAdminEmpate(matchId, homeName, awayName);
+  };
 
   window.setUIStatus = (matchId, status) => {
     window.uiStatuses[matchId] = status;
@@ -336,12 +392,20 @@
           <div class="score-row">
             <div class="input-group">
               <label>${m.home.name}</label>
-              <input type="number" id="score-h-${m.id}" value="${m.fbHome}" min="0" oninput="checkAdminEmpate('${m.id}', '${m.home.name}', '${m.away.name}')">
+              <div class="stepper-wrap">
+                <button class="stepper-btn" onclick="stepScore('score-h-${m.id}', 1, '${m.id}', '${m.home.name}', '${m.away.name}')">＋</button>
+                <input type="number" id="score-h-${m.id}" value="${m.fbHome}" min="0" oninput="checkAdminEmpate('${m.id}', '${m.home.name}', '${m.away.name}')">
+                <button class="stepper-btn" onclick="stepScore('score-h-${m.id}', -1, '${m.id}', '${m.home.name}', '${m.away.name}')">－</button>
+              </div>
             </div>
             <div class="score-vs">VS</div>
             <div class="input-group" style="justify-content: flex-end;">
-              <input type="number" id="score-a-${m.id}" value="${m.fbAway}" min="0" oninput="checkAdminEmpate('${m.id}', '${m.home.name}', '${m.away.name}')">
-              <label>${m.away.name}</label>
+              <div class="stepper-wrap">
+                <button class="stepper-btn" onclick="stepScore('score-a-${m.id}', 1, '${m.id}', '${m.home.name}', '${m.away.name}')">＋</button>
+                <input type="number" id="score-a-${m.id}" value="${m.fbAway}" min="0" oninput="checkAdminEmpate('${m.id}', '${m.home.name}', '${m.away.name}')">
+                <button class="stepper-btn" onclick="stepScore('score-a-${m.id}', -1, '${m.id}', '${m.home.name}', '${m.away.name}')">－</button>
+              </div>
+              <label style="text-align:right;">${m.away.name}</label>
             </div>
           </div>
 
