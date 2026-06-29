@@ -89,7 +89,7 @@ const GROUPS = {
       closeTime: "2026-07-01T19:00:00-05:00",
       cardsInPlay: 2,
       home: { name: "Estados Unidos", flag: "🇺🇸", card: "MITICO-estadosunidos.jpg" },
-      away: { name: "Bosnia y Herzegovina", flag: "🇧🇦", card: "MITICO-bosnia.jpg" }
+      away: { name: "Bosnia y Herzegovina", flag: "🇧🇦", card: "MITICO-bosniayherzegovina.jpg" }
     },
     {
       id: "2026_e32_11_2_7",
