@@ -2,59 +2,393 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ranking Pro · Quiniela</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking · Quiniela Mundial</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root { --accent: #f5b942; --bg: #0a0c10; --card: #151921; --text: #eef1f5; }
-  body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding-bottom: 20px; }
-  
-  /* Menú de navegación */
-  .nav-menu { display: flex; justify-content: center; gap: 30px; padding: 20px; background: #0c0f14; border-bottom: 1px solid #2a3242; }
-  .nav-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; text-decoration: none; }
-  
-  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-  h1 { text-align: center; font-size: 3rem; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; }
-  .subtitle { text-align: center; color: #888; margin-bottom: 25px; }
+  :root {
+    --bg: #0a0c10;
+    --bg-panel: #0f1319;
+    --card: #151921;
+    --card2: #1b212c;
+    --line: #2a3242;
+    --text: #eef1f5;
+    --text-dim: #8b96a8;
+    --gold: #f5b942;
+    --green: #1ed87f;
+    --blue: #3b82f6;
+    --red: #ff5d5d;
+  }
 
-  .info-panel { background: linear-gradient(135deg, #1e2633 0%, #151921 100%); border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #2a3242; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-  .info-panel h3 { margin-top: 0; color: var(--accent); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  #search-bar { width: 100%; padding: 18px; border-radius: 12px; border: none; background: #1b212c; color: white; margin-bottom: 20px; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-  
-  .rank-row { background: var(--card); padding: 20px; margin-bottom: 15px; border-radius: 16px; border: 1px solid #2a3242; cursor: pointer; transition: transform 0.2s; }
-  .rank-row:hover { transform: scale(1.02); border-color: var(--accent); }
-  
-  .header-row { display: flex; align-items: center; justify-content: space-between; }
-  .name-block { display: flex; align-items: center; gap: 15px; font-weight: 900; font-size: 1.2em; }
-  .pts-block { font-weight: 900; font-size: 1.8em; color: #1ed87f; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+    background-image:
+      radial-gradient(circle at 10% 0%, rgba(245,185,66,0.05), transparent 40%),
+      radial-gradient(circle at 90% 100%, rgba(30,216,127,0.04), transparent 40%);
+  }
 
-  .details { display: none; margin-top: 20px; padding: 15px; background: #0a0c10; border-radius: 12px; border: 1px dashed #333; }
-  .bet-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e2633; font-size: 0.9em; }
-  .pts-badge { background: #1e2633; padding: 2px 8px; border-radius: 6px; font-size: 0.8em; color: var(--accent); }
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 16px 20px;
+    background: #0c0f14;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  nav a {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    text-decoration: none;
+    color: var(--text-dim);
+    transition: color .15s;
+    letter-spacing: 1px;
+  }
+  nav a.active { color: var(--gold); }
+  nav a:hover { color: var(--text); }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 32px 20px 20px;
+    position: relative;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 8vw, 4rem);
+    color: var(--gold);
+    letter-spacing: 3px;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(245,185,66,0.25);
+  }
+  .header .subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* CONTAINER */
+  .container { max-width: 640px; margin: 0 auto; padding: 0 14px; }
+
+  /* PUNTUACIÓN */
+  .scoring-panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .score-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 8px;
+    gap: 4px;
+  }
+  .score-pill .icon { font-size: 1.2rem; }
+  .score-pill .label { font-size: 0.65rem; color: var(--text-dim); text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+  .score-pill .pts { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--gold); letter-spacing: 1px; }
+
+  /* SEARCH */
+  .search-wrap { position: relative; margin-bottom: 20px; }
+  .search-wrap input {
+    width: 100%;
+    padding: 14px 16px 14px 42px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--card2);
+    color: var(--text);
+    font-size: 15px;
+    font-family: 'Montserrat', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-wrap input:focus { border-color: var(--gold); }
+  .search-wrap input::placeholder { color: var(--text-dim); }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+
+  /* PODIO TOP 3 */
+  .podium {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding: 0 10px;
+  }
+  .podium-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    max-width: 180px;
+  }
+  .podium-slot.second { margin-bottom: 0; }
+  .podium-slot.first { order: -1; }
+
+  .podium-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    border: 3px solid var(--line);
+  }
+  .podium-slot.first .podium-avatar { width: 64px; height: 64px; font-size: 1.7rem; border-color: var(--gold); background: rgba(245,185,66,0.15); color: var(--gold); }
+  .podium-slot.second .podium-avatar { border-color: #9ca3af; background: rgba(156,163,175,0.1); color: #9ca3af; }
+  .podium-slot.third .podium-avatar { border-color: #cd7f32; background: rgba(205,127,50,0.1); color: #cd7f32; }
+
+  .podium-name {
+    font-size: clamp(0.65rem, 2.5vw, 0.8rem);
+    font-weight: 900;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .podium-pts {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+  .podium-slot.first .podium-pts { font-size: 1.6rem; }
+
+  .podium-base {
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    padding: 8px;
+  }
+  .podium-slot.first .podium-base { height: 70px; background: linear-gradient(135deg, rgba(245,185,66,0.25), rgba(245,185,66,0.08)); border: 1px solid rgba(245,185,66,0.3); color: var(--gold); }
+  .podium-slot.second .podium-base { height: 50px; background: linear-gradient(135deg, rgba(156,163,175,0.15), rgba(156,163,175,0.05)); border: 1px solid rgba(156,163,175,0.2); color: #9ca3af; }
+  .podium-slot.third .podium-base { height: 36px; background: linear-gradient(135deg, rgba(205,127,50,0.15), rgba(205,127,50,0.05)); border: 1px solid rgba(205,127,50,0.2); color: #cd7f32; }
+
+  /* LISTA */
+  #ranking-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .rank-row {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .rank-row:hover { border-color: rgba(245,185,66,0.4); transform: translateY(-1px); }
+  .rank-row:active { transform: scale(0.99); }
+
+  .rank-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .rank-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    color: var(--text-dim);
+    min-width: 32px;
+    letter-spacing: 1px;
+  }
+  .rank-num.top1 { color: var(--gold); }
+  .rank-num.top2 { color: #9ca3af; }
+  .rank-num.top3 { color: #cd7f32; }
+
+  .rank-name {
+    font-weight: 900;
+    font-size: clamp(0.85rem, 3.5vw, 1rem);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: -0.3px;
+  }
+
+  .rank-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .rank-pts {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    color: var(--green);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .rank-arrow {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    transition: transform .2s;
+  }
+  .rank-row.open .rank-arrow { transform: rotate(180deg); }
+
+  /* DETALLES */
+  .rank-details {
+    display: none;
+    padding: 0 16px 14px;
+    border-top: 1px solid var(--line);
+  }
+  .rank-row.open .rank-details { display: block; }
+
+  .detail-header {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    padding: 10px 0 8px;
+    font-weight: 700;
+  }
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    gap: 10px;
+  }
+  .detail-item:last-child { border-bottom: none; }
+
+  .detail-match {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .detail-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .detail-score {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+
+  .pts-pill {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .pts-pill.p3 { background: rgba(245,185,66,0.15); color: var(--gold); border: 1px solid rgba(245,185,66,0.3); }
+  .pts-pill.p1 { background: rgba(30,216,127,0.1); color: var(--green); border: 1px solid rgba(30,216,127,0.2); }
+  .pts-pill.p0 { background: rgba(255,93,93,0.1); color: var(--red); border: 1px solid rgba(255,93,93,0.2); }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.95rem; }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    .scoring-panel { grid-template-columns: repeat(3,1fr); gap: 8px; padding: 12px; }
+    .score-pill { padding: 10px 6px; }
+    .podium { gap: 6px; }
+    .rank-header { padding: 12px 14px; gap: 10px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Menú de navegación -->
-<nav class="nav-menu">
-  <a href="index.html" style="color: #555;">APUESTAS</a>
-  <a href="ranking.html" style="color: #f5b942;">RANKING</a>
+<nav>
+  <a href="index.html">APUESTAS</a>
+  <a href="ranking.html" class="active">RANKING</a>
 </nav>
 
+<div class="header">
+  <h1>🏆 CLASIFICACIÓN</h1>
+  <div class="subtitle">Quiniela Mundial · Seguimiento en vivo</div>
+</div>
+
 <div class="container">
-  <h1>CLASIFICACIÓN</h1>
-  <div class="subtitle">Quiniela Oficial · Seguimiento en vivo</div>
-  
-  <div class="info-panel">
-    <h3>📊 Sistema de Puntuación</h3>
-    <div style="display:flex; justify-content: space-between;">
-      <span>🎯 <b>Marcador Exacto</b>: 3 pts</span>
-      <span>⚽ <b>Ganador/Empate</b>: 1 pt</span>
+
+  <div class="scoring-panel">
+    <div class="score-pill">
+      <span class="icon">🎯</span>
+      <span class="pts">3 PTS</span>
+      <span class="label">Exacto + Penales</span>
+    </div>
+    <div class="score-pill">
+      <span class="icon">⚽</span>
+      <span class="pts">1 PT</span>
+      <span class="label">Ganador / Tendencia</span>
+    </div>
+    <div class="score-pill">
+      <span class="icon">❌</span>
+      <span class="pts">0 PTS</span>
+      <span class="label">Sin acierto</span>
     </div>
   </div>
 
-  <input type="text" id="search-bar" placeholder="🔍 Buscar nombre..." onkeyup="filtrar()">
-  <div id="ranking-list">Cargando datos...</div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-bar" placeholder="Buscar jugador..." oninput="filtrar()">
+  </div>
+
+  <div id="podium"></div>
+  <div id="ranking-list"><div class="loading">Cargando clasificación...</div></div>
+
 </div>
 
 <script type="module">
@@ -69,35 +403,55 @@
     let users = {};
     Object.keys(bets).forEach(mId => {
       if (!scores[mId] || scores[mId].status !== 'SI') return;
+      const hR = Number(scores[mId].home);
+      const aR = Number(scores[mId].away);
+      const penalesReal = scores[mId].penalesGanador || null;
+
       Object.values(bets[mId]).forEach(b => {
         const userKey = b.username.trim().toLowerCase();
-        if (!userKey) return; 
+        if (!userKey) return;
 
         if (!users[userKey]) {
           users[userKey] = { displayName: b.username.trim(), pts: 0, games: [] };
         }
-        
-        const hR = Number(scores[mId].home), aR = Number(scores[mId].away);
+
         const hB = Number(b.homeScore), aB = Number(b.awayScore);
-        
-        let p = (hB === hR && aB === aR) ? 3 : (((hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR)) ? 1 : 0);
-        
+        const esEmpateReal = hR === aR;
+        const acertoMarcador = hB === hR && aB === aR;
+
+        let acertoExacto = false;
+        if (acertoMarcador) {
+          if (esEmpateReal) {
+            acertoExacto = penalesReal ? (b.penalesGanador === penalesReal) : true;
+          } else {
+            acertoExacto = true;
+          }
+        }
+
+        let acertoTendencia = false;
+        if (esEmpateReal && hB === aB) {
+          acertoTendencia = !!b.penalesGanador;
+        } else if (!esEmpateReal) {
+          acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR);
+        }
+
+        const p = acertoExacto ? 3 : acertoTendencia ? 1 : 0;
+
         users[userKey].pts += p;
-        users[userKey].games.push({ match: `${b.home} vs ${b.away}`, bet: `${hB}-${aB}`, off: `${hR}-${aR}`, p });
+        users[userKey].games.push({
+          match: `${b.home} vs ${b.away}`,
+          bet: `${hB}-${aB}`,
+          real: `${hR}-${aR}`,
+          p
+        });
       });
     });
 
-    // 1. Ordenamos de forma descendente por puntos de manera interna
-    const sortedEntries = Object.entries(users).sort((a,b) => b[1].pts - a[1].pts);
+    const sortedEntries = Object.entries(users).sort((a, b) => b[1].pts - a[1].pts);
 
-    // 2. CORRECCIÓN EMPATES: Calculamos los puestos reales de la tabla general
     let currentRank = 1;
     cachedData = sortedEntries.map(([key, data], index) => {
-      // Si no es el primero y tiene menos puntos que el anterior, aumenta el puesto al número de orden real
-      if (index > 0 && data.pts < sortedEntries[index - 1][1].pts) {
-        currentRank = index + 1;
-      }
-      // Si tienen los mismos puntos, mantendrán automáticamente el mismo 'currentRank'
+      if (index > 0 && data.pts < sortedEntries[index - 1][1].pts) currentRank = index + 1;
       return { key, ...data, rank: currentRank };
     });
 
@@ -107,28 +461,87 @@
   onValue(ref(db, "bets"), (s) => { bets = s.val() || {}; process(); });
   onValue(ref(db, "scores"), (s) => { scores = s.val() || {}; process(); });
 
-  window.render = (data) => {
-    // CORRECCIÓN BÚSQUEDA: Ahora usamos d.rank (su puesto global guardado fijos) en lugar del índice dinámico del bucle
-    document.getElementById("ranking-list").innerHTML = data.map((d) => `
-      <div class="rank-row" onclick="this.querySelector('.details').style.display = this.querySelector('.details').style.display === 'block' ? 'none' : 'block'">
-        <div class="header-row">
-          <div class="name-block"><span style="color:#f5b942">#${d.rank}</span> ${d.displayName.toUpperCase()}</div>
-          <div class="pts-block">${d.pts}</div>
-        </div>
-        <div class="details">
-          ${d.games.map(g => `<div class="bet-item">
-            <span>${g.match}</span>
-            <span>${g.bet} vs ${g.off} <span class="pts-badge">+${g.p} pts</span></span>
-          </div>`).join('')}
-        </div>
+  function getInitial(name) {
+    return name.trim().charAt(0).toUpperCase();
+  }
+
+  function renderPodium(top3) {
+    const podiumEl = document.getElementById("podium");
+    if (top3.length < 1) { podiumEl.innerHTML = ""; return; }
+
+    const slots = [
+      { data: top3[1], cls: "second", num: "🥈", label: "2" },
+      { data: top3[0], cls: "first",  num: "🥇", label: "1" },
+      { data: top3[2], cls: "third",  num: "🥉", label: "3" },
+    ].filter(s => s.data);
+
+    podiumEl.innerHTML = `
+      <div class="podium">
+        ${slots.map(s => `
+          <div class="podium-slot ${s.cls}">
+            <div class="podium-avatar">${getInitial(s.data.displayName)}</div>
+            <div class="podium-name">${s.data.displayName.toUpperCase()}</div>
+            <div class="podium-pts">${s.data.pts} PTS</div>
+            <div class="podium-base">${s.num}</div>
+          </div>
+        `).join("")}
       </div>
-    `).join("");
+    `;
+  }
+
+  window.render = (data) => {
+    // Podio solo con datos completos (sin filtro de búsqueda)
+    if (data === cachedData) renderPodium(cachedData.slice(0, 3));
+    else document.getElementById("podium").innerHTML = "";
+
+    const listEl = document.getElementById("ranking-list");
+
+    if (data.length === 0) {
+      listEl.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>No se encontraron resultados.</p></div>`;
+      return;
+    }
+
+    listEl.innerHTML = data.map((d) => {
+      const rankClass = d.rank === 1 ? "top1" : d.rank === 2 ? "top2" : d.rank === 3 ? "top3" : "";
+      const rankIcon = d.rank === 1 ? "🥇" : d.rank === 2 ? "🥈" : d.rank === 3 ? "🥉" : `#${d.rank}`;
+      return `
+        <div class="rank-row" onclick="toggleRow(this)">
+          <div class="rank-header">
+            <div class="rank-num ${rankClass}">${rankIcon}</div>
+            <div class="rank-name">${d.displayName.toUpperCase()}</div>
+            <div class="rank-right">
+              <div class="rank-pts">${d.pts}</div>
+              <div class="rank-arrow">▼</div>
+            </div>
+          </div>
+          <div class="rank-details">
+            <div class="detail-header">Historial de apuestas</div>
+            ${d.games.length === 0
+              ? '<div style="color:#8b96a8; font-size:0.85rem; padding:10px 0;">Sin partidos evaluados aún.</div>'
+              : d.games.map(g => `
+                <div class="detail-item">
+                  <div class="detail-match">${g.match}</div>
+                  <div class="detail-right">
+                    <div class="detail-score">${g.bet} <span style="color:#4a5568;">vs</span> ${g.real}</div>
+                    <div class="pts-pill p${g.p}">+${g.p}</div>
+                  </div>
+                </div>
+              `).join("")
+            }
+          </div>
+        </div>
+      `;
+    }).join("");
+  };
+
+  window.toggleRow = (el) => {
+    el.classList.toggle("open");
   };
 
   window.filtrar = () => {
     const t = document.getElementById("search-bar").value.toLowerCase().trim();
-    // Filtramos el array conservando sus propiedades fijas intactas (.rank y .displayName)
-    render(cachedData.filter((d) => d.key.includes(t) || d.displayName.toLowerCase().includes(t)));
+    if (!t) { render(cachedData); return; }
+    render(cachedData.filter(d => d.key.includes(t) || d.displayName.toLowerCase().includes(t)));
   };
 </script>
 </body>
