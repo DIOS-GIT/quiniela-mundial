@@ -419,23 +419,35 @@
         const esEmpateReal = hR === aR;
         const acertoMarcador = hB === hR && aB === aR;
 
-        let acertoExacto = false;
-        if (acertoMarcador) {
-          if (esEmpateReal) {
-            acertoExacto = penalesReal ? (b.penalesGanador === penalesReal) : true;
-          } else {
-            acertoExacto = true;
+        // Determinar si el partido es de fase eliminatoria (donde el empate no es resultado válido)
+        const esFaseEliminatoria = /eliminatoria/i.test(b.group || "");
+
+        let p = 0;
+
+        if (esFaseEliminatoria) {
+          // LÓGICA NUEVA: con penales
+          let acertoExacto = false;
+          if (acertoMarcador) {
+            if (esEmpateReal) {
+              acertoExacto = penalesReal ? (b.penalesGanador === penalesReal) : true;
+            } else {
+              acertoExacto = true;
+            }
           }
-        }
 
-        let acertoTendencia = false;
-        if (esEmpateReal && hB === aB) {
-          acertoTendencia = !!b.penalesGanador;
-        } else if (!esEmpateReal) {
-          acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR);
-        }
+          let acertoTendencia = false;
+          if (esEmpateReal && hB === aB) {
+            acertoTendencia = !!b.penalesGanador;
+          } else if (!esEmpateReal) {
+            acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR);
+          }
 
-        const p = acertoExacto ? 3 : acertoTendencia ? 1 : 0;
+          p = acertoExacto ? 3 : acertoTendencia ? 1 : 0;
+        } else {
+          // LÓGICA ORIGINAL: fase de grupos, el empate es un resultado válido normal
+          const acertoTendenciaGrupos = (hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR);
+          p = acertoMarcador ? 3 : acertoTendenciaGrupos ? 1 : 0;
+        }
 
         users[userKey].pts += p;
         users[userKey].games.push({
