@@ -518,20 +518,63 @@
             <div class="detail-header">Historial de apuestas</div>
             ${d.games.length === 0
               ? '<div style="color:#8b96a8; font-size:0.85rem; padding:10px 0;">Sin partidos evaluados aún.</div>'
-              : d.games.map(g => `
-                <div class="detail-item">
-                  <div class="detail-match">${g.match}</div>
-                  <div class="detail-right">
-                    <div class="detail-score">${g.bet} <span style="color:#4a5568;">vs</span> ${g.real}</div>
-                    <div class="pts-pill p${g.p}">+${g.p}</div>
-                  </div>
+              : `
+                <div style="position:relative; margin-bottom:10px;">
+                  <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#8b96a8; font-size:0.85rem; pointer-events:none;">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Buscar partido..."
+                    oninput="filtrarHistorial(this, '${d.key}')"
+                    onclick="event.stopPropagation()"
+                    style="width:100%; padding:9px 12px 9px 32px; background:#0a0c10; border:1px solid #2a3242; border-radius:8px; color:#eef1f5; font-size:0.8rem; font-family:'Montserrat',sans-serif; outline:none; margin-top:8px;"
+                  >
                 </div>
-              `).join("")
+                <div id="games-${d.key}">
+                  ${d.games.map(g => `
+                    <div class="detail-item" data-match="${g.match.toLowerCase()}">
+                      <div class="detail-match">${g.match}</div>
+                      <div class="detail-right">
+                        <div class="detail-score">${g.bet} <span style="color:#4a5568;">vs</span> ${g.real}</div>
+                        <div class="pts-pill p${g.p}">+${g.p}</div>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              `
             }
           </div>
         </div>
       `;
     }).join("");
+  };
+
+  window.filtrarHistorial = (input, userKey) => {
+    const q = input.value.toLowerCase().trim();
+    const container = document.getElementById(`games-${userKey}`);
+    if (!container) return;
+    const items = container.querySelectorAll('.detail-item');
+    let visibles = 0;
+
+    items.forEach(item => {
+      const match = item.getAttribute('data-match') || '';
+      const visible = !q || match.includes(q);
+      item.style.display = visible ? 'flex' : 'none';
+      if (visible) visibles++;
+    });
+
+    // Mensaje si no hay resultados
+    let emptyMsg = container.querySelector('.games-empty');
+    if (visibles === 0) {
+      if (!emptyMsg) {
+        emptyMsg = document.createElement('div');
+        emptyMsg.className = 'games-empty';
+        emptyMsg.style.cssText = 'color:#8b96a8; font-size:0.8rem; padding:10px 0; text-align:center;';
+        container.appendChild(emptyMsg);
+      }
+      emptyMsg.textContent = `Sin apuestas con "${input.value}"`;
+    } else if (emptyMsg) {
+      emptyMsg.remove();
+    }
   };
 
   window.toggleRow = (el) => {
