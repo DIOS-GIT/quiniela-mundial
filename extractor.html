@@ -182,28 +182,33 @@
       const esEmpateApuesta = (hB === aB);
       const esEmpateReal = (hR === aR);
       const esExtrema = !!b.extrema;
+      const esFaseEliminatoria = /eliminatoria/i.test(b.group || "");
 
       // Marcador exacto
       const acertoMarcador = (hB === hR && aB === aR);
 
-      // Para empates: también verificar si acertó el ganador en penales
       let acertoExacto = false;
-      if (acertoMarcador) {
-        if (esEmpateReal) {
-          // Solo es exacto si además acertó quién ganó en penales
-          acertoExacto = penalesRealGanador ? (b.penalesGanador === penalesRealGanador) : true;
-        } else {
-          acertoExacto = true;
-        }
-      }
-
-      // Tendencia: acertó el resultado final (home gana, away gana, o empate+penales)
       let acertoTendencia = false;
-      if (esEmpateReal && esEmpateApuesta) {
-        // Apostó empate y fue empate: acertó tendencia si eligió penales (aunque sea equivocado)
-        acertoTendencia = !!b.penalesGanador;
-      } else if (!esEmpateReal) {
-        acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR);
+
+      if (esFaseEliminatoria) {
+        // LÓGICA NUEVA: con penales (el empate no es resultado final)
+        if (acertoMarcador) {
+          if (esEmpateReal) {
+            acertoExacto = penalesRealGanador ? (b.penalesGanador === penalesRealGanador) : true;
+          } else {
+            acertoExacto = true;
+          }
+        }
+
+        if (esEmpateReal && esEmpateApuesta) {
+          acertoTendencia = !!b.penalesGanador;
+        } else if (!esEmpateReal) {
+          acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR);
+        }
+      } else {
+        // LÓGICA ORIGINAL: fase de grupos, el empate es un resultado válido
+        acertoExacto = acertoMarcador;
+        acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR);
       }
 
       if (esExtrema) {
