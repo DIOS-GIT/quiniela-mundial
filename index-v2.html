@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUBMANHWA · Quiniela Mundial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0f14; --bg-panel:#111622; --bg-card:#161c27;
+  --line:#222b3d; --line2:#2a3448;
+  --grass:#1ed87f; --gold:#f5b942; --red:#ff5d5d; --blue:#5d9dff;
+  --text:#eef1f5; --text-dim:#8b96a8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+
+/* NAV */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;background:var(--bg-panel);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:100;
+}
+.nav-brand{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--gold);}
+.nav-links{display:flex;gap:6px;}
+.nav-link{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;
+  padding:6px 14px;border-radius:8px;text-decoration:none;
+  color:var(--text-dim);border:1px solid transparent;transition:all .15s;
+}
+.nav-link.active{color:var(--gold);border-color:rgba(245,185,66,0.3);background:rgba(245,185,66,0.07);}
+.nav-link:hover{color:var(--text);}
+
+/* LAYOUT PRINCIPAL */
+.layout{display:flex;align-items:flex-start;max-width:1100px;margin:0 auto;padding:20px 16px 80px;gap:20px;}
+.main-col{flex:1;min-width:0;}
+.ticket-col{width:300px;flex-shrink:0;position:sticky;top:72px;}
+
+/* HEADER COMPACTO */
+.page-header{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;
+  padding:18px 20px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+.page-header-left h1{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,4vw,32px);
+  letter-spacing:2px;line-height:1;
+}
+.page-header-left h1 span{color:var(--grass);}
+.page-header-left p{color:var(--text-dim);font-size:12px;margin-top:4px;}
+.cards-pill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(245,185,66,0.08);border:1px solid rgba(245,185,66,0.25);
+  border-radius:10px;padding:10px 16px;
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;
+}
+.cards-pill .num{color:var(--gold);font-size:22px;}
+
+/* TABS */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:16px;}
+.tab{
+  flex:0 0 auto;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;
+  padding:8px 18px;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg-panel);color:var(--text-dim);cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.tab.active{border-color:var(--grass);color:var(--grass);background:rgba(30,216,127,0.08);}
+.tab.results-tab{border-color:var(--line);}
+.tab.results-tab.active{border-color:var(--gold)!important;color:var(--gold)!important;background:rgba(245,185,66,0.08)!important;}
+.tab:hover{color:var(--text);}
+
+/* MATCH CARD */
+.match-card{
+  background:var(--bg-card);border:1px solid var(--line);border-radius:14px;
+  margin-bottom:12px;overflow:hidden;transition:border-color .2s;
+}
+.match-card.has-bet{border-color:rgba(30,216,127,0.4);}
+
+/* MATCH HEADER */
+.match-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;background:var(--bg-panel);border-bottom:1px solid var(--line);
+  font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;
+}
+.match-phase{color:var(--text-dim);}
+.match-time{color:var(--gold);font-weight:700;}
+.match-time.soon{color:var(--red);}
+.match-time.live{color:var(--grass);animation:blink 1.2s step-start infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+/* MATCH BODY */
+.match-body{display:flex;align-items:stretch;gap:0;}
+
+/* CARTAS */
+.card-zone{
+  width:110px;flex-shrink:0;padding:14px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  border-right:1px solid var(--line);
+}
+.card-zone.away-zone{border-right:none;border-left:1px solid var(--line);}
+.card-img{width:100%;border-radius:8px;border:1px solid var(--line);display:block;}
+.card-tag{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);}
+
+/* CENTRO */
+.match-center{flex:1;padding:14px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+
+/* EQUIPOS */
+.teams-row{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;}
+.team{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.team-flag{font-size:26px;line-height:1;}
+.team-abbr{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--text-dim);}
+.team-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
+.vs-sep{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--line2);flex-shrink:0;}
+
+/* LIVE SCORE */
+.live-wrap{width:100%;text-align:center;}
+.live-status{font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.live-status.in-play{color:var(--red);font-weight:700;animation:blink 1.2s step-start infinite;}
+.live-status.finished{color:var(--grass);}
+.live-scores{display:flex;align-items:center;justify-content:center;gap:8px;}
+.live-box{
+  font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:10px;
+  padding:4px 16px;min-width:56px;text-align:center;
+}
+.live-sep{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text-dim);}
+.pen-label{font-size:11px;color:var(--gold);font-weight:700;margin-top:4px;}
+
+/* BET INPUTS AREA */
+.bet-area{width:100%;}
+.score-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.score-inp{
+  width:52px;height:52px;text-align:center;
+  font-family:'Bebas Neue',sans-serif;font-size:26px;
+  background:var(--bg-panel);border:1px solid var(--line);
+  border-radius:10px;color:var(--text);transition:border-color .15s;
+}
+.score-inp:focus{outline:none;border-color:var(--grass);}
+.score-dash{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text-dim);}
+
+/* PENALES */
+.pen-row{
+  display:none;width:100%;background:rgba(245,185,66,0.06);
+  border:1px solid rgba(245,185,66,0.3);border-radius:8px;padding:8px 10px;
+  margin-bottom:8px;
+}
+.pen-row.show{display:block;}
+.pen-label-sm{font-size:10px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;text-align:center;}
+.pen-btns{display:flex;gap:6px;}
+.pen-btn{
+  flex:1;padding:7px 4px;border:1px solid var(--line2);border-radius:6px;
+  background:var(--bg-panel);color:var(--text-dim);font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.pen-btn.selected{background:rgba(245,185,66,0.15);border-color:var(--gold);color:var(--gold);}
+
+/* EXTRA BETS */
+.extras-row{display:flex;gap:6px;width:100%;margin-bottom:8px;}
+.ou-btn{
+  flex:1;padding:7px 4px;border:1px solid var(--line2);border-radius:6px;
+  background:var(--bg-panel);color:var(--text-dim);font-size:11px;font-weight:500;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.ou-btn:hover{border-color:var(--blue);color:var(--blue);}
+.ou-btn.active{background:rgba(93,157,255,0.1);border-color:var(--blue);color:var(--blue);}
+.goal-inp{
+  flex:2;padding:7px 10px;border:1px solid var(--line2);border-radius:6px;
+  background:var(--bg-panel);color:var(--text);font-size:11px;font-family:'Rubik',sans-serif;
+}
+.goal-inp:focus{outline:none;border-color:var(--gold);}
+.goal-inp::placeholder{color:var(--text-dim);}
+
+/* EXTREMA */
+.extrema-toggle{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:8px 12px;border:1px dashed rgba(245,185,66,0.4);
+  border-radius:8px;background:rgba(245,185,66,0.04);
+  cursor:pointer;user-select:none;transition:background .2s;
+}
+.extrema-toggle:hover{background:rgba(245,185,66,0.08);}
+.extrema-toggle input{display:none;}
+.ext-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--gold);}
+.ext-sub{font-size:10px;color:var(--text-dim);margin-left:auto;}
+.extrema-panel{display:none;padding:10px 0 0;}
+.extrema-panel.open{display:block;}
+.ext-warn{
+  font-size:11px;color:#ff9090;background:rgba(255,93,93,0.08);
+  border:1px solid rgba(255,93,93,0.2);border-radius:6px;padding:8px;
+  margin-bottom:8px;line-height:1.5;
+}
+.ext-search{
+  width:100%;padding:7px 10px;background:var(--bg-panel);border:1px solid var(--line);
+  border-radius:6px;color:var(--text);font-size:12px;margin-bottom:6px;font-family:'Rubik',sans-serif;
+}
+.ext-search:focus{outline:none;border-color:var(--gold);}
+.ext-search::placeholder{color:var(--text-dim);}
+.ext-select{
+  width:100%;padding:8px;background:var(--bg-panel);border:1px solid var(--gold);
+  border-radius:6px;color:var(--text);font-size:12px;font-family:'Rubik',sans-serif;
+  max-height:160px;cursor:pointer;
+}
+
+/* MSG */
+.form-msg{font-size:12px;text-align:center;min-height:16px;margin-top:4px;}
+.form-msg.ok{color:var(--grass);}
+.form-msg.err{color:var(--red);}
+
+/* APUESTAS REGISTRADAS */
+.bets-section{padding:10px 16px 14px;border-top:1px solid var(--line);}
+.bets-header{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--text-dim);margin-bottom:8px;
+}
+.bets-count-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;
+  background:var(--bg-panel);border:1px solid var(--line);
+  border-radius:6px;padding:1px 8px;color:var(--text);
+}
+.bet-side{margin-bottom:8px;}
+.bet-side-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  display:flex;align-items:center;gap:5px;margin-bottom:3px;
+}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.dot.red{background:var(--red);}
+.dot.blue{background:var(--blue);}
+.dot.white{background:#e8e8e8;}
+.bet-side.red .bet-side-label{color:var(--red);}
+.bet-side.blue .bet-side-label{color:var(--blue);}
+.bet-side.white .bet-side-label{color:#e8e8e8;}
+.bet-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 10px;font-size:13px;border-radius:5px;margin-bottom:3px;
+}
+.bet-row.red{background:rgba(255,93,93,0.05);border-left:2px solid var(--red);}
+.bet-row.blue{background:rgba(93,157,255,0.05);border-left:2px solid var(--blue);}
+.bet-row.white{background:rgba(255,255,255,0.03);border-left:2px solid #e8e8e8;}
+.bet-row.perfect-match{background:rgba(245,185,66,0.1)!important;border-left:3px solid var(--gold)!important;}
+.bet-row.perfect-match .bname{color:var(--gold);font-weight:700;}
+.bname{color:var(--text);font-weight:500;}
+.bscore{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--gold);letter-spacing:1px;}
+.winner-tag{
+  font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;
+  background:var(--gold);color:#0c0f14;padding:1px 5px;border-radius:3px;
+  margin-left:6px;display:inline-block;vertical-align:middle;
+}
+.extrema-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(245,185,66,0.12);border:1px solid rgba(245,185,66,0.3);
+  color:var(--gold);font-size:9px;font-weight:700;
+  padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle;
+}
+.bets-empty{color:var(--text-dim);font-size:12px;text-align:center;padding:8px 0;}
+.btn-ver-mas{
+  width:100%;margin-top:6px;padding:7px;background:transparent;
+  border:1px dashed var(--line2);color:var(--text-dim);border-radius:6px;
+  cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;
+}
+.btn-ver-mas:hover{border-color:var(--gold);color:var(--gold);}
+.closed-msg{
+  text-align:center;padding:8px;font-size:12px;color:var(--text-dim);
+  background:rgba(255,255,255,0.02);border-radius:6px;
+}
+
+/* TICKET */
+.ticket-box{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.ticket-head{
+  padding:12px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ticket-title{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;
+  display:flex;align-items:center;gap:8px;
+}
+.ticket-badge{
+  background:var(--grass);color:#06291a;font-family:'Bebas Neue',sans-serif;
+  font-size:13px;width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.ticket-clear{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:11px;font-family:'Rubik',sans-serif;}
+.ticket-clear:hover{color:var(--red);}
+
+/* NICK EN TICKET */
+.nick-zone{padding:12px 16px;border-bottom:1px solid var(--line);}
+.nick-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;}
+.nick-inp{
+  width:100%;padding:9px 12px;border:1px solid var(--line2);border-radius:8px;
+  background:var(--bg-card);color:var(--text);font-size:13px;font-family:'Rubik',sans-serif;
+}
+.nick-inp:focus{outline:none;border-color:var(--grass);}
+.nick-inp::placeholder{color:var(--text-dim);}
+
+/* ITEMS DEL TICKET */
+.ticket-items{padding:8px 16px;min-height:100px;max-height:320px;overflow-y:auto;}
+.ticket-empty{padding:20px 0;text-align:center;color:var(--text-dim);font-size:12px;}
+.ticket-empty-icon{font-size:24px;margin-bottom:6px;}
+.t-item{padding:10px 0;border-bottom:1px solid var(--line);}
+.t-item:last-child{border-bottom:none;}
+.t-match{font-size:11px;color:var(--text-dim);margin-bottom:3px;}
+.t-score{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
+.t-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
+.t-tag{font-size:10px;padding:2px 7px;border-radius:20px;}
+.t-tag.pen{background:rgba(245,185,66,0.15);color:var(--gold);}
+.t-tag.ou{background:rgba(93,157,255,0.1);color:var(--blue);}
+.t-tag.goal{background:rgba(30,216,127,0.1);color:var(--grass);}
+.t-tag.ext{background:rgba(245,185,66,0.12);color:var(--gold);border:1px solid rgba(245,185,66,0.3);}
+
+/* FOOTER TICKET */
+.ticket-foot{padding:12px 16px;border-top:1px solid var(--line);}
+.ticket-summary{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-bottom:10px;}
+.confirm-btn{
+  width:100%;padding:13px;background:var(--grass);color:#06291a;
+  border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;
+  font-size:17px;letter-spacing:1.5px;cursor:pointer;transition:filter .15s;
+}
+.confirm-btn:hover{filter:brightness(1.1);}
+.confirm-btn:disabled{background:var(--line2);color:var(--text-dim);cursor:not-allowed;filter:none;}
+
+/* FAB MÓVIL */
+.fab{
+  display:none;position:fixed;bottom:20px;right:16px;z-index:200;
+  background:var(--grass);color:#06291a;border:none;border-radius:24px;
+  padding:12px 18px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;
+  cursor:pointer;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(30,216,127,0.3);
+}
+.fab-badge{
+  background:#06291a;color:var(--grass);border-radius:50%;
+  width:20px;height:20px;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* RULES PANEL */
+.rules-panel{
+  background:var(--bg-card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-bottom:16px;
+}
+.rules-panel h3{
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;
+  color:var(--gold);margin-bottom:12px;
+}
+.rules-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.rules-list li{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;color:var(--text);}
+.num-badge{
+  flex:0 0 22px;height:22px;border-radius:50%;
+  background:rgba(30,216,127,0.12);color:var(--grass);
+  font-family:'Bebas Neue',sans-serif;font-size:12px;
+  display:flex;align-items:center;justify-content:center;margin-top:1px;
+}
+.reward{color:var(--gold);font-weight:700;}
+.rules-img{display:block;max-width:260px;width:100%;height:auto;margin:8px 0 4px;border:1px solid var(--line);border-radius:6px;}
+
+/* RESULTADO CARD */
+.result-card{
+  background:var(--bg-card);border:1px solid var(--line);border-left:4px solid #3182ce;
+  border-radius:14px;margin-bottom:12px;overflow:hidden;
+}
+.result-header{padding:10px 16px;background:var(--bg-panel);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;}
+.result-body{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.result-team{display:flex;align-items:center;gap:8px;flex:1;}
+.result-team.away{justify-content:flex-end;}
+.result-score-zone{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
+.result-score{display:flex;align-items:center;gap:8px;}
+.r-box{font-family:'Bebas Neue',sans-serif;font-size:36px;background:var(--bg-panel);border:1px solid var(--line);border-radius:8px;padding:4px 14px;min-width:52px;text-align:center;}
+.r-sep{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text-dim);}
+.winner-label{font-size:11px;font-weight:700;color:var(--grass);}
+
+@media(max-width:820px){
+  .ticket-col{display:none;}
+  .fab{display:flex;}
+  .card-zone{width:80px;}
+  .team-name{font-size:15px;}
+}
+@media(max-width:500px){
+  .layout{padding:12px 10px 80px;}
+  .card-zone{display:none;}
+  .match-header{padding:8px 12px;}
+  .match-center{padding:12px;}
+  .score-inp{width:48px;height:48px;font-size:22px;}
+  .extras-row{flex-wrap:wrap;}
+  .goal-inp{flex:1 1 100%;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">⚽ SUBMANHWA</div>
+  <div class="nav-links">
+    <a href="index-v2.html" class="nav-link active">APUESTAS</a>
+    <a href="ranking.html" class="nav-link">RANKING</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- COLUMNA PRINCIPAL -->
+  <div class="main-col">
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>QUINIELA <span>MUNDIAL</span> 🏆</h1>
+        <p>Predice el resultado exacto de cada partido y gana cartas</p>
+      </div>
+      <div class="cards-pill">🃏 <span class="num" id="cards-total">0</span> CARTAS HOY</div>
+    </div>
+
+    <!-- REGLAS COLAPSABLES -->
+    <div class="rules-panel">
+      <h3 style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none'; this.querySelector('.rules-arrow').style.transform=this.nextElementSibling.style.display==='none'?'rotate(0deg)':'rotate(180deg)'">
+        📜 ¿CÓMO FUNCIONA?
+        <span class="rules-arrow" style="font-size:14px;color:var(--text-dim);transition:transform .2s;">▼</span>
+      </h3>
+      <ol class="rules-list" style="display:none;">
+        <li><span class="num-badge">1</span><span>Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color:var(--grass);">submanhwa.com</a>. El nick va en el ticket de la derecha (o abajo en móvil).<img class="rules-img" src="referencia-nick.jpg" alt="Referencia nick"></span></li>
+        <li><span class="num-badge">2</span><span>Coloca el marcador que crees que será el resultado final del partido.</span></li>
+        <li><span class="num-badge">3</span><span>Si aciertas el <span class="reward">equipo ganador</span>, te llevas la carta de ese equipo.</span></li>
+        <li><span class="num-badge">4</span><span>Si aciertas el <span class="reward">marcador exacto</span>, te llevas <span class="reward">las 2 cartas</span> del partido.</span></li>
+        <li><span class="num-badge">5</span><span>🥅 <span class="reward">Fase eliminatoria:</span> No hay empate. Si el marcador queda igualado, elige quién gana en penales. Exacto + penales → <span class="reward">2 cartas</span>. Exacto sin penales → <span class="reward">1 carta</span>.</span></li>
+        <li><span class="num-badge">6</span><span>⚡ <span class="reward">Apuesta Extrema:</span> Elige una carta extra. Si aciertas exacto → <span class="reward">3 cartas</span>. Si fallas → <span class="reward">0 cartas</span>. Todo o nada.</span></li>
+        <li><span class="num-badge">7</span><span>Las apuestas se <span class="reward">cierran automáticamente</span> cuando inicia el partido.</span></li>
+        <li><span class="num-badge">8</span><span>💎 Si ya tienes la carta, recibes <span class="reward">2,000 Kakeras</span> de compensación automáticamente.</span></li>
+      </ol>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabs"></div>
+
+    <!-- PARTIDOS -->
+    <div id="matches"></div>
+
+  </div>
+
+  <!-- TICKET LATERAL -->
+  <div class="ticket-col">
+    <div class="ticket-box">
+      <div class="ticket-head">
+        <div class="ticket-title">🎟️ TICKET <div class="ticket-badge" id="ticket-badge">0</div></div>
+        <button class="ticket-clear" onclick="limpiarTicket()">Limpiar todo</button>
+      </div>
+
+      <div class="nick-zone">
+        <div class="nick-label">Tu nick de submanhwa.com</div>
+        <input class="nick-inp" id="nick-global" placeholder="Escribe tu nombre..." oninput="syncNick();checkConfirm()">
+      </div>
+
+      <div class="ticket-items" id="ticket-items">
+        <div class="ticket-empty">
+          <div class="ticket-empty-icon">🎯</div>
+          Completa un marcador para agregar al ticket
+        </div>
+      </div>
+
+      <div class="ticket-foot">
+        <div class="ticket-summary">
+          <span>Apuestas listas</span>
+          <span id="ticket-summary-count">0 partidos</span>
+        </div>
+        <button class="confirm-btn" id="confirm-btn" disabled onclick="confirmarTodo()">CONFIRMAR APUESTAS</button>
+        <div id="ticket-msg" class="form-msg" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB MÓVIL -->
+<button class="fab" id="fab" onclick="abrirTicketMovil()">
+  🎟️ VER TICKET
+  <div class="fab-badge" id="fab-badge">0</div>
+</button>
+
+<!-- MODAL TICKET MÓVIL -->
+<div id="ticket-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);align-items:flex-end;">
+  <div style="background:var(--bg-panel);border-radius:20px 20px 0 0;border-top:1px solid var(--line);width:100%;max-height:85vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;">🎟️ TICKET</div>
+      <button onclick="cerrarTicketMovil()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:14px 18px;">
+      <div class="nick-label">Tu nick de submanhwa.com</div>
+      <input class="nick-inp" id="nick-global-mob" placeholder="Escribe tu nombre..." style="margin-bottom:12px;" oninput="syncNickMob();checkConfirm()">
+      <div id="ticket-items-mob" style="min-height:60px;margin-bottom:12px;"></div>
+      <button class="confirm-btn" id="confirm-btn-mob" disabled onclick="confirmarTodo()">CONFIRMAR APUESTAS</button>
+      <div id="ticket-msg-mob" class="form-msg" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<script src="matches-config.js?v=4.3"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const db = getDatabase(initializeApp({ databaseURL:"https://submanhwa-apuestas-default-rtdb.firebaseio.com" }));
+
+const tabsEl = document.getElementById("tabs");
+const matchesEl = document.getElementById("matches");
+
+let currentGroup = Object.keys(GROUPS)[0];
+let currentTab = "active";
+let liveScores = {};
+let currentBets = {};
+let ticketData = {};     // { matchId: { homeScore, awayScore, penales, ou, goleador, extrema, cartaExtra } }
+let matchLookup = {};    // matchId -> match obj
+
+// Construir lookup global
+Object.keys(GROUPS).forEach(g => GROUPS[g].forEach(m => { matchLookup[m.id] = m; }));
+
+// Escuchar scores en tiempo real para todos los partidos
+Object.keys(GROUPS).forEach(g => GROUPS[g].forEach(m => listenScore(m)));
+
+// Escuchar bets en tiempo real
+onValue(ref(db,"bets"), s => {
+  const all = s.val() || {};
+  Object.keys(all).forEach(mId => {
+    currentBets[mId] = Object.values(all[mId] || {});
+    refreshBetsList(mId);
+  });
+});
+
+// Cargar cartas totales
+let totalCards = 0;
+function recalcCards() {
+  totalCards = 0;
+  Object.keys(GROUPS).forEach(g => GROUPS[g].forEach(m => {
+    const s = liveScores[m.id];
+    if (!s || s.status === 'SI' || s.status === 'FINISHED') return;
+    totalCards += (m.cardsInPlay || 2);
+  }));
+  document.getElementById("cards-total").textContent = totalCards;
+}
+
+function listenScore(match) {
+  onValue(ref(db, "scores/" + match.id), snap => {
+    liveScores[match.id] = snap.val();
+    recalcCards();
+    if (currentTab === "active") renderMatches();
+    else renderResults();
+  });
+}
+
+/* ────────── TABS ────────── */
+function renderTabs() {
+  tabsEl.innerHTML = "";
+  Object.keys(GROUPS).forEach(g => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (currentTab === "active" && g === currentGroup ? " active" : "");
+    btn.textContent = "Grupo " + g;
+    btn.onclick = () => { currentGroup = g; currentTab = "active"; renderTabs(); renderMatches(); };
+    tabsEl.appendChild(btn);
+  });
+  const res = document.createElement("button");
+  res.className = "tab results-tab" + (currentTab === "results" ? " active" : "");
+  res.textContent = "Resultados";
+  res.onclick = () => { currentTab = "results"; renderTabs(); renderResults(); };
+  tabsEl.appendChild(res);
+}
+
+/* ────────── RENDER MATCHES ────────── */
+function renderMatches() {
+  matchesEl.innerHTML = "";
+  const list = (GROUPS[currentGroup] || []).filter(m => {
+    const s = liveScores[m.id];
+    return !(s && (s.status === "SI" || s.status === "FINISHED"));
+  });
+
+  if (list.length === 0) {
+    matchesEl.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:40px 20px;font-size:14px;">Todos los partidos han finalizado. Revisa <b style="color:var(--gold);">Resultados</b>.</div>`;
+    return;
+  }
+  list.forEach(m => matchesEl.appendChild(buildMatchCard(m)));
+}
+
+function buildMatchCard(match) {
+  const now = Date.now();
+  const closeMs = match.closeTime ? new Date(match.closeTime).getTime() : 0;
+  const closed = closeMs && now >= closeMs;
+  const score = liveScores[match.id];
+  const isLive = score && (score.status === "IN_PLAY" || score.status === "PAUSED");
+  const td = ticketData[match.id] || {};
+
+  const card = document.createElement("div");
+  card.className = "match-card" + (td.homeScore !== undefined ? " has-bet" : "");
+  card.id = "card-" + match.id;
+
+  // Tiempo restante
+  let timeHtml = "";
+  if (isLive) {
+    timeHtml = `<span class="match-time live">🔴 EN VIVO</span>`;
+  } else if (closed) {
+    timeHtml = `<span class="match-time" style="color:var(--text-dim);">CERRADAS</span>`;
+  } else {
+    const diff = closeMs - now;
+    const h = Math.floor(diff/3600000);
+    const m2 = Math.floor((diff%3600000)/60000);
+    const soon = diff < 3600000;
+    timeHtml = `<span class="match-time${soon?' soon':''}" id="cd-${match.id}">Cierra en ${h}h ${m2}m</span>`;
+    setTimeout(() => updateCountdown(match.id, closeMs), 30000);
+  }
+
+  // Contenido central: live score o formulario
+  let centerContent = "";
+  if (score && (isLive || score.status === "SI" || score.status === "FINISHED")) {
+    const penLabel = (score.status==="SI"||score.status==="FINISHED") && Number(score.home)===Number(score.away) && score.penalesGanador
+      ? `<div class="pen-label">⚡ Pasa ${score.penalesGanador==="home"?match.home.name:match.away.name} (penales)</div>` : "";
+    const st = (score.status==="SI"||score.status==="FINISHED") ? "finished" : "in-play";
+    const stTxt = (score.status==="SI"||score.status==="FINISHED") ? "⚽ Partido finalizado" : "🔴 En vivo";
+    centerContent = `
+      <div class="live-wrap" id="live-${match.id}">
+        <div class="live-status ${st}">${stTxt}</div>
+        <div class="live-scores">
+          <div class="live-box">${score.home??0}</div>
+          <div class="live-sep">—</div>
+          <div class="live-box">${score.away??0}</div>
+        </div>
+        ${penLabel}
+      </div>`;
+  } else if (!closed) {
+    const penShow = td.homeScore !== undefined && td.awayScore !== undefined && Number(td.homeScore) === Number(td.awayScore) ? "show" : "";
+    centerContent = `
+      <div class="bet-area" id="bet-area-${match.id}">
+        <div class="score-row">
+          <input class="score-inp" type="number" min="0" max="20" placeholder="0" id="h-${match.id}" value="${td.homeScore??''}" oninput="window.onScoreInput('${match.id}')">
+          <span class="score-dash">—</span>
+          <input class="score-inp" type="number" min="0" max="20" placeholder="0" id="a-${match.id}" value="${td.awayScore??''}" oninput="window.onScoreInput('${match.id}')">
+        </div>
+        <div class="pen-row ${penShow}" id="pen-row-${match.id}">
+          <div class="pen-label-sm">⚡ Empate — ¿quién gana en penales?</div>
+          <div class="pen-btns">
+            <button class="pen-btn${td.penales==='home'?' selected':''}" id="pen-h-${match.id}" onclick="window.selPen('${match.id}','home')">${match.home.flag} ${match.home.name}</button>
+            <button class="pen-btn${td.penales==='away'?' selected':''}" id="pen-a-${match.id}" onclick="window.selPen('${match.id}','away')">${match.away.flag} ${match.away.name}</button>
+          </div>
+        </div>
+        <div class="extras-row">
+          <button class="ou-btn${td.ou==='over'?' active':''}" id="over-${match.id}" onclick="window.toggleOU('${match.id}','over')">⬆ Over 2.5</button>
+          <button class="ou-btn${td.ou==='under'?' active':''}" id="under-${match.id}" onclick="window.toggleOU('${match.id}','under')">⬇ Under 2.5</button>
+          <input class="goal-inp" id="goal-${match.id}" placeholder="Primer goleador..." value="${td.goleador||''}" oninput="window.onGoalInput('${match.id}')">
+        </div>
+        <label class="extrema-toggle" onclick="window.toggleExtrema('${match.id}')">
+          <input type="checkbox" id="ext-cb-${match.id}" ${td.extrema?'checked':''}>
+          <span>⚡</span>
+          <span class="ext-label">APUESTA EXTREMA</span>
+          <span class="ext-sub">+1 carta si aciertas exacto</span>
+        </label>
+        <div class="extrema-panel${td.extrema?' open':''}" id="ext-panel-${match.id}">
+          <div class="ext-warn">⚠️ Si activas esta opción y fallas el marcador exacto, <b>no recibirás ninguna carta</b>.</div>
+          <input class="ext-search" placeholder="Buscar carta..." oninput="window.filtrarCartas('${match.id}',this.value)">
+          <select class="ext-select" id="ext-sel-${match.id}" size="5" onchange="window.onCartaSelect('${match.id}')"></select>
+        </div>
+        <div id="msg-${match.id}" class="form-msg"></div>
+      </div>`;
+  } else {
+    centerContent = `<div class="closed-msg">🔒 Las apuestas para este partido están cerradas.</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="match-header">
+      <span class="match-phase">${match.groupName} · ${match.date}</span>
+      ${timeHtml}
+    </div>
+    <div class="match-body">
+      <div class="card-zone">
+        <img class="card-img" src="cards/${match.home.card}" alt="${match.home.name}" onerror="this.src='cards/default.jpg'">
+        <span class="card-tag">🃏 Mítico</span>
+      </div>
+      <div class="match-center" id="center-${match.id}">
+        <div class="teams-row">
+          <div class="team">
+            <div class="team-flag">${match.home.flag}</div>
+            <div class="team-abbr">${match.home.name.substring(0,3).toUpperCase()}</div>
+            <div class="team-name">${match.home.name}</div>
+          </div>
+          <div class="vs-sep">VS</div>
+          <div class="team">
+            <div class="team-flag">${match.away.flag}</div>
+            <div class="team-abbr">${match.away.name.substring(0,3).toUpperCase()}</div>
+            <div class="team-name">${match.away.name}</div>
+          </div>
+        </div>
+        ${centerContent}
+      </div>
+      <div class="card-zone away-zone">
+        <img class="card-img" src="cards/${match.away.card}" alt="${match.away.name}" onerror="this.src='cards/default.jpg'">
+        <span class="card-tag">🃏 Mítico</span>
+      </div>
+    </div>
+    <div class="bets-section" id="bets-section-${match.id}">
+      <div class="bets-header">
+        <span>Apuestas registradas</span>
+        <span class="bets-count-badge" id="count-${match.id}">0</span>
+      </div>
+      <div id="bets-${match.id.replace(/\./g,'_')}"></div>
+    </div>`;
+
+  // Cargar cartas para extrema
+  if (!closed) setTimeout(() => loadCartas(match.id), 50);
+
+  // Pintar apuestas si ya existen
+  if (currentBets[match.id]) {
+    setTimeout(() => refreshBetsList(match.id), 100);
+  }
+
+  return card;
+}
+
+/* ────────── RESULTADOS ────────── */
+function renderResults() {
+  matchesEl.innerHTML = "";
+  const finalizados = [];
+  Object.keys(GROUPS).forEach(g => GROUPS[g].forEach(m => {
+    const s = liveScores[m.id];
+    if (s && (s.status==="SI"||s.status==="FINISHED")) finalizados.push({match:m, score:s});
+  }));
+
+  if (finalizados.length === 0) {
+    matchesEl.innerHTML = `<div style="text-align:center;color:var(--text-dim);padding:40px 20px;">Aún no hay partidos finalizados.</div>`;
+    return;
+  }
+
+  finalizados.forEach(({match:m, score}) => {
+    const hG = Number(score.home), aG = Number(score.away);
+    let ganador = hG > aG ? `Ganó ${m.home.name}` : aG > hG ? `Ganó ${m.away.name}` : score.penalesGanador ? `Empate — Pasa ${score.penalesGanador==="home"?m.home.name:m.away.name} (pen.)` : "Empate";
+
+    const card = document.createElement("div");
+    card.className = "result-card";
+    card.innerHTML = `
+      <div class="result-header">
+        <span>${m.groupName} · ${m.date}</span>
+        <span style="color:#3182ce;">FINALIZADO</span>
+      </div>
+      <div class="result-body">
+        <div class="result-team">
+          <span style="font-size:24px;">${m.home.flag}</span>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;">${m.home.name}</div>
+          </div>
+        </div>
+        <div class="result-score-zone">
+          <div class="result-score">
+            <div class="r-box">${hG}</div>
+            <div class="r-sep">—</div>
+            <div class="r-box">${aG}</div>
+          </div>
+          <div class="winner-label">${ganador}</div>
+        </div>
+        <div class="result-team away">
+          <div style="text-align:right;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;">${m.away.name}</div>
+          </div>
+          <span style="font-size:24px;">${m.away.flag}</span>
+        </div>
+      </div>
+      <div class="bets-section" id="bets-section-${m.id}">
+        <div class="bets-header">
+          <span>Apuestas registradas</span>
+          <span class="bets-count-badge" id="count-${m.id}">0</span>
+        </div>
+        <div id="bets-${m.id.replace(/\./g,'_')}"></div>
+      </div>`;
+    matchesEl.appendChild(card);
+    if (currentBets[m.id]) setTimeout(() => refreshBetsList(m.id), 100);
+  });
+}
+
+/* ────────── BETS LIST ────────── */
+function refreshBetsList(matchId) {
+  const safeId = matchId.replace(/\./g,"_");
+  const betsEl = document.getElementById("bets-"+safeId);
+  const countEl = document.getElementById("count-"+matchId);
+  if (!betsEl) return;
+
+  const entries = currentBets[matchId] || [];
+  if (countEl) countEl.textContent = entries.length;
+  if (entries.length === 0) { betsEl.innerHTML = `<div class="bets-empty">Aún no hay apuestas.</div>`; return; }
+
+  const score = liveScores[matchId];
+  const groups = {red:[],blue:[],white:[]};
+  entries.forEach(b => {
+    if (Number(b.homeScore) > Number(b.awayScore)) groups.red.push(b);
+    else if (Number(b.homeScore) < Number(b.awayScore)) groups.blue.push(b);
+    else groups.white.push(b);
+  });
+
+  const match = matchLookup[matchId];
+  const labels = {
+    red: `🔴 Gana ${match?match.home.name:"Local"} (${groups.red.length})`,
+    blue: `🔵 Gana ${match?match.away.name:"Visitante"} (${groups.blue.length})`,
+    white: `⚪ Empate (${groups.white.length})`
+  };
+
+  const PREVIEW = 5;
+  betsEl.innerHTML = "";
+
+  ["red","blue","white"].forEach(color => {
+    if (!groups[color].length) return;
+    const sec = document.createElement("div");
+    sec.className = "bet-side " + color;
+    sec.innerHTML = `<div class="bet-side-label"><span class="dot ${color}"></span>${labels[color]}</div>`;
+
+    const buildRow = b => {
+      let isPerfect = false, tagHtml = "";
+      if (score && (score.status==="IN_PLAY"||score.status==="PAUSED"||score.status==="SI"||score.status==="FINISHED")) {
+        if (Number(b.homeScore)===Number(score.home) && Number(b.awayScore)===Number(score.away)) {
+          isPerfect = true;
+          tagHtml = (score.status==="SI"||score.status==="FINISHED")
+            ? `<span class="winner-tag">🏆 GANADOR</span>`
+            : `<span class="winner-tag">🔥 ATINANDO</span>`;
+        }
+      }
+      const extBadge = b.extrema ? `<span class="extrema-badge">⚡ ${b.cartaExtra?b.cartaExtra.split(' —')[0]:'Extrema'}</span>` : '';
+      const penBadge = b.penalesGanador ? `<span style="font-size:10px;color:var(--gold);margin-left:4px;">⚡ ${b.penalesGanador==='home'?(match?match.home.name:'Local'):(match?match.away.name:'Visit.')}</span>` : '';
+      const row = document.createElement("div");
+      row.className = `bet-row ${color}${isPerfect?' perfect-match':''}`;
+      row.innerHTML = `<span class="bname">${esc(b.username)}${tagHtml}${extBadge}${penBadge}</span><span class="bscore">${b.homeScore}-${b.awayScore}</span>`;
+      return row;
+    };
+
+    const preview = groups[color].slice(0, PREVIEW);
+    const rest = groups[color].slice(PREVIEW);
+    preview.forEach(b => sec.appendChild(buildRow(b)));
+    if (rest.length) {
+      const hidden = document.createElement("div");
+      hidden.id = `hidden-${matchId}-${color}`;
+      hidden.style.display = "none";
+      rest.forEach(b => hidden.appendChild(buildRow(b)));
+      sec.appendChild(hidden);
+      const btnV = document.createElement("button");
+      btnV.className = "btn-ver-mas";
+      btnV.textContent = `Ver todas (${groups[color].length}) ▼`;
+      btnV.onclick = () => {
+        const h = document.getElementById(`hidden-${matchId}-${color}`);
+        if (h.style.display==="none") { h.style.display="block"; btnV.textContent="Ocultar ▲"; }
+        else { h.style.display="none"; btnV.textContent=`Ver todas (${groups[color].length}) ▼`; }
+      };
+      sec.appendChild(btnV);
+    }
+    betsEl.appendChild(sec);
+  });
+}
+
+/* ────────── TICKET ────────── */
+window.onScoreInput = (matchId) => {
+  const h = document.getElementById("h-"+matchId);
+  const a = document.getElementById("a-"+matchId);
+  if (!h||!a) return;
+  if (h.value !== "" && a.value !== "") {
+    if (!ticketData[matchId]) ticketData[matchId] = {};
+    ticketData[matchId].homeScore = Number(h.value);
+    ticketData[matchId].awayScore = Number(a.value);
+    // Penales
+    const penRow = document.getElementById("pen-row-"+matchId);
+    if (penRow) penRow.classList.toggle("show", Number(h.value)===Number(a.value));
+    // Highlight card
+    const card = document.getElementById("card-"+matchId);
+    if (card) card.classList.add("has-bet");
+  } else {
+    if (ticketData[matchId]) { delete ticketData[matchId].homeScore; delete ticketData[matchId].awayScore; }
+    const card = document.getElementById("card-"+matchId);
+    if (card) card.classList.remove("has-bet");
+  }
+  renderTicket();
+};
+
+window.selPen = (matchId, side) => {
+  if (!ticketData[matchId]) ticketData[matchId] = {};
+  ticketData[matchId].penales = ticketData[matchId].penales === side ? null : side;
+  const btnH = document.getElementById("pen-h-"+matchId);
+  const btnA = document.getElementById("pen-a-"+matchId);
+  if(btnH) btnH.classList.toggle("selected", ticketData[matchId].penales==="home");
+  if(btnA) btnA.classList.toggle("selected", ticketData[matchId].penales==="away");
+  renderTicket();
+};
+
+window.toggleOU = (matchId, side) => {
+  if (!ticketData[matchId]) ticketData[matchId] = {};
+  ticketData[matchId].ou = ticketData[matchId].ou === side ? null : side;
+  document.getElementById("over-"+matchId)?.classList.toggle("active", ticketData[matchId].ou==="over");
+  document.getElementById("under-"+matchId)?.classList.toggle("active", ticketData[matchId].ou==="under");
+  renderTicket();
+};
+
+window.onGoalInput = (matchId) => {
+  if (!ticketData[matchId]) ticketData[matchId] = {};
+  ticketData[matchId].goleador = document.getElementById("goal-"+matchId)?.value || "";
+  renderTicket();
+};
+
+window.toggleExtrema = (matchId) => {
+  if (!ticketData[matchId]) ticketData[matchId] = {};
+  ticketData[matchId].extrema = !ticketData[matchId].extrema;
+  const cb = document.getElementById("ext-cb-"+matchId);
+  if (cb) cb.checked = ticketData[matchId].extrema;
+  const panel = document.getElementById("ext-panel-"+matchId);
+  if (panel) panel.classList.toggle("open", ticketData[matchId].extrema);
+  if (!ticketData[matchId].extrema) { delete ticketData[matchId].cartaExtra; }
+  renderTicket();
+};
+
+window.onCartaSelect = (matchId) => {
+  if (!ticketData[matchId]) ticketData[matchId] = {};
+  const sel = document.getElementById("ext-sel-"+matchId);
+  if (sel) ticketData[matchId].cartaExtra = sel.value;
+  renderTicket();
+};
+
+function renderTicket() {
+  const items = document.getElementById("ticket-items");
+  const itemsMob = document.getElementById("ticket-items-mob");
+  let count = 0;
+  let html = "";
+
+  Object.keys(ticketData).forEach(mId => {
+    const td = ticketData[mId];
+    if (td.homeScore === undefined || td.awayScore === undefined) return;
+    const m = matchLookup[mId];
+    if (!m) return;
+    count++;
+    let tags = "";
+    if (td.penales) tags += `<span class="t-tag pen">⚡ ${td.penales==="home"?m.home.name:m.away.name} gana pen.</span>`;
+    if (td.ou) tags += `<span class="t-tag ou">${td.ou==="over"?"⬆ Over":"⬇ Under"} 2.5</span>`;
+    if (td.goleador) tags += `<span class="t-tag goal">⚽ ${td.goleador}</span>`;
+    if (td.extrema) tags += `<span class="t-tag ext">⚡ Extrema${td.cartaExtra?" — "+td.cartaExtra.split(' —')[0]:""}</span>`;
+    html += `<div class="t-item">
+      <div class="t-match">${m.home.name} vs ${m.away.name}</div>
+      <div class="t-score">${td.homeScore} — ${td.awayScore}</div>
+      ${tags?`<div class="t-tags">${tags}</div>`:""}
+    </div>`;
+  });
+
+  const emptyHtml = `<div class="ticket-empty"><div class="ticket-empty-icon">🎯</div>Completa un marcador para agregar al ticket</div>`;
+  if (items) items.innerHTML = count ? html : emptyHtml;
+  if (itemsMob) itemsMob.innerHTML = count ? html : emptyHtml;
+
+  document.getElementById("ticket-badge").textContent = count;
+  document.getElementById("fab-badge").textContent = count;
+  document.getElementById("ticket-summary-count").textContent = count + " partido" + (count!==1?"s":"");
+  checkConfirm();
+}
+
+window.syncNick = () => {
+  const v = document.getElementById("nick-global").value;
+  const m = document.getElementById("nick-global-mob");
+  if (m && m.value !== v) m.value = v;
+};
+window.syncNickMob = () => {
+  const v = document.getElementById("nick-global-mob").value;
+  const d = document.getElementById("nick-global");
+  if (d && d.value !== v) d.value = v;
+};
+
+function getNick() {
+  return (document.getElementById("nick-global")?.value || document.getElementById("nick-global-mob")?.value || "").trim();
+}
+
+window.checkConfirm = () => {
+  const nick = getNick();
+  const count = parseInt(document.getElementById("ticket-badge").textContent);
+  const ok = !!(nick && count > 0);
+  document.getElementById("confirm-btn").disabled = !ok;
+  const mob = document.getElementById("confirm-btn-mob");
+  if (mob) mob.disabled = !ok;
+};
+
+window.limpiarTicket = () => {
+  ticketData = {};
+  document.getElementById("nick-global").value = "";
+  const mob = document.getElementById("nick-global-mob");
+  if (mob) mob.value = "";
+  renderTicket();
+  // Limpiar inputs visuales
+  document.querySelectorAll(".score-inp").forEach(i => i.value="");
+  document.querySelectorAll(".match-card").forEach(c => c.classList.remove("has-bet"));
+  document.querySelectorAll(".pen-row").forEach(r => r.classList.remove("show"));
+  document.querySelectorAll(".ou-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".goal-inp").forEach(i => i.value="");
+  document.querySelectorAll(".extrema-panel").forEach(p => p.classList.remove("open"));
+};
+
+window.confirmarTodo = async () => {
+  const nick = getNick();
+  if (!nick) return;
+
+  const btn = document.getElementById("confirm-btn");
+  const btnMob = document.getElementById("confirm-btn-mob");
+  const msgEl = document.getElementById("ticket-msg");
+  const msgMob = document.getElementById("ticket-msg-mob");
+
+  btn.disabled = true;
+  btn.textContent = "ENVIANDO...";
+
+  const promises = [];
+  const validEntries = Object.keys(ticketData).filter(mId => ticketData[mId].homeScore !== undefined);
+
+  if (validEntries.length === 0) return;
+
+  // Verificar duplicados
+  for (const mId of validEntries) {
+    const existingBets = currentBets[mId] || [];
+    const yaAposto = existingBets.find(b => b.username.trim().toLowerCase() === nick.toLowerCase());
+    if (yaAposto) {
+      const m = matchLookup[mId];
+      [msgEl, msgMob].forEach(el => { if(el){ el.className="form-msg err"; el.textContent=`Ya apostaste en ${m?.home.name} vs ${m?.away.name}.`; }});
+      btn.textContent = "CONFIRMAR APUESTAS";
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  for (const mId of validEntries) {
+    const td = ticketData[mId];
+    const m = matchLookup[mId];
+    if (!m) continue;
+
+    const closeMs = m.closeTime ? new Date(m.closeTime).getTime() : 0;
+    if (closeMs && Date.now() >= closeMs) continue;
+
+    const betData = {
+      matchId: mId,
+      group: Object.keys(GROUPS).find(g => GROUPS[g].find(x => x.id === mId)) || "",
+      home: m.home.name, away: m.away.name,
+      homeScore: td.homeScore, awayScore: td.awayScore,
+      username: nick, createdAt: Date.now()
+    };
+    if (td.penales) betData.penalesGanador = td.penales;
+    if (td.ou) betData.overUnder = td.ou;
+    if (td.goleador) betData.goleador = td.goleador;
+    if (td.extrema) { betData.extrema = true; if (td.cartaExtra) betData.cartaExtra = td.cartaExtra; }
+
+    promises.push(push(ref(db, "bets/" + mId), betData));
+  }
+
+  try {
+    await Promise.all(promises);
+    [msgEl, msgMob].forEach(el => { if(el){ el.className="form-msg ok"; el.textContent=`✅ ${promises.length} apuesta${promises.length!==1?"s":""} registrada${promises.length!==1?"s":""}!`; }});
+    setTimeout(() => { [msgEl,msgMob].forEach(el=>{if(el)el.textContent="";}); }, 3000);
+    ticketData = {};
+    renderTicket();
+    document.querySelectorAll(".score-inp").forEach(i=>i.value="");
+    document.querySelectorAll(".match-card").forEach(c=>c.classList.remove("has-bet"));
+    document.querySelectorAll(".pen-row").forEach(r=>r.classList.remove("show"));
+    document.querySelectorAll(".ou-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".goal-inp").forEach(i=>i.value="");
+  } catch(e) {
+    [msgEl,msgMob].forEach(el=>{if(el){el.className="form-msg err";el.textContent="Error al guardar. Intenta de nuevo.";}});
+  }
+
+  btn.textContent = "CONFIRMAR APUESTAS";
+  checkConfirm();
+};
+
+/* ────────── EXTREMA CARTAS ────────── */
+let cartasCache = [];
+function loadCartas(matchId) {
+  const sel = document.getElementById("ext-sel-"+matchId);
+  if (!sel) return;
+  if (cartasCache.length) { fillCartasSel(sel, matchId, ""); return; }
+  onValue(ref(db,"cartas"), snap => {
+    cartasCache = [];
+    const data = snap.val() || {};
+    Object.entries(data).forEach(([k,v]) => { if(v&&v.name) cartasCache.push({key:k,...v}); });
+    cartasCache.sort((a,b) => a.name.localeCompare(b.name));
+    fillCartasSel(sel, matchId, "");
+  }, {onlyOnce:true});
+}
+
+function fillCartasSel(sel, matchId, filter) {
+  const td = ticketData[matchId] || {};
+  const filtered = filter ? cartasCache.filter(c => c.name.toLowerCase().includes(filter.toLowerCase())) : cartasCache;
+  sel.innerHTML = filtered.map(c => `<option value="${c.name} — ${c.key}" ${td.cartaExtra===c.name+" — "+c.key?"selected":""}>${c.name}</option>`).join("");
+}
+
+window.filtrarCartas = (matchId, val) => {
+  const sel = document.getElementById("ext-sel-"+matchId);
+  if (sel) fillCartasSel(sel, matchId, val);
+};
+
+/* ────────── MOBILE MODAL ────────── */
+window.abrirTicketMovil = () => {
+  const m = document.getElementById("ticket-modal");
+  m.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  // Sync nick
+  const nick = document.getElementById("nick-global").value;
+  const mobInp = document.getElementById("nick-global-mob");
+  if (mobInp) mobInp.value = nick;
+  const itemsMob = document.getElementById("ticket-items-mob");
+  const itemsDes = document.getElementById("ticket-items");
+  if (itemsMob && itemsDes) itemsMob.innerHTML = itemsDes.innerHTML;
+};
+window.cerrarTicketMovil = () => {
+  document.getElementById("ticket-modal").style.display = "none";
+  document.body.style.overflow = "";
+};
+
+/* ────────── COUNTDOWN ────────── */
+function updateCountdown(matchId, closeMs) {
+  const el = document.getElementById("cd-"+matchId);
+  if (!el) return;
+  const diff = closeMs - Date.now();
+  if (diff <= 0) { el.textContent = "CERRADAS"; el.className="match-time"; return; }
+  const h = Math.floor(diff/3600000);
+  const m2 = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  el.textContent = `Cierra en ${h?h+'h ':''}${m2}m ${s}s`;
+  el.className = "match-time" + (diff < 3600000 ? " soon" : "");
+  setTimeout(() => updateCountdown(matchId, closeMs), 1000);
+}
+
+function esc(str) {
+  return (str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// INICIO
+renderTabs();
+renderMatches();
+</script>
+</body>
+</html>
