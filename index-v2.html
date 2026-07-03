@@ -174,6 +174,23 @@ nav{
 .goal-inp:focus{outline:none;border-color:var(--gold);}
 .goal-inp::placeholder{color:var(--text-dim);}
 
+/* AUTOCOMPLETE GOLEADOR */
+.goal-wrap{flex:2;position:relative;}
+.goal-dropdown{
+  position:absolute;top:100%;left:0;right:0;z-index:50;
+  background:var(--bg-panel);border:1px solid var(--gold);border-radius:6px;
+  max-height:160px;overflow-y:auto;display:none;margin-top:2px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+.goal-dropdown.show{display:block;}
+.goal-opt{
+  padding:7px 10px;font-size:12px;cursor:pointer;
+  border-bottom:1px solid var(--line);transition:background .1s;
+}
+.goal-opt:last-child{border-bottom:none;}
+.goal-opt:hover{background:rgba(245,185,66,0.1);color:var(--gold);}
+.goal-opt .player-team{font-size:10px;color:var(--text-dim);margin-left:6px;}
+
 /* EXTREMA */
 .extrema-toggle{
   display:flex;align-items:center;gap:8px;width:100%;
@@ -492,6 +509,7 @@ nav{
 </div>
 
 <script src="matches-config.js?v=4.3"></script>
+<script src="players-wc2026.js?v=1.0"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -639,7 +657,8 @@ function buildMatchCard(match) {
         <div class="extras-row">
           <button class="ou-btn${td.ou==='over'?' active':''}" id="over-${match.id}" onclick="window.toggleOU('${match.id}','over')">⬆ Over 2.5</button>
           <button class="ou-btn${td.ou==='under'?' active':''}" id="under-${match.id}" onclick="window.toggleOU('${match.id}','under')">⬇ Under 2.5</button>
-          <input class="goal-inp" id="goal-${match.id}" placeholder="Primer goleador..." value="${td.goleador||''}" oninput="window.onGoalInput('${match.id}')">
+          <input class="goal-inp" id="goal-${match.id}" placeholder="⚽ Primer goleador..." value="${td.goleador||''}" autocomplete="off" oninput="window.onGoalInput('${match.id}','${match.home.name}','${match.away.name}')" onfocus="window.onGoalInput('${match.id}','${match.home.name}','${match.away.name}')" onblur="setTimeout(()=>window.closeDropdown('${match.id}'),200)">
+          <div class="goal-dropdown" id="goal-dd-${match.id}"></div>
         </div>
         <label class="extrema-toggle" onclick="window.toggleExtrema('${match.id}')">
           <input type="checkbox" id="ext-cb-${match.id}" ${td.extrema?'checked':''}>
@@ -884,10 +903,71 @@ window.toggleOU = (matchId, side) => {
   renderTicket();
 };
 
-window.onGoalInput = (matchId) => {
+window.onGoalInput = (matchId, homeName, awayName) => {
   if (!ticketData[matchId]) ticketData[matchId] = {};
-  ticketData[matchId].goleador = document.getElementById("goal-"+matchId)?.value || "";
+  const inp = document.getElementById("goal-"+matchId);
+  const dd = document.getElementById("goal-dd-"+matchId);
+  if (!inp || !dd) return;
+
+  const q = inp.value.trim().toLowerCase();
+  ticketData[matchId].goleador = inp.value;
   renderTicket();
+
+  if (!q || q.length < 2) { dd.classList.remove("show"); dd.innerHTML=""; return; }
+
+  // Buscar en los equipos del partido + todos como fallback
+  const teamsToSearch = [];
+  if (typeof WC2026_SQUADS !== "undefined") {
+    // Primero buscar en los equipos del partido
+    const homeKey = Object.keys(WC2026_SQUADS).find(k => homeName && homeName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(homeName?.toLowerCase()||""));
+    const awayKey = Object.keys(WC2026_SQUADS).find(k => awayName && awayName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(awayName?.toLowerCase()||""));
+    if (homeKey) teamsToSearch.push(homeKey);
+    if (awayKey && awayKey !== homeKey) teamsToSearch.push(awayKey);
+    // Si no encontró, buscar en todos
+    if (teamsToSearch.length === 0) Object.keys(WC2026_SQUADS).forEach(k => teamsToSearch.push(k));
+  }
+
+  const results = [];
+  teamsToSearch.forEach(team => {
+    (WC2026_SQUADS[team] || []).forEach(player => {
+      if (player.toLowerCase().includes(q)) {
+        results.push({ player, team });
+      }
+    });
+  });
+
+  // Si no encontró en equipos del partido, buscar en todos
+  if (results.length === 0 && typeof WC2026_SQUADS !== "undefined") {
+    Object.keys(WC2026_SQUADS).forEach(team => {
+      (WC2026_SQUADS[team] || []).forEach(player => {
+        if (player.toLowerCase().includes(q)) results.push({ player, team });
+      });
+    });
+  }
+
+  if (results.length === 0) { dd.classList.remove("show"); dd.innerHTML=""; return; }
+
+  dd.innerHTML = results.slice(0, 8).map(r =>
+    `<div class="goal-opt" onclick="window.selectGoalier('${matchId}', '${r.player.replace(/'/g,"\\'")}')">
+      ${r.player}<span class="player-team">${r.team}</span>
+    </div>`
+  ).join("");
+  dd.classList.add("show");
+};
+
+window.selectGoalier = (matchId, player) => {
+  const inp = document.getElementById("goal-"+matchId);
+  const dd = document.getElementById("goal-dd-"+matchId);
+  if (inp) inp.value = player;
+  if (dd) { dd.classList.remove("show"); dd.innerHTML=""; }
+  if (!ticketData[matchId]) ticketData[matchId] = {};
+  ticketData[matchId].goleador = player;
+  renderTicket();
+};
+
+window.closeDropdown = (matchId) => {
+  const dd = document.getElementById("goal-dd-"+matchId);
+  if (dd) { dd.classList.remove("show"); dd.innerHTML=""; }
 };
 
 window.toggleExtrema = (matchId) => {
