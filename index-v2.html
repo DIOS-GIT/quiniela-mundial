@@ -177,18 +177,19 @@ nav{
 /* AUTOCOMPLETE GOLEADOR */
 .goal-wrap{flex:2;position:relative;}
 .goal-dropdown{
-  position:absolute;top:100%;left:0;right:0;z-index:50;
+  position:fixed;z-index:9999;
   background:var(--bg-panel);border:1px solid var(--gold);border-radius:6px;
-  max-height:160px;overflow-y:auto;display:none;margin-top:2px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+  max-height:180px;overflow-y:auto;display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6);
+  min-width:220px;
 }
 .goal-dropdown.show{display:block;}
 .goal-opt{
-  padding:7px 10px;font-size:12px;cursor:pointer;
-  border-bottom:1px solid var(--line);transition:background .1s;
+  padding:8px 12px;font-size:12px;cursor:pointer;
+  border-bottom:1px solid var(--line);transition:background .1s;white-space:nowrap;
 }
 .goal-opt:last-child{border-bottom:none;}
-.goal-opt:hover{background:rgba(245,185,66,0.1);color:var(--gold);}
+.goal-opt:hover,.goal-opt:active{background:rgba(245,185,66,0.12);color:var(--gold);}
 .goal-opt .player-team{font-size:10px;color:var(--text-dim);margin-left:6px;}
 
 /* EXTREMA */
@@ -432,7 +433,7 @@ nav{
         📜 ¿CÓMO FUNCIONA?
         <span class="rules-arrow" style="font-size:14px;color:var(--text-dim);transition:transform .2s;">▼</span>
       </h3>
-      <ol class="rules-list" style="display:none;">
+      <ol class="rules-list" style="display:flex;flex-direction:column;gap:10px;">
         <li><span class="num-badge">1</span><span>Escribe tu nombre de usuario de <a href="https://submanhwa.com/" target="_blank" style="color:var(--grass);">submanhwa.com</a>. El nick va en el ticket de la derecha (o abajo en móvil).<img class="rules-img" src="referencia-nick.jpg" alt="Referencia nick"></span></li>
         <li><span class="num-badge">2</span><span>Coloca el marcador que crees que será el resultado final del partido.</span></li>
         <li><span class="num-badge">3</span><span>Si aciertas el <span class="reward">equipo ganador</span>, te llevas la carta de ese equipo.</span></li>
@@ -457,7 +458,7 @@ nav{
     <div class="ticket-box">
       <div class="ticket-head">
         <div class="ticket-title">🎟️ TICKET <div class="ticket-badge" id="ticket-badge">0</div></div>
-        <button class="ticket-clear" onclick="limpiarTicket()">Limpiar todo</button>
+        <button class="ticket-clear" onclick="if(confirm('¿Borrar todas las apuestas del ticket?'))limpiarTicket()">🗑️ Limpiar todo</button>
       </div>
 
       <div class="nick-zone">
@@ -655,8 +656,8 @@ function buildMatchCard(match) {
           </div>
         </div>
         <div class="extras-row">
-          <button class="ou-btn${td.ou==='over'?' active':''}" id="over-${match.id}" onclick="window.toggleOU('${match.id}','over')">⬆ Over 2.5</button>
-          <button class="ou-btn${td.ou==='under'?' active':''}" id="under-${match.id}" onclick="window.toggleOU('${match.id}','under')">⬇ Under 2.5</button>
+          <button class="ou-btn${td.ou==='over'?' active':''}" id="over-${match.id}" onclick="window.toggleOU('${match.id}','over')">⬆ Más de 2 goles</button>
+          <button class="ou-btn${td.ou==='under'?' active':''}" id="under-${match.id}" onclick="window.toggleOU('${match.id}','under')">⬇ Menos de 3 goles</button>
           <input class="goal-inp" id="goal-${match.id}" placeholder="⚽ Primer goleador..." value="${td.goleador||''}" autocomplete="off" oninput="window.onGoalInput('${match.id}','${match.home.name}','${match.away.name}')" onfocus="window.onGoalInput('${match.id}','${match.home.name}','${match.away.name}')" onblur="setTimeout(()=>window.closeDropdown('${match.id}'),200)">
           <div class="goal-dropdown" id="goal-dd-${match.id}"></div>
         </div>
@@ -913,31 +914,41 @@ window.onGoalInput = (matchId, homeName, awayName) => {
   ticketData[matchId].goleador = inp.value;
   renderTicket();
 
+  // Posicionar dropdown justo debajo del input usando fixed
+  const rect = inp.getBoundingClientRect();
+  dd.style.top = (rect.bottom + window.scrollY - window.scrollY + 2) + "px";
+  dd.style.left = rect.left + "px";
+  dd.style.width = Math.max(rect.width, 220) + "px";
+  // Corregir: fixed ignora scrollY
+  dd.style.top = (rect.bottom + 2) + "px";
+
   if (!q || q.length < 2) { dd.classList.remove("show"); dd.innerHTML=""; return; }
 
-  // Buscar en los equipos del partido + todos como fallback
+  if (typeof WC2026_SQUADS === "undefined") { dd.classList.remove("show"); return; }
+
+  // Buscar SOLO en los equipos del partido
+  const homeKey = Object.keys(WC2026_SQUADS).find(k =>
+    homeName && (homeName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(homeName.toLowerCase()))
+  );
+  const awayKey = Object.keys(WC2026_SQUADS).find(k =>
+    awayName && (awayName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(awayName.toLowerCase()))
+  );
+
   const teamsToSearch = [];
-  if (typeof WC2026_SQUADS !== "undefined") {
-    // Primero buscar en los equipos del partido
-    const homeKey = Object.keys(WC2026_SQUADS).find(k => homeName && homeName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(homeName?.toLowerCase()||""));
-    const awayKey = Object.keys(WC2026_SQUADS).find(k => awayName && awayName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(awayName?.toLowerCase()||""));
-    if (homeKey) teamsToSearch.push(homeKey);
-    if (awayKey && awayKey !== homeKey) teamsToSearch.push(awayKey);
-    // Si no encontró, buscar en todos
-    if (teamsToSearch.length === 0) Object.keys(WC2026_SQUADS).forEach(k => teamsToSearch.push(k));
-  }
+  if (homeKey) teamsToSearch.push(homeKey);
+  if (awayKey && awayKey !== homeKey) teamsToSearch.push(awayKey);
+  // Fallback: todos si no encontró los equipos
+  if (teamsToSearch.length === 0) Object.keys(WC2026_SQUADS).forEach(k => teamsToSearch.push(k));
 
   const results = [];
   teamsToSearch.forEach(team => {
     (WC2026_SQUADS[team] || []).forEach(player => {
-      if (player.toLowerCase().includes(q)) {
-        results.push({ player, team });
-      }
+      if (player.toLowerCase().includes(q)) results.push({ player, team });
     });
   });
 
   // Si no encontró en equipos del partido, buscar en todos
-  if (results.length === 0 && typeof WC2026_SQUADS !== "undefined") {
+  if (results.length === 0) {
     Object.keys(WC2026_SQUADS).forEach(team => {
       (WC2026_SQUADS[team] || []).forEach(player => {
         if (player.toLowerCase().includes(q)) results.push({ player, team });
@@ -948,7 +959,7 @@ window.onGoalInput = (matchId, homeName, awayName) => {
   if (results.length === 0) { dd.classList.remove("show"); dd.innerHTML=""; return; }
 
   dd.innerHTML = results.slice(0, 8).map(r =>
-    `<div class="goal-opt" onclick="window.selectGoalier('${matchId}', '${r.player.replace(/'/g,"\\'")}')">
+    `<div class="goal-opt" onmousedown="event.preventDefault();window.selectGoalier('${matchId}','${r.player.replace(/'/g,"\\'")}')">
       ${r.player}<span class="player-team">${r.team}</span>
     </div>`
   ).join("");
@@ -1144,6 +1155,12 @@ function loadCartas(matchId) {
     const data = snap.val() || {};
     Object.entries(data).forEach(([k,v]) => { if(v&&v.name) cartasCache.push({key:k,...v}); });
     cartasCache.sort((a,b) => a.name.localeCompare(b.name));
+    if (cartasCache.length === 0) {
+      // Fallback: usar equipos del Mundial como opciones de carta
+      Object.keys(WC2026_SQUADS || {}).forEach(team => {
+        cartasCache.push({ key: team.toLowerCase().replace(/\s/g,"-"), name: "Mítico " + team });
+      });
+    }
     fillCartasSel(sel, matchId, "");
   }, {onlyOnce:true});
 }
