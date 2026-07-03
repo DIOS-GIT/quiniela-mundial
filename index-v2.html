@@ -661,12 +661,12 @@ function buildMatchCard(match) {
           <input class="goal-inp" id="goal-${match.id}" placeholder="⚽ Primer goleador..." value="${td.goleador||''}" autocomplete="off" oninput="window.onGoalInput('${match.id}','${match.home.name}','${match.away.name}')" onfocus="window.onGoalInput('${match.id}','${match.home.name}','${match.away.name}')" onblur="setTimeout(()=>window.closeDropdown('${match.id}'),200)">
           <div class="goal-dropdown" id="goal-dd-${match.id}"></div>
         </div>
-        <label class="extrema-toggle" onclick="window.toggleExtrema('${match.id}')">
-          <input type="checkbox" id="ext-cb-${match.id}" ${td.extrema?'checked':''}>
+        <div class="extrema-toggle" onclick="window.toggleExtrema('${match.id}')">
+          <span id="ext-cb-icon-${match.id}">${td.extrema?'✅':'☐'}</span>
           <span>⚡</span>
           <span class="ext-label">APUESTA EXTREMA</span>
           <span class="ext-sub">+1 carta si aciertas exacto</span>
-        </label>
+        </div>
         <div class="extrema-panel${td.extrema?' open':''}" id="ext-panel-${match.id}">
           <div class="ext-warn">⚠️ Si activas esta opción y fallas el marcador exacto, <b>no recibirás ninguna carta</b>.</div>
           <input class="ext-search" placeholder="Buscar carta..." oninput="window.filtrarCartas('${match.id}',this.value)">
@@ -914,47 +914,48 @@ window.onGoalInput = (matchId, homeName, awayName) => {
   ticketData[matchId].goleador = inp.value;
   renderTicket();
 
-  // Posicionar dropdown justo debajo del input usando fixed
+  // Posicionar dropdown con fixed
   const rect = inp.getBoundingClientRect();
-  dd.style.top = (rect.bottom + window.scrollY - window.scrollY + 2) + "px";
+  dd.style.top = (rect.bottom + 2) + "px";
   dd.style.left = rect.left + "px";
   dd.style.width = Math.max(rect.width, 220) + "px";
-  // Corregir: fixed ignora scrollY
-  dd.style.top = (rect.bottom + 2) + "px";
 
   if (!q || q.length < 2) { dd.classList.remove("show"); dd.innerHTML=""; return; }
-
   if (typeof WC2026_SQUADS === "undefined") { dd.classList.remove("show"); return; }
 
-  // Buscar SOLO en los equipos del partido
-  const homeKey = Object.keys(WC2026_SQUADS).find(k =>
-    homeName && (homeName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(homeName.toLowerCase()))
-  );
-  const awayKey = Object.keys(WC2026_SQUADS).find(k =>
-    awayName && (awayName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(awayName.toLowerCase()))
-  );
+  // Normalizar nombre para comparar (sin tildes, minúsculas)
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+  // Buscar SOLO en los equipos del partido — match flexible
+  const homeNorm = norm(homeName || "");
+  const awayNorm = norm(awayName || "");
+
+  const homeKey = Object.keys(WC2026_SQUADS).find(k => {
+    const kn = norm(k);
+    return homeNorm.includes(kn) || kn.includes(homeNorm);
+  });
+  const awayKey = Object.keys(WC2026_SQUADS).find(k => {
+    const kn = norm(k);
+    return awayNorm.includes(kn) || kn.includes(awayNorm);
+  });
 
   const teamsToSearch = [];
   if (homeKey) teamsToSearch.push(homeKey);
   if (awayKey && awayKey !== homeKey) teamsToSearch.push(awayKey);
-  // Fallback: todos si no encontró los equipos
-  if (teamsToSearch.length === 0) Object.keys(WC2026_SQUADS).forEach(k => teamsToSearch.push(k));
+
+  // Si no encontró los equipos, no mostrar nada (no fallback a todos)
+  if (teamsToSearch.length === 0) {
+    dd.innerHTML = `<div class="goal-opt" style="color:var(--text-dim);cursor:default;">Sin jugadores para este partido</div>`;
+    dd.classList.add("show");
+    return;
+  }
 
   const results = [];
   teamsToSearch.forEach(team => {
     (WC2026_SQUADS[team] || []).forEach(player => {
-      if (player.toLowerCase().includes(q)) results.push({ player, team });
+      if (norm(player).includes(norm(q))) results.push({ player, team });
     });
   });
-
-  // Si no encontró en equipos del partido, buscar en todos
-  if (results.length === 0) {
-    Object.keys(WC2026_SQUADS).forEach(team => {
-      (WC2026_SQUADS[team] || []).forEach(player => {
-        if (player.toLowerCase().includes(q)) results.push({ player, team });
-      });
-    });
-  }
 
   if (results.length === 0) { dd.classList.remove("show"); dd.innerHTML=""; return; }
 
@@ -984,11 +985,13 @@ window.closeDropdown = (matchId) => {
 window.toggleExtrema = (matchId) => {
   if (!ticketData[matchId]) ticketData[matchId] = {};
   ticketData[matchId].extrema = !ticketData[matchId].extrema;
-  const cb = document.getElementById("ext-cb-"+matchId);
-  if (cb) cb.checked = ticketData[matchId].extrema;
+  const icon = document.getElementById("ext-cb-icon-"+matchId);
+  if (icon) icon.textContent = ticketData[matchId].extrema ? "✅" : "☐";
   const panel = document.getElementById("ext-panel-"+matchId);
   if (panel) panel.classList.toggle("open", ticketData[matchId].extrema);
   if (!ticketData[matchId].extrema) { delete ticketData[matchId].cartaExtra; }
+  // Cargar cartas si se activa
+  if (ticketData[matchId].extrema) loadCartas(matchId);
   renderTicket();
 };
 
