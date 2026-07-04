@@ -5,7 +5,7 @@
 <title>Extractor Oficial · Quiniela</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0a0c10; --card: #151921; --text: #eef1f5; --accent: #1ed87f; --exact: #f5b942; --fail: #ff4a4a; --extrema: #b463f5; --extrema-win: #2dd4bf; }
+  :root { --bg: #0a0c10; --card: #151921; --text: #eef1f5; --accent: #1ed87f; --exact: #f5b942; --fail: #ff4a4a; --extrema: #b463f5; --extrema-win: #2dd4bf; --goles: #5d9dff; --goleador: #a3e635; }
   body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; }
   
   .container { max-width: 900px; margin: 0 auto; }
@@ -24,6 +24,8 @@
   .col-box.fail-box { border-top: 4px solid var(--fail); }
   .col-box.extrema-win-box { border-top: 4px solid var(--extrema-win); }
   .col-box.extrema-fail-box { border-top: 4px solid var(--extrema); }
+  .col-box.goles-box { border-top: 4px solid var(--goles); }
+  .col-box.goleador-box { border-top: 4px solid var(--goleador); }
   
   .col-title { font-weight: 900; font-size: 1.1rem; margin-bottom: 5px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
   .count-badge { background: #1b212c; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 900; border: 1px solid #2a3242; }
@@ -33,6 +35,8 @@
   .fail-box .col-title { color: var(--fail); }
   .extrema-win-box .col-title { color: var(--extrema-win); }
   .extrema-fail-box .col-title { color: var(--extrema); }
+  .goles-box .col-title { color: var(--goles); }
+  .goleador-box .col-title { color: var(--goleador); }
   
   .col-desc { font-size: 0.8rem; color: #888; margin-bottom: 15px; height: 32px; }
   
@@ -45,21 +49,31 @@
   .fail-box .btn-copy { background: var(--fail); color: #fff; }
   .extrema-win-box .btn-copy { background: var(--extrema-win); color: #0a0c10; }
   .extrema-fail-box .btn-copy { background: var(--extrema); color: #fff; }
+  .goles-box .btn-copy { background: var(--goles); color: #0a0c10; }
+  .goleador-box .btn-copy { background: var(--goleador); color: #0a0c10; }
   
   .exact-box .btn-copy:hover { background: #dca334; }
   .winner-box .btn-copy:hover { background: #17b86c; }
   .fail-box .btn-copy:hover { background: #e03b3b; }
   .extrema-win-box .btn-copy:hover { background: #22b8a3; }
   .extrema-fail-box .btn-copy:hover { background: #a855e0; }
+  .goles-box .btn-copy:hover { background: #4a86e0; }
+  .goleador-box .btn-copy:hover { background: #8bc926; }
 
   /* Lista de apuestas extremas con detalle de carta elegida */
   .extrema-list { width: 100%; height: 250px; background: #0a0c10; border: 1px dashed #2a3242; border-radius: 10px; padding: 12px; box-sizing: border-box; margin-bottom: 15px; overflow-y: auto; font-size: 13px; }
   .extrema-empty { color: #555; font-family: 'Montserrat', sans-serif; padding: 10px 2px; }
-  .extrema-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 6px; border-bottom: 1px solid #1b212c; }
+  .extrema-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 6px; border-bottom: 1px solid #1b212c; flex-wrap: wrap; }
   .extrema-item:last-child { border-bottom: none; }
   .extrema-item .ex-nick { font-weight: 700; color: #fff; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .extrema-win-box .ex-carta { font-size: 11px; color: var(--extrema-win); text-align: right; flex-shrink: 0; }
   .extrema-fail-box .ex-carta { font-size: 11px; color: var(--extrema); text-align: right; flex-shrink: 0; }
+
+  /* Badges extra (goleador / over-under / penales) mostrados junto al nick */
+  .extra-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+  .badge-goal { font-size: 10px; background: rgba(30,216,127,0.12); border: 1px solid rgba(30,216,127,0.3); color: var(--accent); padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .badge-ou { font-size: 10px; background: rgba(93,157,255,0.1); border: 1px solid rgba(93,157,255,0.3); color: #5d9dff; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .badge-pen { font-size: 10px; background: rgba(245,185,66,0.12); border: 1px solid rgba(245,185,66,0.3); color: var(--exact); padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -79,21 +93,24 @@
     <div class="col-box exact-box">
       <div class="col-title">🎯 Exacto <span id="count-exact" class="count-badge">0</span></div>
       <div class="col-desc">Acertaron los goles exactos del partido (Ganaron 3 pts).</div>
-      <textarea id="list-exact" readonly placeholder="Nicks en fila..."></textarea>
+      <div class="extrema-list" id="list-exact-display"><div class="extrema-empty">Nicks en fila...</div></div>
+      <textarea id="list-exact" readonly style="display:none;"></textarea>
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-exact', this)">📋 Copiar Exactos</button>
     </div>
     
     <div class="col-box winner-box">
       <div class="col-title">⚽ Solo Tendencia <span id="count-winner" class="count-badge">0</span></div>
       <div class="col-desc">Acertaron ganador o empate, pero fallaron marcador (Ganaron 1 pt).</div>
-      <textarea id="list-winner" readonly placeholder="Nicks en fila..."></textarea>
+      <div class="extrema-list" id="list-winner-display"><div class="extrema-empty">Nicks en fila...</div></div>
+      <textarea id="list-winner" readonly style="display:none;"></textarea>
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-winner', this)">📋 Copiar Tendencias</button>
     </div>
     
     <div class="col-box fail-box">
       <div class="col-title">❌ Perdedores <span id="count-fail" class="count-badge">0</span></div>
       <div class="col-desc">Enviaron su apuesta pero no sumaron ningún punto (0 pts).</div>
-      <textarea id="list-fail" readonly placeholder="Nicks en fila..."></textarea>
+      <div class="extrema-list" id="list-fail-display"><div class="extrema-empty">Nicks en fila...</div></div>
+      <textarea id="list-fail" readonly style="display:none;"></textarea>
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-fail', this)">📋 Copiar Perdedores</button>
     </div>
 
@@ -111,6 +128,22 @@
       <div class="extrema-list" id="list-extrema-fail-display"><div class="extrema-empty">Sin apuestas extremas perdidas en este partido.</div></div>
       <textarea id="list-extrema-fail" readonly style="display:none;"></textarea>
       <button class="btn-copy" onclick="copiarAlPortapapeles('list-extrema-fail', this)">📋 Copiar Extremas Perdidas</button>
+    </div>
+
+    <div class="col-box goles-box">
+      <div class="col-title">🥅 Acertaron Más/Menos Goles <span id="count-goles" class="count-badge">0</span></div>
+      <div class="col-desc">Acertaron si el partido tendría más de 2 o menos de 3 goles en total (se calcula con el marcador final).</div>
+      <div class="extrema-list" id="list-goles-display"><div class="extrema-empty">Sin aciertos de goles en este partido.</div></div>
+      <textarea id="list-goles" readonly style="display:none;"></textarea>
+      <button class="btn-copy" onclick="copiarAlPortapapeles('list-goles', this)">📋 Copiar Aciertos de Goles</button>
+    </div>
+
+    <div class="col-box goleador-box">
+      <div class="col-title">🎯 Acertaron Primer Goleador <span id="count-goleador" class="count-badge">0</span></div>
+      <div class="col-desc">Acertaron quién anotó primero, comparado con el jugador registrado por el admin en el panel.</div>
+      <div class="extrema-list" id="list-goleador-display"><div class="extrema-empty">Sin aciertos de primer goleador en este partido.</div></div>
+      <textarea id="list-goleador" readonly style="display:none;"></textarea>
+      <button class="btn-copy" onclick="copiarAlPortapapeles('list-goleador', this)">📋 Copiar Aciertos de Goleador</button>
     </div>
   </div>
 </div>
@@ -160,7 +193,7 @@
     
     if (!matchScore || matchScore.status !== 'SI') {
       limpiarCampos();
-      document.getElementById("list-exact").placeholder = "El partido seleccionado no ha sido evaluado en Firebase aún.";
+      document.getElementById("list-exact-display").innerHTML = `<div class="extrema-empty">El partido seleccionado no ha sido evaluado en Firebase aún.</div>`;
       return;
     }
 
@@ -168,11 +201,22 @@
     const aR = Number(matchScore.away);
     // Ganador en penales guardado por el admin (si el partido fue empate)
     const penalesRealGanador = matchScore.penalesGanador || null; // "home" | "away" | null
-    
+
+    // Total de goles del partido → determina automáticamente quién acertó "más/menos goles"
+    // (Más de 2 goles = total >= 3 · Menos de 3 goles = total <= 2, son complementarios)
+    const totalGoles = hR + aR;
+    const realOU = totalGoles > 2 ? "over" : "under";
+
+    // Primer goleador registrado por el admin en el panel (scores/{matchId}/primerGoleador)
+    const realGoleador = matchScore.primerGoleador || null;
+    const norm = s => (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
     let exactos = [];
     let tendencias = [];
     let perdedores = [];
     let extremas = [];
+    let golesAcertados = [];
+    let goleadorAcertados = [];
     
     Object.values(matchBets).forEach(b => {
       if (!b.username) return;
@@ -211,24 +255,39 @@
         acertoTendencia = (hB > aB && hR > aR) || (hB < aB && hR < aR) || (hB === aB && hR === aR);
       }
 
+      // Estos dos picks son independientes del marcador/extrema, se evalúan para TODAS las apuestas
+      if (b.overUnder && b.overUnder === realOU) {
+        golesAcertados.push({ nick, overUnder: b.overUnder });
+      }
+      if (b.goleador && realGoleador && norm(b.goleador) === norm(realGoleador)) {
+        goleadorAcertados.push({ nick, goleador: b.goleador });
+      }
+
       if (esExtrema) {
         const cartaNombre = b.cartaExtra ? b.cartaExtra.split(' —')[0] : 'Sin especificar';
-        extremas.push({ nick, carta: cartaNombre, acertoExacto });
+        extremas.push({ nick, carta: cartaNombre, acertoExacto, overUnder: b.overUnder, goleador: b.goleador, penalesGanador: b.penalesGanador });
         return;
       }
       
+      const registro = { nick, overUnder: b.overUnder, goleador: b.goleador, penalesGanador: b.penalesGanador };
       if (acertoExacto) {
-        exactos.push(nick);
+        exactos.push(registro);
       } else if (acertoTendencia) {
-        tendencias.push(nick);
+        tendencias.push(registro);
       } else {
-        perdedores.push(nick);
+        perdedores.push(registro);
       }
     });
 
-    inyectarDatos("list-exact", "count-exact", exactos);
-    inyectarDatos("list-winner", "count-winner", tendencias);
-    inyectarDatos("list-fail", "count-fail", perdedores);
+    inyectarDatos("list-exact", "count-exact", exactos, "list-exact-display");
+    inyectarDatos("list-winner", "count-winner", tendencias, "list-winner-display");
+    inyectarDatos("list-fail", "count-fail", perdedores, "list-fail-display");
+    inyectarDatos("list-goles", "count-goles", golesAcertados, "list-goles-display");
+    inyectarDatos("list-goleador", "count-goleador", goleadorAcertados, "list-goleador-display");
+
+    if (!realGoleador) {
+      document.getElementById("list-goleador-display").innerHTML = `<div class="extrema-empty">El admin aún no registró quién anotó primero para este partido.</div>`;
+    }
 
     const extremasGanadas = extremas.filter(e => e.acertoExacto);
     const extremasPerdidas = extremas.filter(e => !e.acertoExacto);
@@ -252,23 +311,47 @@
     displayEl.innerHTML = lista.map(e => `
       <div class="extrema-item">
         <span class="ex-nick">${e.nick}</span>
+        <span class="extra-badges">${badgesExtra(e)}</span>
         <span class="ex-carta">${e.carta}</span>
       </div>
     `).join("");
   }
 
-  function inyectarDatos(areaId, badgeId, lista) {
-    document.getElementById(areaId).value = lista.join("\n");
+  function badgesExtra(item) {
+    let html = "";
+    if (item.penalesGanador) html += `<span class="badge-pen">⚡ pen.</span>`;
+    if (item.overUnder) html += `<span class="badge-ou">${item.overUnder === 'over' ? '⬆ +2' : '⬇ -3'}</span>`;
+    if (item.goleador) html += `<span class="badge-goal">⚽ ${item.goleador}</span>`;
+    return html;
+  }
+
+  function inyectarDatos(areaId, badgeId, lista, displayId) {
+    // El textarea guarda SOLO los nicks (uno por línea) para poder copiar y pegar tal cual.
+    document.getElementById(areaId).value = lista.map(item => item.nick).join("\n");
     document.getElementById(badgeId).innerText = lista.length;
+
+    if (!displayId) return;
+    const displayEl = document.getElementById(displayId);
+    if (lista.length === 0) {
+      displayEl.innerHTML = `<div class="extrema-empty">Sin apuestas en esta categoría.</div>`;
+      return;
+    }
+    displayEl.innerHTML = lista.map(item => `
+      <div class="extrema-item">
+        <span class="ex-nick">${item.nick}</span>
+        <span class="extra-badges">${badgesExtra(item)}</span>
+      </div>
+    `).join("");
   }
 
   function limpiarCampos() {
-    inyectarDatos("list-exact", "count-exact", []);
-    inyectarDatos("list-winner", "count-winner", []);
-    inyectarDatos("list-fail", "count-fail", []);
+    inyectarDatos("list-exact", "count-exact", [], "list-exact-display");
+    inyectarDatos("list-winner", "count-winner", [], "list-winner-display");
+    inyectarDatos("list-fail", "count-fail", [], "list-fail-display");
+    inyectarDatos("list-goles", "count-goles", [], "list-goles-display");
+    inyectarDatos("list-goleador", "count-goleador", [], "list-goleador-display");
     inyectarExtremas([], "list-extrema-win", "count-extrema-win", "list-extrema-win-display", "Sin apuestas extremas ganadoras en este partido.");
     inyectarExtremas([], "list-extrema-fail", "count-extrema-fail", "list-extrema-fail-display", "Sin apuestas extremas perdidas en este partido.");
-    document.getElementById("list-exact").placeholder = "Nicks en fila...";
   }
 
   window.copiarAlPortapapeles = (areaId, btn) => {
