@@ -492,6 +492,24 @@ nav{
   <div class="fab-badge" id="fab-badge">0</div>
 </button>
 
+<!-- MODAL DE ÉXITO CON TICKET VISUAL -->
+<div id="success-modal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="max-width:420px;width:100%;margin:auto;">
+    <div id="success-ticket" style="background:#0b0e14;border:1px solid #2a3242;border-radius:16px;padding:20px;font-family:'Rubik',sans-serif;">
+      <div style="text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed #2a3242;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:#f5b942;letter-spacing:2px;">⚽ SUBMANHWA · QUINIELA MUNDIAL</div>
+        <div id="success-ticket-nick" style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#eef1f5;margin-top:6px;"></div>
+      </div>
+      <div id="success-ticket-items"></div>
+      <div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px dashed #2a3242;font-size:11px;color:#8b96a8;">🏆 Quiniela Mundial 2026 · submanhwa.com</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="window.descargarTicket()" style="flex:1;padding:13px;background:var(--grass);color:#06291a;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;cursor:pointer;">📸 DESCARGAR TICKET</button>
+      <button onclick="window.cerrarSuccessModal()" style="padding:13px 18px;background:transparent;border:1px solid #2a3242;color:#8b96a8;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:15px;cursor:pointer;">CERRAR</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL TICKET MÓVIL -->
 <div id="ticket-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);align-items:flex-end;">
   <div style="background:var(--bg-panel);border-radius:20px 20px 0 0;border-top:1px solid var(--line);width:100%;max-height:85vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
@@ -511,6 +529,7 @@ nav{
 
 <script src="matches-config.js?v=4.3"></script>
 <script src="players-wc2026.js?v=1.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -834,9 +853,11 @@ function refreshBetsList(matchId) {
       }
       const extBadge = b.extrema ? `<span class="extrema-badge">⚡ ${b.cartaExtra?b.cartaExtra.split(' —')[0]:'Extrema'}</span>` : '';
       const penBadge = b.penalesGanador ? `<span style="font-size:10px;color:var(--gold);margin-left:4px;">⚡ ${b.penalesGanador==='home'?(match?match.home.name:'Local'):(match?match.away.name:'Visit.')}</span>` : '';
+      const ouBadge = b.overUnder ? `<span style="font-size:10px;color:var(--blue);margin-left:4px;">${b.overUnder==='over'?'⬆ +2 goles':'⬇ -3 goles'}</span>` : '';
+      const goalBadge = b.goleador ? `<span style="font-size:10px;color:var(--grass);margin-left:4px;">⚽ ${esc(b.goleador)}</span>` : '';
       const row = document.createElement("div");
       row.className = `bet-row ${color}${isPerfect?' perfect-match':''}`;
-      row.innerHTML = `<span class="bname">${esc(b.username)}${tagHtml}${extBadge}${penBadge}</span><span class="bscore">${b.homeScore}-${b.awayScore}</span>`;
+      row.innerHTML = `<span class="bname">${esc(b.username)}${tagHtml}${extBadge}${penBadge}${ouBadge}${goalBadge}</span><span class="bscore">${b.homeScore}-${b.awayScore}</span>`;
       return row;
     };
 
@@ -924,20 +945,16 @@ window.onGoalInput = (matchId, homeName, awayName) => {
   if (typeof WC2026_SQUADS === "undefined") { dd.classList.remove("show"); return; }
 
   // Normalizar nombre para comparar (sin tildes, minúsculas)
-  const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
 
-  // Buscar SOLO en los equipos del partido — match flexible
+  // Buscar SOLO en los equipos del partido — coincidencia EXACTA (normalizada)
+  // Antes se usaba .includes() en ambas direcciones, lo cual podía matchear
+  // el equipo equivocado (p. ej. un nombre corto siendo substring de otro).
   const homeNorm = norm(homeName || "");
   const awayNorm = norm(awayName || "");
 
-  const homeKey = Object.keys(WC2026_SQUADS).find(k => {
-    const kn = norm(k);
-    return homeNorm.includes(kn) || kn.includes(homeNorm);
-  });
-  const awayKey = Object.keys(WC2026_SQUADS).find(k => {
-    const kn = norm(k);
-    return awayNorm.includes(kn) || kn.includes(awayNorm);
-  });
+  const homeKey = Object.keys(WC2026_SQUADS).find(k => norm(k) === homeNorm);
+  const awayKey = Object.keys(WC2026_SQUADS).find(k => norm(k) === awayNorm);
 
   const teamsToSearch = [];
   if (homeKey) teamsToSearch.push(homeKey);
@@ -1105,6 +1122,18 @@ window.confirmarTodo = async () => {
     }
   }
 
+  // Verificar que toda apuesta extrema tenga una carta elegida (si no, era todo o nada sin premio definido)
+  for (const mId of validEntries) {
+    const td = ticketData[mId];
+    if (td.extrema && !td.cartaExtra) {
+      const m = matchLookup[mId];
+      [msgEl, msgMob].forEach(el => { if(el){ el.className="form-msg err"; el.textContent=`Selecciona una carta extra para ${m?.home.name} vs ${m?.away.name}.`; }});
+      btn.textContent = "CONFIRMAR APUESTAS";
+      btn.disabled = false;
+      return;
+    }
+  }
+
   for (const mId of validEntries) {
     const td = ticketData[mId];
     const m = matchLookup[mId];
@@ -1128,6 +1157,9 @@ window.confirmarTodo = async () => {
     promises.push(push(ref(db, "bets/" + mId), betData));
   }
 
+  // Guardar snapshot del ticket ANTES de limpiarlo, para el modal de éxito
+  const ticketSnapshot = validEntries.map(mId => ({ m: matchLookup[mId], td: { ...ticketData[mId] } }));
+
   try {
     await Promise.all(promises);
     [msgEl, msgMob].forEach(el => { if(el){ el.className="form-msg ok"; el.textContent=`✅ ${promises.length} apuesta${promises.length!==1?"s":""} registrada${promises.length!==1?"s":""}!`; }});
@@ -1139,12 +1171,52 @@ window.confirmarTodo = async () => {
     document.querySelectorAll(".pen-row").forEach(r=>r.classList.remove("show"));
     document.querySelectorAll(".ou-btn").forEach(b=>b.classList.remove("active"));
     document.querySelectorAll(".goal-inp").forEach(i=>i.value="");
+    document.getElementById("ticket-modal").style.display = "none";
+    document.body.style.overflow = "";
+    window.mostrarSuccessModal(nick, ticketSnapshot);
   } catch(e) {
     [msgEl,msgMob].forEach(el=>{if(el){el.className="form-msg err";el.textContent="Error al guardar. Intenta de nuevo.";}});
   }
 
   btn.textContent = "CONFIRMAR APUESTAS";
   checkConfirm();
+};
+
+/* ────────── MODAL DE ÉXITO / TICKET VISUAL ────────── */
+window.mostrarSuccessModal = (nick, items) => {
+  document.getElementById("success-ticket-nick").textContent = nick;
+  const cont = document.getElementById("success-ticket-items");
+  cont.innerHTML = items.map(({ m, td }) => {
+    if (!m) return "";
+    let tags = "";
+    if (td.penales) tags += `<span class="t-tag pen">⚡ ${td.penales==="home"?m.home.name:m.away.name} gana pen.</span>`;
+    if (td.ou) tags += `<span class="t-tag ou">${td.ou==="over"?"⬆ Más de 2 goles":"⬇ Menos de 3 goles"}</span>`;
+    if (td.goleador) tags += `<span class="t-tag goal">⚽ ${esc(td.goleador)}</span>`;
+    if (td.extrema) tags += `<span class="t-tag ext">⚡ Extrema${td.cartaExtra?" — "+esc(td.cartaExtra.split(' —')[0]):""}</span>`;
+    return `<div style="padding:10px 0;border-bottom:1px dashed #222b3d;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b96a8;text-transform:uppercase;letter-spacing:0.5px;">
+        <span>${m.home.flag} ${esc(m.home.name)}</span><span>${esc(m.away.name)} ${m.away.flag}</span>
+      </div>
+      <div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:26px;color:#f5b942;letter-spacing:1px;">${td.homeScore} — ${td.awayScore}</div>
+      ${tags?`<div class="t-tags" style="justify-content:center;margin-top:6px;">${tags}</div>`:""}
+    </div>`;
+  }).join("");
+  document.getElementById("success-modal").style.display = "flex";
+};
+
+window.cerrarSuccessModal = () => {
+  document.getElementById("success-modal").style.display = "none";
+};
+
+window.descargarTicket = () => {
+  const el = document.getElementById("success-ticket");
+  if (typeof html2canvas === "undefined") { alert("No se pudo cargar el generador de imágenes."); return; }
+  html2canvas(el, { backgroundColor: "#0b0e14", scale: 2 }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "quiniela-ticket.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }).catch(() => alert("No se pudo generar la imagen del ticket."));
 };
 
 /* ────────── EXTREMA CARTAS ────────── */
@@ -1172,6 +1244,16 @@ function fillCartasSel(sel, matchId, filter) {
   const td = ticketData[matchId] || {};
   const filtered = filter ? cartasCache.filter(c => c.name.toLowerCase().includes(filter.toLowerCase())) : cartasCache;
   sel.innerHTML = filtered.map(c => `<option value="${c.name} — ${c.key}" ${td.cartaExtra===c.name+" — "+c.key?"selected":""}>${c.name}</option>`).join("");
+
+  // FIX: un <select> siempre muestra la primera opción seleccionada visualmente,
+  // pero eso NO dispara "onchange" ni guarda el valor. Si el usuario no toca el
+  // select, la apuesta se enviaba con extrema=true pero SIN cartaExtra.
+  // Por eso guardamos el valor por defecto apenas se llena la lista.
+  if (filtered.length && !filtered.some(c => td.cartaExtra === c.name + " — " + c.key)) {
+    if (!ticketData[matchId]) ticketData[matchId] = {};
+    ticketData[matchId].cartaExtra = sel.value;
+    renderTicket();
+  }
 }
 
 window.filtrarCartas = (matchId, val) => {
