@@ -488,7 +488,59 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
+    position: relative;
   }
+  .bet-chip:hover .bet-actions { opacity: 1; }
+  .bet-actions {
+    position: absolute; top: 4px; right: 4px;
+    display: flex; gap: 3px; opacity: 0;
+    transition: opacity .15s;
+  }
+  .bet-action-btn {
+    width: 20px; height: 20px; border-radius: 4px; border: none;
+    cursor: pointer; font-size: 10px; display: flex; align-items: center;
+    justify-content: center; transition: all .15s; line-height: 1;
+  }
+  .bet-action-btn.del { background: rgba(255,80,84,0.2); color: var(--red); }
+  .bet-action-btn.del:hover { background: var(--red); color: white; }
+  .bet-action-btn.edit { background: rgba(77,168,255,0.15); color: var(--blue); }
+  .bet-action-btn.edit:hover { background: var(--blue); color: white; }
+
+  /* MODAL EDICIÓN */
+  .edit-modal-bg {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.8); align-items: center; justify-content: center;
+  }
+  .edit-modal-bg.show { display: flex; }
+  .edit-modal {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 24px; width: 320px;
+    animation: fadeInModal .2s ease;
+  }
+  @keyframes fadeInModal { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
+  .edit-modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px; }
+  .edit-modal-sub { font-size: 12px; color: var(--text2); margin-bottom: 18px; }
+  .edit-field { margin-bottom: 14px; }
+  .edit-field label { display: block; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
+  .edit-field input {
+    width: 100%; padding: 9px 12px; background: var(--card2);
+    border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+  .edit-field input:focus { border-color: var(--gold); }
+  .edit-score-row { display: flex; gap: 10px; }
+  .edit-score-row .edit-field { flex: 1; }
+  .edit-modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+  .edit-modal-btns button {
+    flex: 1; padding: 10px; border-radius: 8px; border: none;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1rem;
+    letter-spacing: 1px; cursor: pointer; transition: filter .15s;
+  }
+  .btn-edit-save { background: var(--gold); color: #000; }
+  .btn-edit-save:hover { filter: brightness(1.1); }
+  .btn-edit-cancel { background: transparent; color: var(--text2); border: 1px solid var(--border) !important; }
+  .btn-edit-cancel:hover { color: var(--text); border-color: var(--border2) !important; }
   .bet-chip-name {
     font-size: 12px;
     font-weight: 500;
@@ -594,6 +646,32 @@
 <div id="toast">
   <span class="toast-icon" id="toast-icon"></span>
   <span id="toast-msg"></span>
+</div>
+
+<!-- MODAL EDICIÓN DE APUESTA -->
+<div class="edit-modal-bg" id="edit-modal-bg">
+  <div class="edit-modal">
+    <h3>✏️ Editar Apuesta</h3>
+    <div class="edit-modal-sub" id="edit-modal-sub">—</div>
+    <div class="edit-field">
+      <label>Nick del usuario</label>
+      <input type="text" id="edit-nick" placeholder="Nombre de usuario">
+    </div>
+    <div class="edit-score-row">
+      <div class="edit-field">
+        <label id="edit-label-home">Local</label>
+        <input type="number" id="edit-home" min="0" max="20" value="0">
+      </div>
+      <div class="edit-field">
+        <label id="edit-label-away">Visitante</label>
+        <input type="number" id="edit-away" min="0" max="20" value="0">
+      </div>
+    </div>
+    <div class="edit-modal-btns">
+      <button class="btn-edit-cancel" onclick="cerrarEditModal()">Cancelar</button>
+      <button class="btn-edit-save" onclick="guardarEdicion()">💾 Guardar</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -734,6 +812,57 @@
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => { toast.className = ""; }, 3000);
   }
+
+  /* ═══════════════════════════════════════════════
+     BORRAR APUESTA INDIVIDUAL
+  ═══════════════════════════════════════════════ */
+  window.borrarApuesta = (matchId, betKey, nick) => {
+    if (!confirm(`¿Eliminar la apuesta de "${nick}"?\nEsta acción no se puede deshacer.`)) return;
+    remove(ref(db, `bets/${matchId}/${betKey}`))
+      .then(() => showToast('🗑️', `Apuesta de ${nick} eliminada`, 'success'))
+      .catch(() => showToast('❌', 'Error al eliminar', 'error'));
+  };
+
+  /* ═══════════════════════════════════════════════
+     EDITAR APUESTA INDIVIDUAL
+  ═══════════════════════════════════════════════ */
+  let editState = { matchId: null, betKey: null };
+
+  window.abrirEditModal = (matchId, betKey, nick, home, away, homeName, awayName) => {
+    editState = { matchId, betKey };
+    document.getElementById("edit-modal-sub").textContent = `${homeName} vs ${awayName}`;
+    document.getElementById("edit-label-home").textContent = homeName;
+    document.getElementById("edit-label-away").textContent = awayName;
+    document.getElementById("edit-nick").value = nick;
+    document.getElementById("edit-home").value = home;
+    document.getElementById("edit-away").value = away;
+    document.getElementById("edit-modal-bg").classList.add("show");
+  };
+
+  window.cerrarEditModal = () => {
+    document.getElementById("edit-modal-bg").classList.remove("show");
+    editState = { matchId: null, betKey: null };
+  };
+
+  window.guardarEdicion = () => {
+    const { matchId, betKey } = editState;
+    if (!matchId || !betKey) return;
+    const nick = document.getElementById("edit-nick").value.trim();
+    const home = Number(document.getElementById("edit-home").value);
+    const away = Number(document.getElementById("edit-away").value);
+    if (!nick) { showToast('⚠️', 'El nick no puede estar vacío', 'error'); return; }
+    update(ref(db, `bets/${matchId}/${betKey}`), {
+      username: nick, homeScore: home, awayScore: away, updatedAt: Date.now()
+    }).then(() => {
+      showToast('✅', `Apuesta de ${nick} actualizada`, 'success');
+      cerrarEditModal();
+    }).catch(() => showToast('❌', 'Error al guardar', 'error'));
+  };
+
+  // Cerrar modal al hacer click fuera
+  document.getElementById("edit-modal-bg").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("edit-modal-bg")) cerrarEditModal();
+  });
 
   /* ═══════════════════════════════════════════════
      LIMPIAR APUESTAS DE EMPATE
@@ -892,12 +1021,1070 @@
               ` : ''}
             </div>
             <div class="bets-grid">
-              ${betList.map(b => {
+              ${Object.entries(bets[id] || {}).map(([betKey, b]) => {
                 const esEmpate = Number(b.homeScore) === Number(b.awayScore);
+                const homeName = first.home || '?';
+                const awayName = first.away || '?';
                 return `
                 <div class="bet-chip" style="${esEmpate ? 'border:1px solid var(--red); background:rgba(255,80,84,0.08);' : ''}">
                   <span class="bet-chip-name">${b.username || 'Anónimo'}${esEmpate ? ' <span style="color:var(--red);font-size:10px;">EMPATE</span>' : ''}</span>
                   <span class="bet-chip-score" style="${esEmpate ? 'color:var(--red);' : ''}">${b.homeScore ?? '?'} — ${b.awayScore ?? '?'}</span>
+                  <div class="bet-actions">
+                    <button class="bet-action-btn edit" title="Editar apuesta"
+                      onclick="abrirEditModal('${id}','${betKey}','${(b.username||'').replace(/'/g,"\\'")}',${b.homeScore??0},${b.awayScore??0},'${homeName.replace(/'/g,"\\'")}','${awayName.replace(/'/g,"\\'")}')">✏️</button>
+                    <button class="bet-action-btn del" title="Eliminar apuesta"
+                      onclick="borrarApuesta('${id}','${betKey}','${(b.username||'').replace(/'/g,"\\'")}')">🗑️</button>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Control · Quiniela Mundial 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090d;
+    --surface: #0d1117;
+    --card: #131920;
+    --card2: #171e28;
+    --border: #1e2840;
+    --border2: #283450;
+    --green: #00d97e;
+    --green-dim: rgba(0,217,126,0.1);
+    --gold: #f5b942;
+    --gold-dim: rgba(245,185,66,0.1);
+    --red: #ff5054;
+    --red-dim: rgba(255,80,84,0.1);
+    --blue: #4da8ff;
+    --text: #dde4f0;
+    --text2: #6b7a94;
+    --text3: #3a4460;
+    --mono: 'Courier New', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── TOPBAR ─────────────────────────────── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-brand .accent { color: var(--gold); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  /* ─── PUBLISH BUTTON ─────────────────────── */
+  .btn-publish {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: filter 0.15s, opacity 0.15s;
+    position: relative;
+  }
+  .btn-publish:hover { filter: brightness(1.1); }
+  .btn-publish:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-publish .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-publish.loading .spinner { display: block; }
+  .btn-publish.loading .btn-text { display: none; }
+
+  .tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
+  .tooltip-icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--border2);
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    cursor: default;
+    user-select: none;
+  }
+  .tooltip-icon:hover + .tooltip-box,
+  .tooltip-icon:focus + .tooltip-box { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .tooltip-box {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: all 0.15s;
+    z-index: 200;
+  }
+
+  /* ─── TOAST ──────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 24px;
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.16,1,.3,1);
+    z-index: 999;
+    max-width: 300px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--green); }
+  #toast.error { border-color: var(--red); }
+  #toast .toast-icon { font-size: 16px; }
+
+  /* ─── VALIDATE BAR ───────────────────────── */
+  #validate-bar {
+    background: var(--gold-dim);
+    border-bottom: 1px solid var(--gold);
+    padding: 10px 24px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #validate-bar.visible { display: flex; }
+  .validate-msg { font-size: 13px; color: var(--gold); font-weight: 500; }
+  .validate-actions { display: flex; gap: 8px; }
+  .btn-validate {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-cancel-validate {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-cancel-validate:hover { color: var(--text); border-color: var(--text2); }
+
+  /* ─── SUMMARY BAR ────────────────────────── */
+  .summary-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    gap: 24px;
+  }
+  .summary-stat { display: flex; flex-direction: column; gap: 2px; }
+  .summary-stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+  .summary-stat-val.green { color: var(--green); }
+  .summary-stat-val.gold { color: var(--gold); }
+  .summary-stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ─── MAIN ───────────────────────────────── */
+  .main { padding: 20px 24px 60px; max-width: 900px; margin: 0 auto; }
+
+  .sort-hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sort-hint::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: inline-block;
+  }
+
+  /* ─── ACCORDION CARD ─────────────────────── */
+  .match-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .match-card.published { border-color: rgba(0,217,126,0.3); }
+  .match-card.pending { border-color: var(--border); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+  }
+  .card-header:hover { background: var(--card2); }
+
+  .card-header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .card-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-bets-count {
+    font-size: 11px;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+
+  .card-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .status-pill .dot { width: 5px; height: 5px; border-radius: 50%; }
+  .status-pill.si { background: var(--green-dim); color: var(--green); }
+  .status-pill.si .dot { background: var(--green); }
+  .status-pill.no { background: rgba(106,116,140,0.1); color: var(--text2); }
+  .status-pill.no .dot { background: var(--text3); }
+  .status-pill.pending-change { background: var(--gold-dim); color: var(--gold); }
+  .status-pill.pending-change .dot { background: var(--gold); }
+
+  .chevron {
+    width: 16px; height: 16px;
+    color: var(--text3);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .match-card.open .chevron { transform: rotate(180deg); }
+
+  /* ─── CARD BODY ──────────────────────────── */
+  .card-body {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 16px;
+    animation: slideDown 0.15s ease;
+  }
+  .match-card.open .card-body { display: block; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  /* ─── SCORE EDITOR ───────────────────────── */
+  .editor-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .editor-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .score-editor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .score-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .score-stepper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .stepper-btn {
+    width: 28px; height: 20px;
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s;
+    line-height: 1;
+    font-family: 'Inter', sans-serif;
+  }
+  .stepper-btn:hover { background: var(--border2); color: var(--text); }
+  .score-digit {
+    width: 52px; height: 52px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .score-digit::-webkit-inner-spin-button,
+  .score-digit::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .score-digit:focus { outline: none; border-color: var(--gold); }
+  .score-sep-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--text3);
+    padding-bottom: 28px;
+  }
+
+  .btn-save-score {
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+    align-self: flex-end;
+    margin-bottom: 2px;
+  }
+  .btn-save-score:hover { border-color: var(--green); color: var(--green); }
+
+  /* ─── STATUS TOGGLE ──────────────────────── */
+  .status-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    flex-wrap: wrap;
+  }
+  .status-label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex: 1;
+    min-width: 100px;
+  }
+  .status-label span { color: var(--text3); font-size: 10px; display: block; margin-top: 2px; }
+  .toggle-btns { display: flex; gap: 6px; }
+  .toggle-btn {
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px;
+  }
+  .toggle-btn.si-btn { color: var(--text2); }
+  .toggle-btn.si-btn:hover { border-color: var(--green); color: var(--green); }
+  .toggle-btn.si-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .toggle-btn.no-btn { color: var(--text2); }
+  .toggle-btn.no-btn:hover { border-color: var(--red); color: var(--red); }
+  .toggle-btn.no-btn.active { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+  .tooltip-wrap2 { position: relative; display: inline-flex; }
+  .tooltip-wrap2:hover .tooltip-box2 { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .tooltip-icon2 {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text3);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: default;
+  }
+  .tooltip-box2 {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    width: 200px;
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.15s;
+    z-index: 200;
+    white-space: normal;
+  }
+
+  /* ─── BETS GRID ──────────────────────────── */
+  .bets-section { border-top: 1px solid var(--border); padding-top: 14px; }
+  .bets-section-title {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+  .bets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .bet-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    position: relative;
+  }
+  .bet-chip:hover .bet-actions { opacity: 1; }
+  .bet-actions {
+    position: absolute; top: 4px; right: 4px;
+    display: flex; gap: 3px; opacity: 0;
+    transition: opacity .15s;
+  }
+  .bet-action-btn {
+    width: 20px; height: 20px; border-radius: 4px; border: none;
+    cursor: pointer; font-size: 10px; display: flex; align-items: center;
+    justify-content: center; transition: all .15s; line-height: 1;
+  }
+  .bet-action-btn.del { background: rgba(255,80,84,0.2); color: var(--red); }
+  .bet-action-btn.del:hover { background: var(--red); color: white; }
+  .bet-action-btn.edit { background: rgba(77,168,255,0.15); color: var(--blue); }
+  .bet-action-btn.edit:hover { background: var(--blue); color: white; }
+
+  /* MODAL EDICIÓN */
+  .edit-modal-bg {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.8); align-items: center; justify-content: center;
+  }
+  .edit-modal-bg.show { display: flex; }
+  .edit-modal {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 24px; width: 320px;
+    animation: fadeInModal .2s ease;
+  }
+  @keyframes fadeInModal { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
+  .edit-modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px; }
+  .edit-modal-sub { font-size: 12px; color: var(--text2); margin-bottom: 18px; }
+  .edit-field { margin-bottom: 14px; }
+  .edit-field label { display: block; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
+  .edit-field input {
+    width: 100%; padding: 9px 12px; background: var(--card2);
+    border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+  .edit-field input:focus { border-color: var(--gold); }
+  .edit-score-row { display: flex; gap: 10px; }
+  .edit-score-row .edit-field { flex: 1; }
+  .edit-modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+  .edit-modal-btns button {
+    flex: 1; padding: 10px; border-radius: 8px; border: none;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1rem;
+    letter-spacing: 1px; cursor: pointer; transition: filter .15s;
+  }
+  .btn-edit-save { background: var(--gold); color: #000; }
+  .btn-edit-save:hover { filter: brightness(1.1); }
+  .btn-edit-cancel { background: transparent; color: var(--text2); border: 1px solid var(--border) !important; }
+  .btn-edit-cancel:hover { color: var(--text); border-color: var(--border2) !important; }
+  .bet-chip-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bet-chip-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--blue);
+    letter-spacing: 1px;
+  }
+
+  /* ─── LOADING ────────────────────────────── */
+  .loading-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 60px 24px;
+    color: var(--text3);
+  }
+  .spinner-big {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 0 14px; }
+    .main { padding: 14px 14px 60px; }
+    .summary-bar { gap: 16px; padding: 12px 14px; }
+    .editor-row { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── TOPBAR ──────────────────────────────────── -->
+<div class="topbar">
+  <div class="topbar-brand">⚙ PANEL <span class="accent">CONTROL</span></div>
+  <div class="topbar-right">
+    <div class="tooltip-wrap">
+      <div class="tooltip-icon" tabindex="0">i</div>
+      <div class="tooltip-box">
+        <strong style="color:var(--gold)">Publicar Ranking</strong><br>
+        Dispara una actualización global en Firebase que hace que el ranking se recalcule para todos los usuarios conectados en tiempo real.
+      </div>
+    </div>
+    <button class="btn-publish" id="btn-publish" onclick="publicarRanking()">
+      <div class="spinner"></div>
+      <span class="btn-text">🚀 PUBLICAR RANKING</span>
+    </button>
+  </div>
+</div>
+
+<!-- ─── VALIDATE BAR ────────────────────────────── -->
+<div id="validate-bar">
+  <div class="validate-msg" id="validate-msg">⚠ Cambios pendientes de confirmar</div>
+  <div class="validate-actions">
+    <button class="btn-cancel-validate" onclick="cancelarPendientes()">Cancelar</button>
+    <button class="btn-validate" onclick="validarCambios()">✓ Confirmar cambios</button>
+  </div>
+</div>
+
+<!-- ─── SUMMARY ──────────────────────────────────── -->
+<div class="summary-bar">
+  <div class="summary-stat">
+    <div class="summary-stat-val" id="stat-total">—</div>
+    <div class="summary-stat-label">Partidos</div>
+  </div>
+  <div class="summary-stat">
+    <div class="summary-stat-val green" id="stat-pub">—</div>
+    <div class="summary-stat-label">Publicados</div>
+  </div>
+  <div class="summary-stat">
+    <div class="summary-stat-val gold" id="stat-pend">—</div>
+    <div class="summary-stat-label">Pendientes</div>
+  </div>
+  <div class="summary-stat">
+    <div class="summary-stat-val" style="color:var(--blue)" id="stat-bets">—</div>
+    <div class="summary-stat-label">Total apuestas</div>
+  </div>
+</div>
+
+<!-- ─── MAIN ─────────────────────────────────────── -->
+<div class="main">
+  <div class="sort-hint">Pendientes primero · Publicados al final</div>
+  <div id="match-container">
+    <div class="loading-wrap">
+      <div class="spinner-big"></div>
+      <span style="font-size:13px">Conectando a Firebase…</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST ─────────────────────────────────────── -->
+<div id="toast">
+  <span class="toast-icon" id="toast-icon"></span>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- MODAL EDICIÓN DE APUESTA -->
+<div class="edit-modal-bg" id="edit-modal-bg">
+  <div class="edit-modal">
+    <h3>✏️ Editar Apuesta</h3>
+    <div class="edit-modal-sub" id="edit-modal-sub">—</div>
+    <div class="edit-field">
+      <label>Nick del usuario</label>
+      <input type="text" id="edit-nick" placeholder="Nombre de usuario">
+    </div>
+    <div class="edit-score-row">
+      <div class="edit-field">
+        <label id="edit-label-home">Local</label>
+        <input type="number" id="edit-home" min="0" max="20" value="0">
+      </div>
+      <div class="edit-field">
+        <label id="edit-label-away">Visitante</label>
+        <input type="number" id="edit-away" min="0" max="20" value="0">
+      </div>
+    </div>
+    <div class="edit-modal-btns">
+      <button class="btn-edit-cancel" onclick="cerrarEditModal()">Cancelar</button>
+      <button class="btn-edit-save" onclick="guardarEdicion()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  /* ── Firebase (conexión intacta) ── */
+  const db = getDatabase(initializeApp({
+    databaseURL: "https://submanhwa-apuestas-default-rtdb.firebaseio.com"
+  }));
+
+  /* ── Estado global ── */
+  let bets = {};
+  let scores = {};
+  let pendingChanges = {}; // { matchId: 'SI' | 'NO' }
+
+  /* ── Listeners Firebase (onValue intactos) ── */
+  onValue(ref(db, "bets"),   (snap) => { bets   = snap.val() || {}; render(); });
+  onValue(ref(db, "scores"), (snap) => { scores = snap.val() || {}; render(); });
+
+  /* ═══════════════════════════════════════════════
+     FUNCIONES DE FIREBASE (SIN CAMBIOS DE LÓGICA)
+  ═══════════════════════════════════════════════ */
+
+  /* Guarda marcador — estructura { home, away, status, updatedAt } */
+  window.guardarScore = (id) => {
+    const home = Number(document.getElementById(`h-${id}`).value);
+    const away = Number(document.getElementById(`a-${id}`).value);
+    const currentStatus = scores[id] ? scores[id].status : 'NO';
+    update(ref(db, `scores/${id}`), {
+      home,
+      away,
+      status: currentStatus,
+      updatedAt: Date.now()
+    }).then(() => showToast('✅', 'Marcador guardado', 'success'))
+      .catch(() => showToast('❌', 'Error al guardar', 'error'));
+  };
+
+  /* Publicar ranking — actualiza raíz para disparar evento global */
+  window.publicarRanking = () => {
+    const btn = document.getElementById("btn-publish");
+    btn.disabled = true;
+    btn.classList.add("loading");
+    update(ref(db), { lastUpdate: Date.now() })
+      .then(() => {
+        showToast('🚀', 'Ranking publicado para todos', 'success');
+      })
+      .catch((err) => {
+        showToast('❌', 'Error al publicar', 'error');
+        console.error(err);
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.classList.remove("loading");
+      });
+  };
+
+  /* ═══════════════════════════════════════════════
+     SISTEMA DE VALIDACIÓN (NUEVO — no toca Firebase
+     hasta que el usuario confirme)
+  ═══════════════════════════════════════════════ */
+
+  window.marcarPendiente = (id, nuevoStatus) => {
+    pendingChanges[id] = nuevoStatus;
+    actualizarValidateBar();
+    render(); // refleja estado pendiente en UI sin escribir en Firebase
+  };
+
+  window.validarCambios = () => {
+    const ids = Object.keys(pendingChanges);
+    if (ids.length === 0) return;
+
+    const promises = ids.map(id => {
+      const nuevoStatus = pendingChanges[id];
+      const current = scores[id] || {};
+      /* Estructura de datos intacta: { home, away, status, updatedAt } */
+      return update(ref(db, `scores/${id}`), {
+        home: current.home ?? 0,
+        away: current.away ?? 0,
+        status: nuevoStatus,
+        updatedAt: Date.now()
+      });
+    });
+
+    Promise.all(promises)
+      .then(() => {
+        pendingChanges = {};
+        actualizarValidateBar();
+        showToast('✅', `${ids.length} partido(s) actualizado(s)`, 'success');
+      })
+      .catch(() => showToast('❌', 'Error al confirmar cambios', 'error'));
+  };
+
+  window.cancelarPendientes = () => {
+    pendingChanges = {};
+    actualizarValidateBar();
+    render();
+  };
+
+  function actualizarValidateBar() {
+    const bar = document.getElementById("validate-bar");
+    const msg = document.getElementById("validate-msg");
+    const count = Object.keys(pendingChanges).length;
+    if (count > 0) {
+      bar.classList.add("visible");
+      msg.textContent = `⚠ ${count} cambio(s) pendiente(s) de confirmar`;
+    } else {
+      bar.classList.remove("visible");
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     STEPPER (+ / -)
+  ═══════════════════════════════════════════════ */
+  window.stepScore = (id, team, delta) => {
+    const input = document.getElementById(`${team}-${id}`);
+    const newVal = Math.max(0, Math.min(20, (Number(input.value) || 0) + delta));
+    input.value = newVal;
+  };
+
+  /* ═══════════════════════════════════════════════
+     ACORDEÓN
+  ═══════════════════════════════════════════════ */
+  window.toggleCard = (id) => {
+    const card = document.getElementById(`card-${id}`);
+    if (!card) return;
+    card.classList.toggle("open");
+  };
+
+  /* ═══════════════════════════════════════════════
+     TOAST
+  ═══════════════════════════════════════════════ */
+  function showToast(icon, msg, type = 'success') {
+    const toast = document.getElementById("toast");
+    document.getElementById("toast-icon").textContent = icon;
+    document.getElementById("toast-msg").textContent = msg;
+    toast.className = `show ${type}`;
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => { toast.className = ""; }, 3000);
+  }
+
+  /* ═══════════════════════════════════════════════
+     BORRAR APUESTA INDIVIDUAL
+  ═══════════════════════════════════════════════ */
+  window.borrarApuesta = (matchId, betKey, nick) => {
+    if (!confirm(`¿Eliminar la apuesta de "${nick}"?\nEsta acción no se puede deshacer.`)) return;
+    remove(ref(db, `bets/${matchId}/${betKey}`))
+      .then(() => showToast('🗑️', `Apuesta de ${nick} eliminada`, 'success'))
+      .catch(() => showToast('❌', 'Error al eliminar', 'error'));
+  };
+
+  /* ═══════════════════════════════════════════════
+     EDITAR APUESTA INDIVIDUAL
+  ═══════════════════════════════════════════════ */
+  let editState = { matchId: null, betKey: null };
+
+  window.abrirEditModal = (matchId, betKey, nick, home, away, homeName, awayName) => {
+    editState = { matchId, betKey };
+    document.getElementById("edit-modal-sub").textContent = `${homeName} vs ${awayName}`;
+    document.getElementById("edit-label-home").textContent = homeName;
+    document.getElementById("edit-label-away").textContent = awayName;
+    document.getElementById("edit-nick").value = nick;
+    document.getElementById("edit-home").value = home;
+    document.getElementById("edit-away").value = away;
+    document.getElementById("edit-modal-bg").classList.add("show");
+  };
+
+  window.cerrarEditModal = () => {
+    document.getElementById("edit-modal-bg").classList.remove("show");
+    editState = { matchId: null, betKey: null };
+  };
+
+  window.guardarEdicion = () => {
+    const { matchId, betKey } = editState;
+    if (!matchId || !betKey) return;
+    const nick = document.getElementById("edit-nick").value.trim();
+    const home = Number(document.getElementById("edit-home").value);
+    const away = Number(document.getElementById("edit-away").value);
+    if (!nick) { showToast('⚠️', 'El nick no puede estar vacío', 'error'); return; }
+    update(ref(db, `bets/${matchId}/${betKey}`), {
+      username: nick, homeScore: home, awayScore: away, updatedAt: Date.now()
+    }).then(() => {
+      showToast('✅', `Apuesta de ${nick} actualizada`, 'success');
+      cerrarEditModal();
+    }).catch(() => showToast('❌', 'Error al guardar', 'error'));
+  };
+
+  // Cerrar modal al hacer click fuera
+  document.getElementById("edit-modal-bg").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("edit-modal-bg")) cerrarEditModal();
+  });
+
+  /* ═══════════════════════════════════════════════
+     LIMPIAR APUESTAS DE EMPATE
+  ═══════════════════════════════════════════════ */
+  window.limpiarEmpates = (id) => {
+    const betList = Object.entries(bets[id] || {});
+    const empates = betList.filter(([, b]) => Number(b.homeScore) === Number(b.awayScore));
+
+    if (empates.length === 0) {
+      showToast('ℹ️', 'No hay apuestas de empate en este partido', 'success');
+      return;
+    }
+
+    const nombres = empates.map(([, b]) => b.username).join(', ');
+    const ok = confirm(`⚠️ Vas a eliminar ${empates.length} apuesta(s) de empate:\n\n${nombres}\n\n¿Confirmar? Estas personas podrán volver a apostar.`);
+    if (!ok) return;
+
+    const promises = empates.map(([key]) => remove(ref(db, `bets/${id}/${key}`)));
+    Promise.all(promises)
+      .then(() => showToast('🗑️', `${empates.length} apuesta(s) de empate eliminadas`, 'success'))
+      .catch(() => showToast('❌', 'Error al eliminar', 'error'));
+  };
+
+  /* ═══════════════════════════════════════════════
+     RENDER PRINCIPAL
+  ═══════════════════════════════════════════════ */
+  function render() {
+    const container = document.getElementById("match-container");
+
+    /* Ordenamiento: pendientes primero, publicados abajo */
+    const ids = Object.keys(bets).sort((a, b) => {
+      const sa = pendingChanges[a] ?? (scores[a] ? scores[a].status : 'NO');
+      const sb = pendingChanges[b] ?? (scores[b] ? scores[b].status : 'NO');
+      if (sa === 'SI' && sb !== 'SI') return 1;
+      if (sb === 'SI' && sa !== 'SI') return -1;
+      return a.localeCompare(b);
+    });
+
+    /* Stats summary */
+    let totalBets = 0;
+    ids.forEach(id => { totalBets += Object.values(bets[id] || {}).length; });
+    const pub = ids.filter(id => (scores[id] || {}).status === 'SI').length;
+    document.getElementById("stat-total").textContent = ids.length;
+    document.getElementById("stat-pub").textContent = pub;
+    document.getElementById("stat-pend").textContent = ids.length - pub;
+    document.getElementById("stat-bets").textContent = totalBets;
+
+    /* Recuerda qué cards estaban abiertas */
+    const openIds = new Set();
+    document.querySelectorAll(".match-card.open").forEach(el => openIds.add(el.id.replace("card-", "")));
+
+    container.innerHTML = "";
+
+    ids.forEach(id => {
+      const s = scores[id] || { home: 0, away: 0, status: 'NO' };
+      const betList = Object.values(bets[id] || {});
+      const first = betList[0] || {};
+
+      const effectiveStatus = pendingChanges[id] ?? s.status;
+      const hasPending = pendingChanges[id] !== undefined && pendingChanges[id] !== s.status;
+      const isPublished = effectiveStatus === 'SI';
+      const isOpen = openIds.has(id);
+
+      /* Pill de estado */
+      let pillClass, pillDot, pillText;
+      if (hasPending) {
+        pillClass = "pending-change"; pillText = pendingChanges[id] === 'SI' ? "→ Publicar" : "→ Despublicar";
+      } else if (isPublished) {
+        pillClass = "si"; pillText = "Publicado";
+      } else {
+        pillClass = "no"; pillText = "Pendiente";
+      }
+
+      const card = document.createElement("div");
+      card.id = `card-${id}`;
+      card.className = `match-card ${isPublished ? 'published' : 'pending'} ${isOpen ? 'open' : ''}`;
+
+      card.innerHTML = `
+        <div class="card-header" onclick="toggleCard('${id}')">
+          <div class="card-header-left">
+            <span class="card-id">${id}</span>
+            <span class="card-title">${first.home || '?'} vs ${first.away || '?'}</span>
+            <span class="card-bets-count">${betList.length} apuesta${betList.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="card-header-right">
+            <span class="status-pill ${pillClass}">
+              <span class="dot"></span>${pillText}
+            </span>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          <!-- Marcador -->
+          <div class="editor-row">
+            <div>
+              <div class="editor-label">Marcador oficial</div>
+              <div class="score-editor">
+                <div class="score-input-group">
+                  <div class="score-stepper">
+                    <button class="stepper-btn" onclick="stepScore('${id}','h',1)">▲</button>
+                    <input class="score-digit" type="number" id="h-${id}" value="${s.home ?? 0}" min="0" max="20">
+                    <button class="stepper-btn" onclick="stepScore('${id}','h',-1)">▼</button>
+                  </div>
+                </div>
+                <div class="score-sep-big">—</div>
+                <div class="score-input-group">
+                  <div class="score-stepper">
+                    <button class="stepper-btn" onclick="stepScore('${id}','a',1)">▲</button>
+                    <input class="score-digit" type="number" id="a-${id}" value="${s.away ?? 0}" min="0" max="20">
+                    <button class="stepper-btn" onclick="stepScore('${id}','a',-1)">▼</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tooltip-wrap2" style="align-self:flex-end; margin-bottom:4px;">
+              <div class="tooltip-icon2">i</div>
+              <div class="tooltip-box2">Guarda el marcador en Firebase. No cambia el estado de publicación del partido.</div>
+            </div>
+            <button class="btn-save-score" onclick="guardarScore('${id}')">
+              💾 Guardar marcador
+            </button>
+          </div>
+
+          <!-- Estado publicación -->
+          <div class="status-section">
+            <div class="status-label">
+              Estado de publicación
+              <span>Activa 'SÍ' para que el ranking lo compute</span>
+            </div>
+            <div class="tooltip-wrap2">
+              <div class="tooltip-icon2">i</div>
+              <div class="tooltip-box2">Al marcar SÍ, el ranking incluye este partido en el cálculo. Los cambios requieren confirmación antes de guardarse.</div>
+            </div>
+            <div class="toggle-btns">
+              <button
+                class="toggle-btn si-btn ${effectiveStatus === 'SI' ? 'active' : ''}"
+                onclick="marcarPendiente('${id}', 'SI')">✓ SÍ</button>
+              <button
+                class="toggle-btn no-btn ${effectiveStatus !== 'SI' ? 'active' : ''}"
+                onclick="marcarPendiente('${id}', 'NO')">✗ NO</button>
+            </div>
+          </div>
+
+          <!-- Apuestas -->
+          <div class="bets-section">
+            <div class="bets-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>${betList.length} apuesta${betList.length !== 1 ? 's' : ''} registrada${betList.length !== 1 ? 's' : ''}</span>
+              ${betList.filter(b => Number(b.homeScore) === Number(b.awayScore)).length > 0 ? `
+                <button onclick="limpiarEmpates('${id}')" style="background:rgba(255,80,84,0.15); border:1px solid var(--red); color:var(--red); padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; letter-spacing:0.5px;">
+                  🗑️ Limpiar empates (${betList.filter(b => Number(b.homeScore) === Number(b.awayScore)).length})
+                </button>
+              ` : ''}
+            </div>
+            <div class="bets-grid">
+              ${Object.entries(bets[id] || {}).map(([betKey, b]) => {
+                const esEmpate = Number(b.homeScore) === Number(b.awayScore);
+                const homeName = first.home || '?';
+                const awayName = first.away || '?';
+                return `
+                <div class="bet-chip" style="${esEmpate ? 'border:1px solid var(--red); background:rgba(255,80,84,0.08);' : ''}">
+                  <span class="bet-chip-name">${b.username || 'Anónimo'}${esEmpate ? ' <span style="color:var(--red);font-size:10px;">EMPATE</span>' : ''}</span>
+                  <span class="bet-chip-score" style="${esEmpate ? 'color:var(--red);' : ''}">${b.homeScore ?? '?'} — ${b.awayScore ?? '?'}</span>
+                  <div class="bet-actions">
+                    <button class="bet-action-btn edit" title="Editar apuesta"
+                      onclick="abrirEditModal('${id}','${betKey}','${(b.username||'').replace(/'/g,"\\'")}',${b.homeScore??0},${b.awayScore??0},'${homeName.replace(/'/g,"\\'")}','${awayName.replace(/'/g,"\\'")}')">✏️</button>
+                    <button class="bet-action-btn del" title="Eliminar apuesta"
+                      onclick="borrarApuesta('${id}','${betKey}','${(b.username||'').replace(/'/g,"\\'")}')">🗑️</button>
+                  </div>
                 </div>`;
               }).join('')}
             </div>
