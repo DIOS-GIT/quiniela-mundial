@@ -197,6 +197,39 @@
   .msg { font-size: 0.85rem; font-weight: 700; text-align: center; margin-top: 10px; min-height: 20px; }
   .msg.ok { color: var(--live); }
 
+  /* Primer goleador */
+  .goleador-zone {
+    background: #090d14;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .goleador-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .goleador-input {
+    width: 100%;
+    padding: 12px;
+    background: #171e2e;
+    border: 1px solid var(--line);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 10px;
+    outline: none;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .goleador-input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(245,185,66,0.2); }
+
   @keyframes pulse {
     0% { opacity: 0.6; }
     50% { opacity: 1; }
@@ -243,6 +276,7 @@
 </div>
 
 <script src="matches-config.js?v=2.5"></script>
+<script src="players-wc2026.js?v=1.0"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -252,6 +286,19 @@
   
   window.uiStatuses = {};
   let currentFirebaseData = {};
+
+  // Normaliza (sin tildes, minúsculas) para comparar nombres de equipo con WC2026_SQUADS
+  const norm = s => (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+  function jugadoresDelPartido(homeName, awayName) {
+    if (typeof WC2026_SQUADS === "undefined") return [];
+    const homeKey = Object.keys(WC2026_SQUADS).find(k => norm(k) === norm(homeName));
+    const awayKey = Object.keys(WC2026_SQUADS).find(k => norm(k) === norm(awayName));
+    const jugadores = [];
+    if (homeKey) (WC2026_SQUADS[homeKey] || []).forEach(p => jugadores.push(p));
+    if (awayKey) (WC2026_SQUADS[awayKey] || []).forEach(p => jugadores.push(p));
+    return jugadores;
+  }
 
   // Escuchamos en tiempo real para pintar las tarjetas con sus datos actuales
   onValue(ref(db, "scores"), (snapshot) => {
@@ -330,6 +377,11 @@
       else if (btnA && btnA.getAttribute("data-selected")) saveData.penalesGanador = "away";
     }
 
+    // Guardar primer goleador si el admin lo especificó (usado por el extractor para premiar aciertos)
+    const goleadorInput = document.getElementById(`goleador-${matchId}`);
+    const goleadorVal = goleadorInput ? goleadorInput.value.trim() : "";
+    if (goleadorVal) saveData.primerGoleador = goleadorVal;
+
     await set(ref(db, `scores/${matchId}`), saveData);
     
     msgEl.className = "msg ok"; 
@@ -358,6 +410,7 @@
           ...m,
           fbHome: fbState.home !== undefined ? fbState.home : "",
           fbAway: fbState.away !== undefined ? fbState.away : "",
+          fbGoleador: fbState.primerGoleador || "",
           statusInterno: currentStatus
         });
       });
@@ -423,6 +476,22 @@
             </div>
           </div>
           
+          <div class="goleador-zone">
+            <div class="goleador-label">⚽ Primer goleador (opcional)</div>
+            <input
+              class="goleador-input"
+              type="text"
+              id="goleador-${m.id}"
+              list="goleador-list-${m.id}"
+              value="${(m.fbGoleador || '').replace(/"/g, '&quot;')}"
+              placeholder="Buscar o escribir jugador..."
+              autocomplete="off"
+            >
+            <datalist id="goleador-list-${m.id}">
+              ${jugadoresDelPartido(m.home.name, m.away.name).map(p => `<option value="${p.replace(/"/g, '&quot;')}">`).join('')}
+            </datalist>
+          </div>
+
           <button class="btn-save" onclick="saveMatch('${m.id}')">💾 Actualizar Datos</button>
           <div id="msg-${m.id}" class="msg"></div>
         </div>
