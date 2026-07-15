@@ -1,6 +1,6 @@
 // CONFIGURACIÓN PARA EL CIERRE DEL MUNDIAL: TERCER LUGAR Y GRAN FINAL
 const GROUPS = {
-  "Fase Final": [
+  "Grupo Fase Final": [ // <-- AGREGADO "Grupo" al inicio para que coincida con tu botón
     {
       id: "2026_3er_fr_in",
       groupName: "Tercer Lugar",
