@@ -1,22 +1,22 @@
-// CONFIGURACIÓN PARA SEMIFINALES
+// CONFIGURACIÓN PARA EL CIERRE DEL MUNDIAL: TERCER LUGAR Y GRAN FINAL
 const GROUPS = {
-  "Semifinales": [
+  "Fase Final": [
     {
-      id: "2026_sf_1_fr_es",
-      groupName: "Semifinales",
-      date: "Mar, 14/7 · 2:00 p. m.",
-      closeTime: "2026-07-14T14:00:00-05:00", // Hora Colombia
+      id: "2026_3er_fr_in",
+      groupName: "Tercer Lugar",
+      date: "Sáb, 18/7 · 4:00 p. m.",
+      closeTime: "2026-07-18T16:00:00-05:00", // Hora Colombia
       cardsInPlay: 2,
       home: { name: "Francia", flag: "🇫🇷", card: "MITICO-francia.jpg" },
-      away: { name: "España", flag: "🇪🇸", card: "MITICO-espana.jpg" }
+      away: { name: "Inglaterra", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", card: "MITICO-inglaterra.jpg" }
     },
     {
-      id: "2026_sf_2_in_ar",
-      groupName: "Semifinales",
-      date: "Mié, 15/7 · 2:00 p. m.",
-      closeTime: "2026-07-15T14:00:00-05:00", // Hora Colombia
+      id: "2026_final_es_ar",
+      groupName: "Gran Final",
+      date: "Dom, 19/7 · 2:00 p. m.",
+      closeTime: "2026-07-19T14:00:00-05:00", // Hora Colombia
       cardsInPlay: 2,
-      home: { name: "Inglaterra", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", card: "MITICO-inglaterra.jpg" },
+      home: { name: "España", flag: "🇪🇸", card: "MITICO-espana.jpg" },
       away: { name: "Argentina", flag: "🇦🇷", card: "MITICO-argentina.jpg" }
     }
   ]
