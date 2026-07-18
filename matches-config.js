@@ -16,8 +16,8 @@ const GROUPS = {
       date: "Dom, 19/7 · 2:00 p. m.",
       closeTime: "2026-07-19T14:00:00-05:00", // Hora Colombia
       cardsInPlay: 2,
-      home: { name: "España", flag: "🇪🇸", card: "MITICO-espana.jpg" },
-      away: { name: "Argentina", flag: "🇦🇷", card: "MITICO-argentina.jpg" }
+      home: { name: "España", flag: "🇪🇸", card: "MITICO-espanafinal.jpg" },
+      away: { name: "Argentina", flag: "🇦🇷", card: "MITICO-argentinafinal1.jpg" }
     }
   ]
 };
